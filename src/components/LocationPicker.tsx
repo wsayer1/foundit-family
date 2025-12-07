@@ -111,7 +111,7 @@ export function LocationPicker({
         source: 'radius',
         paint: {
           'fill-color': '#10b981',
-          'fill-opacity': 0.1
+          'fill-opacity': 0.05
         }
       });
 
@@ -121,8 +121,8 @@ export function LocationPicker({
         source: 'radius',
         paint: {
           'line-color': '#10b981',
-          'line-width': 2,
-          'line-dasharray': [2, 2]
+          'line-width': 1.5,
+          'line-opacity': 0.4
         }
       });
 
@@ -258,10 +258,13 @@ export function LocationPicker({
   return (
     <div className="fixed inset-0 bg-stone-900 flex flex-col overflow-hidden">
       <div
-        className="absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-black/60 via-black/30 to-transparent px-4 h-20 flex items-start pt-3 gap-4"
-        style={getHeaderStyles()}
+        className="absolute top-0 left-0 right-0 z-40 px-4 pt-3 pb-16 flex items-start gap-4"
+        style={{
+          ...getHeaderStyles(),
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
+        }}
       >
-        <button onClick={onBack} className="p-2 -ml-2 text-white">
+        <button onClick={onBack} className="p-2 -ml-2 text-white hover:bg-white/10 rounded-full transition-colors">
           <ArrowLeft size={24} />
         </button>
         <h1 className="font-semibold text-white pt-2">Adjust location</h1>
@@ -276,54 +279,31 @@ export function LocationPicker({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'radial-gradient(circle at center, transparent 0%, transparent 35%, rgba(0,0,0,0.15) 35.5%, rgba(0,0,0,0.4) 100%)',
-            backdropFilter: 'blur(0px)',
-          }}
-        />
-
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 10 }}>
-          <defs>
-            <mask id="spotlight-mask">
-              <rect width="100%" height="100%" fill="white" />
-              <circle cx="50%" cy="50%" r="min(35vw, 35vh)" fill="black" />
-            </mask>
-            <filter id="blur-grayscale">
-              <feGaussianBlur stdDeviation="3" />
-              <feColorMatrix type="saturate" values="0.15" />
-            </filter>
-          </defs>
-        </svg>
-
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backdropFilter: 'blur(4px) grayscale(85%)',
-            WebkitBackdropFilter: 'blur(4px) grayscale(85%)',
-            maskImage: 'radial-gradient(circle at center, transparent 0%, transparent 34%, black 36%)',
-            WebkitMaskImage: 'radial-gradient(circle at center, transparent 0%, transparent 34%, black 36%)',
+            backdropFilter: 'blur(6px) grayscale(90%) brightness(0.85)',
+            WebkitBackdropFilter: 'blur(6px) grayscale(90%) brightness(0.85)',
+            maskImage: 'radial-gradient(circle at center, transparent 0%, transparent 32%, rgba(0,0,0,0.5) 38%, black 45%)',
+            WebkitMaskImage: 'radial-gradient(circle at center, transparent 0%, transparent 32%, rgba(0,0,0,0.5) 38%, black 45%)',
             zIndex: 5,
           }}
         />
 
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white/40 pointer-events-none"
+          className="absolute inset-0 pointer-events-none"
           style={{
-            width: 'min(70vw, 70vh)',
-            height: 'min(70vw, 70vh)',
-            boxShadow: '0 0 0 1px rgba(255,255,255,0.1), inset 0 0 30px rgba(0,0,0,0.1)',
-            zIndex: 15,
+            background: 'radial-gradient(circle at center, transparent 0%, transparent 33%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.5) 100%)',
+            zIndex: 6,
           }}
         />
 
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-emerald-500 pointer-events-none"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-emerald-400 pointer-events-none"
           style={{
-            width: '88px',
-            height: '88px',
+            width: '96px',
+            height: '96px',
             opacity: animationPhase === 'complete' ? 1 : 0,
             transition: 'opacity 300ms ease-out',
             zIndex: 25,
-            boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)',
+            boxShadow: '0 0 0 4px rgba(16, 185, 129, 0.15), 0 4px 24px rgba(0,0,0,0.4)',
           }}
         />
 
@@ -337,27 +317,36 @@ export function LocationPicker({
             className="w-full h-full object-cover"
           />
         </div>
-
-        {animationPhase === 'complete' && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full z-40">
-            <p className="text-white/90 text-sm whitespace-nowrap">
-              Move the map to adjust location
-            </p>
-          </div>
-        )}
       </div>
 
       <div
-        className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/60 via-black/30 to-transparent pt-12"
-        style={getFooterStyles()}
+        className="absolute bottom-0 left-0 right-0 z-50"
+        style={{
+          ...getFooterStyles(),
+          background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 60%, transparent 100%)',
+          paddingTop: '3rem',
+        }}
       >
-        <button
-          onClick={() => onConfirm(pinLocation)}
-          className="w-full max-w-sm mx-auto bg-emerald-500 text-white py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors"
+        <p
+          className="text-white/70 text-sm text-center mb-4"
+          style={{
+            opacity: animationPhase === 'complete' ? 1 : 0,
+            transition: 'opacity 300ms ease-out 200ms',
+          }}
         >
-          <Check size={20} />
-          Confirm location
-        </button>
+          Move the map to adjust location
+        </p>
+        <div className="px-4 pb-8">
+          <button
+            onClick={() => onConfirm(pinLocation)}
+            className="w-full max-w-sm mx-auto block bg-emerald-500 text-white py-4 rounded-2xl font-semibold hover:bg-emerald-600 active:scale-[0.98] transition-all"
+          >
+            <span className="flex items-center justify-center gap-2">
+              <Check size={20} />
+              Confirm location
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );
