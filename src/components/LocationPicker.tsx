@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { ArrowLeft, Check, MapPin } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -12,6 +12,9 @@ interface LocationPickerProps {
 }
 
 const MAX_DISTANCE_METERS = 100;
+const ANIMATION_DURATION = 1200;
+
+type AnimationPhase = 'full' | 'shrinking' | 'complete';
 
 export function LocationPicker({
   imageData,
@@ -24,6 +27,8 @@ export function LocationPicker({
   const map = useRef<mapboxgl.Map | null>(null);
   const [pinLocation, setPinLocation] = useState(initialLocation);
   const [mapboxToken] = useState(() => import.meta.env.VITE_MAPBOX_TOKEN || '');
+  const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('full');
+  const [mapReady, setMapReady] = useState(false);
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
     const R = 6371e3;
@@ -35,7 +40,7 @@ export function LocationPicker({
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  const constrainToRadius = (lat: number, lng: number): { lat: number; lng: number } => {
+  const constrainToRadius = useCallback((lat: number, lng: number): { lat: number; lng: number } => {
     const distance = calculateDistance(userLocation.lat, userLocation.lng, lat, lng);
     if (distance <= MAX_DISTANCE_METERS) {
       return { lat, lng };
@@ -52,66 +57,7 @@ export function LocationPicker({
       lat: userLocation.lat + (MAX_DISTANCE_METERS * Math.cos(bearing)) / metersPerDegreeLat,
       lng: userLocation.lng + (MAX_DISTANCE_METERS * Math.sin(bearing)) / metersPerDegreeLng
     };
-  };
-
-  useEffect(() => {
-    if (!mapContainer.current || !mapboxToken) return;
-
-    mapboxgl.accessToken = mapboxToken;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [initialLocation.lng, initialLocation.lat],
-      zoom: 17,
-      attributionControl: false
-    });
-
-    map.current.on('load', () => {
-      if (!map.current) return;
-
-      map.current.addSource('radius', {
-        type: 'geojson',
-        data: createCircleGeoJSON(userLocation.lat, userLocation.lng, MAX_DISTANCE_METERS)
-      });
-
-      map.current.addLayer({
-        id: 'radius-fill',
-        type: 'fill',
-        source: 'radius',
-        paint: {
-          'fill-color': '#10b981',
-          'fill-opacity': 0.1
-        }
-      });
-
-      map.current.addLayer({
-        id: 'radius-line',
-        type: 'line',
-        source: 'radius',
-        paint: {
-          'line-color': '#10b981',
-          'line-width': 2,
-          'line-dasharray': [2, 2]
-        }
-      });
-    });
-
-    map.current.on('moveend', () => {
-      if (!map.current) return;
-      const center = map.current.getCenter();
-      const constrained = constrainToRadius(center.lat, center.lng);
-
-      if (constrained.lat !== center.lat || constrained.lng !== center.lng) {
-        map.current.setCenter([constrained.lng, constrained.lat]);
-      }
-      setPinLocation(constrained);
-    });
-
-    return () => {
-      map.current?.remove();
-    };
-  }, [mapboxToken]);
+  }, [userLocation.lat, userLocation.lng]);
 
   const createCircleGeoJSON = (lat: number, lng: number, radiusMeters: number) => {
     const points = 64;
@@ -136,6 +82,96 @@ export function LocationPicker({
       }
     };
   };
+
+  useEffect(() => {
+    if (!mapContainer.current || !mapboxToken) return;
+
+    mapboxgl.accessToken = mapboxToken;
+
+    const mapInstance = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [initialLocation.lng, initialLocation.lat],
+      zoom: 17,
+      attributionControl: false,
+      interactive: false
+    });
+
+    map.current = mapInstance;
+
+    mapInstance.on('load', () => {
+      mapInstance.addSource('radius', {
+        type: 'geojson',
+        data: createCircleGeoJSON(userLocation.lat, userLocation.lng, MAX_DISTANCE_METERS)
+      });
+
+      mapInstance.addLayer({
+        id: 'radius-fill',
+        type: 'fill',
+        source: 'radius',
+        paint: {
+          'fill-color': '#10b981',
+          'fill-opacity': 0.1
+        }
+      });
+
+      mapInstance.addLayer({
+        id: 'radius-line',
+        type: 'line',
+        source: 'radius',
+        paint: {
+          'line-color': '#10b981',
+          'line-width': 2,
+          'line-dasharray': [2, 2]
+        }
+      });
+
+      setMapReady(true);
+    });
+
+    mapInstance.on('moveend', () => {
+      const center = mapInstance.getCenter();
+      const constrained = constrainToRadius(center.lat, center.lng);
+
+      if (constrained.lat !== center.lat || constrained.lng !== center.lng) {
+        mapInstance.setCenter([constrained.lng, constrained.lat]);
+      }
+      setPinLocation(constrained);
+    });
+
+    return () => {
+      mapInstance.remove();
+    };
+  }, [mapboxToken, initialLocation.lat, initialLocation.lng, userLocation.lat, userLocation.lng, constrainToRadius]);
+
+  useEffect(() => {
+    if (!mapReady) return;
+
+    const timer = setTimeout(() => {
+      setAnimationPhase('shrinking');
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [mapReady]);
+
+  useEffect(() => {
+    if (animationPhase !== 'shrinking') return;
+
+    const timer = setTimeout(() => {
+      setAnimationPhase('complete');
+      if (map.current) {
+        map.current.boxZoom.enable();
+        map.current.scrollZoom.enable();
+        map.current.dragPan.enable();
+        map.current.dragRotate.enable();
+        map.current.keyboard.enable();
+        map.current.doubleClickZoom.enable();
+        map.current.touchZoomRotate.enable();
+      }
+    }, ANIMATION_DURATION);
+
+    return () => clearTimeout(timer);
+  }, [animationPhase]);
 
   if (!mapboxToken) {
     return (
@@ -164,50 +200,117 @@ export function LocationPicker({
     );
   }
 
+  const getPhotoStyles = (): React.CSSProperties => {
+    const baseTransition = `all ${ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+
+    switch (animationPhase) {
+      case 'full':
+        return {
+          position: 'fixed',
+          inset: 0,
+          width: '100vw',
+          height: '100vh',
+          borderRadius: '0',
+          zIndex: 50,
+          transition: baseTransition,
+        };
+      case 'shrinking':
+      case 'complete':
+        return {
+          position: 'absolute',
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 20,
+          transition: baseTransition,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+        };
+    }
+  };
+
+  const getMapContainerStyles = (): React.CSSProperties => {
+    const baseTransition = `opacity ${ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+
+    return {
+      opacity: animationPhase === 'full' ? 0 : 1,
+      transition: baseTransition,
+    };
+  };
+
+  const getHeaderStyles = (): React.CSSProperties => {
+    return {
+      opacity: animationPhase === 'complete' ? 1 : 0,
+      transition: `opacity 400ms ease-out`,
+    };
+  };
+
+  const getFooterStyles = (): React.CSSProperties => {
+    return {
+      opacity: animationPhase === 'complete' ? 1 : 0,
+      transform: animationPhase === 'complete' ? 'translateY(0)' : 'translateY(20px)',
+      transition: `opacity 400ms ease-out, transform 400ms ease-out`,
+    };
+  };
+
   return (
-    <div className="min-h-screen bg-stone-900 flex flex-col">
-      <div className="sticky top-0 z-40 bg-stone-900/90 backdrop-blur-lg px-4 h-14 flex items-center gap-4">
+    <div className="fixed inset-0 bg-stone-900 flex flex-col overflow-hidden">
+      <div
+        className="sticky top-0 z-40 bg-stone-900/90 backdrop-blur-lg px-4 h-14 flex items-center gap-4"
+        style={getHeaderStyles()}
+      >
         <button onClick={onBack} className="p-2 -ml-2 text-white">
           <ArrowLeft size={24} />
         </button>
         <h1 className="font-semibold text-white">Adjust location</h1>
       </div>
 
-      <div className="p-4">
-        <div className="rounded-2xl overflow-hidden shadow-xl">
-          <img
-            src={imageData}
-            alt="Captured item"
-            className="w-full aspect-video object-cover"
-          />
-        </div>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="relative">
+      <div className="flex-1 relative flex items-center justify-center">
+        <div
+          className="relative"
+          style={getMapContainerStyles()}
+        >
           <div
             ref={mapContainer}
             className="w-72 h-72 rounded-full overflow-hidden shadow-2xl"
-            style={{
-              clipPath: 'circle(50% at 50% 50%)'
-            }}
+            style={{ clipPath: 'circle(50% at 50% 50%)' }}
           />
           <div className="absolute inset-0 rounded-full border-4 border-white/30 pointer-events-none" />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg -translate-y-5">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
-            </div>
+
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            style={{ opacity: animationPhase === 'complete' ? 1 : 0, transition: 'opacity 300ms ease-out' }}
+          >
+            <div className="absolute w-20 h-20 rounded-full border-4 border-emerald-500 shadow-lg" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
           </div>
         </div>
+
+        <div
+          className="overflow-hidden"
+          style={getPhotoStyles()}
+        >
+          <img
+            src={imageData}
+            alt="Captured item"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        {animationPhase === 'complete' && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full">
+            <p className="text-white/90 text-sm whitespace-nowrap">
+              Move the map to adjust location
+            </p>
+          </div>
+        )}
       </div>
 
-      <div className="p-4 pb-8 text-center">
-        <p className="text-white/70 text-sm mb-4">
-          Move the map to adjust the location (up to 100m)
-        </p>
+      <div
+        className="p-4 pb-8"
+        style={getFooterStyles()}
+      >
         <button
           onClick={() => onConfirm(pinLocation)}
           className="w-full max-w-sm mx-auto bg-emerald-500 text-white py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors"
