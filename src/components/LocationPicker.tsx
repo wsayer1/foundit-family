@@ -24,11 +24,24 @@ export function LocationPicker({
   onBack
 }: LocationPickerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [pinLocation, setPinLocation] = useState(initialLocation);
   const [mapboxToken] = useState(() => import.meta.env.VITE_MAPBOX_TOKEN || '');
   const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('full');
   const [mapReady, setMapReady] = useState(false);
+  const [circleRadius, setCircleRadius] = useState(150);
+
+  useEffect(() => {
+    const updateCircleSize = () => {
+      const minDimension = Math.min(window.innerWidth, window.innerHeight);
+      setCircleRadius(Math.floor(minDimension * 0.38));
+    };
+
+    updateCircleSize();
+    window.addEventListener('resize', updateCircleSize);
+    return () => window.removeEventListener('resize', updateCircleSize);
+  }, []);
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
     const R = 6371e3;
@@ -122,7 +135,7 @@ export function LocationPicker({
         paint: {
           'line-color': '#10b981',
           'line-width': 1.5,
-          'line-opacity': 0.4
+          'line-opacity': 0.3
         }
       });
 
@@ -256,18 +269,23 @@ export function LocationPicker({
   };
 
   return (
-    <div className="fixed inset-0 bg-stone-900 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-stone-950 flex flex-col overflow-hidden">
       <div
-        className="absolute top-0 left-0 right-0 z-40 px-4 pt-3 pb-16 flex items-start gap-4"
+        className="absolute top-0 left-0 right-0 z-40 px-4 flex items-center gap-3"
         style={{
           ...getHeaderStyles(),
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
+          paddingTop: 'max(12px, env(safe-area-inset-top))',
+          paddingBottom: '16px',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)',
         }}
       >
-        <button onClick={onBack} className="p-2 -ml-2 text-white hover:bg-white/10 rounded-full transition-colors">
-          <ArrowLeft size={24} />
+        <button
+          onClick={onBack}
+          className="p-2.5 -ml-1 text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors backdrop-blur-sm"
+        >
+          <ArrowLeft size={22} />
         </button>
-        <h1 className="font-semibold text-white pt-2">Adjust location</h1>
+        <h1 className="font-semibold text-white text-lg">Adjust location</h1>
       </div>
 
       <div className="flex-1 relative" style={getMapContainerStyles()}>
@@ -276,22 +294,43 @@ export function LocationPicker({
           className="absolute inset-0 w-full h-full"
         />
 
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
+          <defs>
+            <mask id="circle-mask">
+              <rect width="100%" height="100%" fill="white" />
+              <circle cx="50%" cy="50%" r={circleRadius} fill="black" />
+            </mask>
+            <radialGradient id="vignette-gradient" cx="50%" cy="50%" r="50%">
+              <stop offset="60%" stopColor="black" stopOpacity="0" />
+              <stop offset="100%" stopColor="black" stopOpacity="0.6" />
+            </radialGradient>
+          </defs>
+          <rect
+            width="100%"
+            height="100%"
+            fill="url(#vignette-gradient)"
+          />
+        </svg>
+
         <div
+          ref={overlayRef}
           className="absolute inset-0 pointer-events-none"
           style={{
-            backdropFilter: 'blur(6px) grayscale(90%) brightness(0.85)',
-            WebkitBackdropFilter: 'blur(6px) grayscale(90%) brightness(0.85)',
-            maskImage: 'radial-gradient(circle at center, transparent 0%, transparent 32%, rgba(0,0,0,0.5) 38%, black 45%)',
-            WebkitMaskImage: 'radial-gradient(circle at center, transparent 0%, transparent 32%, rgba(0,0,0,0.5) 38%, black 45%)',
-            zIndex: 5,
+            backdropFilter: 'blur(8px) grayscale(100%) brightness(0.7)',
+            WebkitBackdropFilter: 'blur(8px) grayscale(100%) brightness(0.7)',
+            maskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 85%, black 100%)`,
+            WebkitMaskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 85%, black 100%)`,
+            zIndex: 6,
           }}
         />
 
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
           style={{
-            background: 'radial-gradient(circle at center, transparent 0%, transparent 33%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.5) 100%)',
-            zIndex: 6,
+            width: circleRadius * 2,
+            height: circleRadius * 2,
+            border: '2px solid rgba(255,255,255,0.2)',
+            zIndex: 10,
           }}
         />
 
@@ -303,7 +342,7 @@ export function LocationPicker({
             opacity: animationPhase === 'complete' ? 1 : 0,
             transition: 'opacity 300ms ease-out',
             zIndex: 25,
-            boxShadow: '0 0 0 4px rgba(16, 185, 129, 0.15), 0 4px 24px rgba(0,0,0,0.4)',
+            boxShadow: '0 0 0 4px rgba(16, 185, 129, 0.2), 0 2px 16px rgba(0,0,0,0.3)',
           }}
         />
 
@@ -323,26 +362,29 @@ export function LocationPicker({
         className="absolute bottom-0 left-0 right-0 z-50"
         style={{
           ...getFooterStyles(),
-          background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 60%, transparent 100%)',
-          paddingTop: '3rem',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, transparent 100%)',
+          paddingTop: '2.5rem',
         }}
       >
         <p
-          className="text-white/70 text-sm text-center mb-4"
+          className="text-white/60 text-sm text-center mb-3 px-4"
           style={{
             opacity: animationPhase === 'complete' ? 1 : 0,
             transition: 'opacity 300ms ease-out 200ms',
           }}
         >
-          Move the map to adjust location
+          Drag to fine-tune the location
         </p>
-        <div className="px-4 pb-8">
+        <div
+          className="px-4"
+          style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
+        >
           <button
             onClick={() => onConfirm(pinLocation)}
-            className="w-full max-w-sm mx-auto block bg-emerald-500 text-white py-4 rounded-2xl font-semibold hover:bg-emerald-600 active:scale-[0.98] transition-all"
+            className="w-full max-w-sm mx-auto block bg-emerald-500 text-white py-4 rounded-2xl font-semibold hover:bg-emerald-600 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20"
           >
             <span className="flex items-center justify-center gap-2">
-              <Check size={20} />
+              <Check size={20} strokeWidth={2.5} />
               Confirm location
             </span>
           </button>
