@@ -172,6 +172,7 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
             >
               {compressing ? <Loader2 size={32} className="animate-spin" /> : <Check size={32} />}
             </button>
+            <div className="w-[60px]" />
           </div>
         ) : (
           <div className="flex items-center justify-center gap-8">
