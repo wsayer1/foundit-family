@@ -34,12 +34,10 @@ export function PostPage() {
 
     checkPermission().then((status) => {
       if (status === 'granted') {
+        setStep('camera');
         requestLocation().then((coords) => {
           if (coords) {
             setPinLocation({ lat: coords.latitude, lng: coords.longitude });
-            setStep('camera');
-          } else {
-            setStep('location');
           }
         });
       } else {
@@ -47,6 +45,16 @@ export function PostPage() {
       }
     });
   }, [user, checkPermission, requestLocation, navigate]);
+
+  useEffect(() => {
+    if (step === 'map' && !pinLocation && permissionStatus === 'granted') {
+      requestLocation().then((coords) => {
+        if (coords) {
+          setPinLocation({ lat: coords.latitude, lng: coords.longitude });
+        }
+      });
+    }
+  }, [step, pinLocation, permissionStatus, requestLocation]);
 
   const handleLocationGranted = async () => {
     const coords = await requestLocation();
@@ -136,7 +144,15 @@ export function PostPage() {
     return <CameraCapture onCapture={handlePhotoCapture} onCancel={() => navigate(-1)} />;
   }
 
-  if (step === 'map' && imageData && pinLocation && location) {
+  if (step === 'map' && imageData) {
+    if (!pinLocation || !location) {
+      return (
+        <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center p-8">
+          <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-stone-600 dark:text-stone-400">Getting your location...</p>
+        </div>
+      );
+    }
     return (
       <LocationPicker
         imageData={imageData}
