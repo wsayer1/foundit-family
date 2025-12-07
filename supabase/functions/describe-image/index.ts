@@ -19,7 +19,7 @@ Deno.serve(async (req: Request) => {
 
     if (!imageData) {
       return new Response(
-        JSON.stringify({ error: "No image data provided" }),
+        JSON.stringify({ error: "No image data provided", debug: "missing_image" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -31,7 +31,11 @@ Deno.serve(async (req: Request) => {
 
     if (!geminiApiKey) {
       return new Response(
-        JSON.stringify({ description: "Curbside find" }),
+        JSON.stringify({ 
+          description: "Curbside find",
+          debug: "no_api_key",
+          message: "GEMINI_API_KEY not configured"
+        }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
@@ -43,7 +47,7 @@ Deno.serve(async (req: Request) => {
       : imageData;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
       {
         method: "POST",
         headers: {
@@ -54,7 +58,7 @@ Deno.serve(async (req: Request) => {
             {
               parts: [
                 {
-                  text: "You are helping describe items found on the street/curb that people are giving away for free. Look at this image and write a brief, helpful description (2-3 sentences max) of what the item is. Focus on: what it is, its apparent condition, and any notable features. Be factual and concise. Don't mention that it's on a curb or street.",
+                  text: "You are helping describe items found on the street/curb that people are giving away for free. Look at this image and write a brief, helpful description (2-3 sentences max) of what the item is. Focus on: what it is, its apparent condition, and any notable features. If there are multiple items of furniture, mention each one. Be factual and concise. Don't mention that it's on a curb or street.",
                 },
                 {
                   inline_data: {
@@ -79,7 +83,11 @@ Deno.serve(async (req: Request) => {
       const errorText = await response.text();
       console.error("Gemini API error:", errorText);
       return new Response(
-        JSON.stringify({ description: "Curbside find" }),
+        JSON.stringify({ 
+          description: "Curbside find",
+          debug: "api_error",
+          error: errorText
+        }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
@@ -99,7 +107,11 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error("Error processing image:", error);
     return new Response(
-      JSON.stringify({ description: "Curbside find" }),
+      JSON.stringify({ 
+        description: "Curbside find",
+        debug: "exception",
+        error: error instanceof Error ? error.message : String(error)
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }

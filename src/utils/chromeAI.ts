@@ -123,18 +123,22 @@ export async function describeImageWithFallback(
   supabaseKey: string
 ): Promise<string> {
   const chromeAIAvailable = await checkChromeAIAvailability();
+  console.log('[AI Description] Chrome AI available:', chromeAIAvailable);
 
   if (chromeAIAvailable) {
     try {
+      console.log('[AI Description] Attempting Chrome AI...');
       const description = await describeImageWithChromeAI(imageData);
       if (description && description.length > 0) {
+        console.log('[AI Description] Chrome AI success:', description);
         return description;
       }
     } catch (error) {
-      console.log('Chrome AI failed, falling back to server:', error);
+      console.log('[AI Description] Chrome AI failed, falling back to server:', error);
     }
   }
 
+  console.log('[AI Description] Using server fallback...');
   try {
     const response = await fetch(
       `${supabaseUrl}/functions/v1/describe-image`,
@@ -150,10 +154,16 @@ export async function describeImageWithFallback(
 
     if (response.ok) {
       const data = await response.json();
+      console.log('[AI Description] Server response:', data);
+      if (data.debug) {
+        console.warn('[AI Description] Server debug info:', data.debug, data.message || data.error);
+      }
       return data.description || 'Curbside find';
+    } else {
+      console.error('[AI Description] Server error:', response.status, response.statusText);
     }
   } catch (error) {
-    console.error('Server fallback failed:', error);
+    console.error('[AI Description] Server fallback failed:', error);
   }
 
   return 'Curbside find';
