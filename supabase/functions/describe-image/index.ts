@@ -31,7 +31,8 @@ Deno.serve(async (req: Request) => {
 
     if (!geminiApiKey) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
+          tag: "item",
           description: "Curbside find",
           debug: "no_api_key",
           message: "GEMINI_API_KEY not configured"
@@ -58,7 +59,27 @@ Deno.serve(async (req: Request) => {
             {
               parts: [
                 {
-                  text: "You are helping describe items found on the street/curb that people are giving away for free. Look at this image and write a brief, helpful description (2-3 sentences max) of what the item is. Focus on: what it is, its apparent condition, and any notable features. If there are multiple items of furniture, mention each one. Be factual and concise. Don't mention that it's on a curb or street.",
+                  text: `You are an AI assistant that analyzes images of items found on the street and generates structured data about them. Your task is to identify household items that people commonly leave outside and provide specific information in JSON format.
+
+When you receive an image, examine it carefully and:
+
+1. Identify the main item(s) in the image
+2. Determine an appropriate tag/category for the item (e.g., "sofa", "bookshelf", "chair", "table", "dresser", "mattress", "television", "refrigerator", etc.)
+3. Write a brief, direct description of the item's condition, color, style, and any notable features
+
+Output your response as valid JSON with the following structure:
+{
+  "tag": "item_category",
+  "description": "Direct description without introductory phrases"
+}
+
+Requirements:
+- Do NOT include phrases like "Here's a description" or "This is a" in your description
+- Start descriptions directly with descriptive content
+- Focus on items that are typically household furniture, appliances, or common personal belongings
+- Keep descriptions concise but informative (2-3 sentences maximum)
+- Use lowercase for tags and keep them simple (single words when possible)
+- Return ONLY the JSON object, no additional text or markdown`,
                 },
                 {
                   inline_data: {
@@ -73,7 +94,7 @@ Deno.serve(async (req: Request) => {
             temperature: 0.4,
             topK: 32,
             topP: 1,
-            maxOutputTokens: 150,
+            maxOutputTokens: 200,
           },
         }),
       }
@@ -83,7 +104,8 @@ Deno.serve(async (req: Request) => {
       const errorText = await response.text();
       console.error("Gemini API error:", errorText);
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
+          tag: "item",
           description: "Curbside find",
           debug: "api_error",
           error: errorText
@@ -95,11 +117,22 @@ Deno.serve(async (req: Request) => {
     }
 
     const data = await response.json();
-    const description =
-      data.candidates?.[0]?.content?.parts?.[0]?.text || "Curbside find";
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    let tag = "item";
+    let description = "Curbside find";
+
+    try {
+      const cleanedText = rawText.replace(/```json\n?|\n?```/g, "").trim();
+      const parsed = JSON.parse(cleanedText);
+      tag = parsed.tag || "item";
+      description = parsed.description || "Curbside find";
+    } catch {
+      description = rawText.trim() || "Curbside find";
+    }
 
     return new Response(
-      JSON.stringify({ description: description.trim() }),
+      JSON.stringify({ tag, description }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
@@ -107,7 +140,8 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error("Error processing image:", error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
+        tag: "item",
         description: "Curbside find",
         debug: "exception",
         error: error instanceof Error ? error.message : String(error)
