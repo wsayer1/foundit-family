@@ -86,10 +86,6 @@ export function getPreviewUrl(url: string): string {
   return getOptimizedImageUrl(url, { width: 200, quality: 70 });
 }
 
-export function getMapMarkerUrl(url: string): string {
-  return getOptimizedImageUrl(url, { width: 80, quality: 60 });
-}
-
 export function dataURLtoBlob(dataURL: string): Blob {
   const arr = dataURL.split(',');
   const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
