@@ -226,28 +226,29 @@ export function useUserItems(userId: string | undefined) {
   const [items, setItems] = useState<ItemWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchUserItems = useCallback(async () => {
     if (!userId) {
       setItems([]);
       setLoading(false);
       return;
     }
 
-    const fetchUserItems = async () => {
-      const { data } = await supabase
-        .from('items')
-        .select(`*, profiles!items_user_id_fkey (username, avatar_url)`)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+    setLoading(true);
+    const { data } = await supabase
+      .from('items')
+      .select(`*, profiles!items_user_id_fkey (username, avatar_url)`)
+      .or(`user_id.eq.${userId},claimed_by.eq.${userId}`)
+      .order('created_at', { ascending: false });
 
-      setItems((data as ItemWithProfile[]) || []);
-      setLoading(false);
-    };
-
-    fetchUserItems();
+    setItems((data as ItemWithProfile[]) || []);
+    setLoading(false);
   }, [userId]);
 
-  return { items, loading };
+  useEffect(() => {
+    fetchUserItems();
+  }, [fetchUserItems]);
+
+  return { items, loading, refresh: fetchUserItems };
 }
 
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {

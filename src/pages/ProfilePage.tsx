@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, Award, Package, ShoppingBag, Sun, Moon, Monitor, User, MapPin } from 'lucide-react';
 import { Layout, Header } from '../components/Layout';
 import { ItemCard } from '../components/ItemCard';
+import { EditItemModal } from '../components/EditItemModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUserItems } from '../hooks/useItems';
 import { useLocation } from '../contexts/LocationContext';
-import type { AppearancePreference } from '../types/database';
+import type { AppearancePreference, ItemWithProfile } from '../types/database';
 
 const themeOptions: { value: AppearancePreference; label: string; icon: typeof Sun }[] = [
   { value: 'light', label: 'Light', icon: Sun },
@@ -17,11 +18,12 @@ const themeOptions: { value: AppearancePreference; label: string; icon: typeof S
 
 export function ProfilePage() {
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const { preference, setPreference } = useTheme();
-  const { items, loading } = useUserItems(user?.id);
+  const { items, loading, refresh } = useUserItems(user?.id);
   const { location, locationEnabled, setLocationEnabled } = useLocation();
   const [activeTab, setActiveTab] = useState<'posted' | 'claimed'>('posted');
+  const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
 
   const handleSignOut = async () => {
     await signOut();
@@ -212,7 +214,9 @@ export function ProfilePage() {
                   key={item.id}
                   item={item}
                   userLocation={userCoords}
+                  currentUserId={activeTab === 'posted' ? user?.id : undefined}
                   onClick={() => navigate(`/item/${item.id}`)}
+                  onEdit={activeTab === 'posted' ? () => setEditingItem(item) : undefined}
                 />
               ))
             )}
@@ -220,6 +224,22 @@ export function ProfilePage() {
         )}
       </div>
       </div>
+
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSaved={() => {
+            setEditingItem(null);
+            refresh();
+          }}
+          onDeleted={() => {
+            setEditingItem(null);
+            refreshProfile();
+            refresh();
+          }}
+        />
+      )}
     </Layout>
   );
 }
