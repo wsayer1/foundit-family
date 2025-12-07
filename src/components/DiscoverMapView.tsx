@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
-import { formatTimeAgo } from '../utils/time';
+import { formatTimeAgo, getFreshness } from '../utils/time';
 import { getPreviewUrl } from '../utils/image';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -124,8 +124,10 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
     markersRef.current = [];
 
     items.forEach((item) => {
+      const freshness = getFreshness(item.created_at);
       const el = document.createElement('div');
       el.className = 'item-marker';
+      el.style.opacity = String(freshness);
       el.innerHTML = `
         <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-2 border-white">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

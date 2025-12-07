@@ -8,6 +8,7 @@ import { MapPage } from './pages/MapPage';
 import { AuthPage } from './pages/AuthPage';
 import { PostPage } from './pages/PostPage';
 import { ItemDetailPage } from './pages/ItemDetailPage';
+import { EditItemPage } from './pages/EditItemPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/post" element={<PostPage />} />
               <Route path="/item/:id" element={<ItemDetailPage />} />
+              <Route path="/item/:id/edit" element={<EditItemPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
               </Routes>

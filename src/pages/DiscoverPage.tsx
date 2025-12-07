@@ -8,9 +8,11 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { useItems } from '../hooks/useItems';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters, DEFAULT_FILTERS } from '../contexts/FilterContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export function DiscoverPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { requestLocation, permissionStatus, checkPermission, locationEnabled } = useLocation();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters, hasActiveFilters } = useFilters();
@@ -123,7 +125,9 @@ export function DiscoverPage() {
                     key={item.id}
                     item={item}
                     userLocation={userCoords}
+                    currentUserId={user?.id}
                     onClick={() => navigate(`/item/${item.id}`)}
+                    onEdit={() => navigate(`/item/${item.id}/edit`)}
                   />
                 ))}
               </div>

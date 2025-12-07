@@ -1,24 +1,57 @@
-import { MapPin, Clock, Check, ThumbsUp } from 'lucide-react';
+import { MapPin, Clock, Check, ThumbsUp, Pencil } from 'lucide-react';
 import type { ItemWithProfile } from '../types/database';
-import { formatTimeAgo } from '../utils/time';
+import { formatTimeAgo, getFreshness, getFreshnessLabel } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
 import { getThumbnailUrl } from '../utils/image';
 
 interface ItemCardProps {
   item: ItemWithProfile;
   userLocation?: { lat: number; lng: number } | null;
+  currentUserId?: string;
   onClick?: () => void;
+  onEdit?: () => void;
 }
 
-export function ItemCard({ item, userLocation, onClick }: ItemCardProps) {
+function FreshnessBar({ freshness }: { freshness: number }) {
+  const percentage = Math.round(freshness * 100);
+  const label = getFreshnessLabel(freshness);
+
+  const getBarColor = () => {
+    if (freshness >= 0.7) return 'bg-emerald-500';
+    if (freshness >= 0.4) return 'bg-amber-500';
+    return 'bg-stone-400';
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${getBarColor()} transition-all duration-300 rounded-full`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+      <span className="text-xs text-stone-500 dark:text-stone-400 whitespace-nowrap">{label}</span>
+    </div>
+  );
+}
+
+export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }: ItemCardProps) {
   const distance = userLocation
     ? calculateDistance(userLocation.lat, userLocation.lng, item.latitude, item.longitude)
     : null;
 
+  const isOwner = currentUserId && currentUserId === item.user_id;
+  const freshness = getFreshness(item.created_at);
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.();
+  };
+
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white dark:bg-stone-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 text-left group"
+      className="w-full bg-white dark:bg-stone-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 text-left group relative"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-stone-100 dark:bg-stone-800">
         <img
@@ -60,7 +93,23 @@ export function ItemCard({ item, userLocation, onClick }: ItemCardProps) {
             {formatTimeAgo(item.created_at)}
           </span>
         </div>
+
+        <div className="mt-3">
+          <FreshnessBar freshness={freshness} />
+        </div>
       </div>
+
+      {isOwner && onEdit && (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={handleEditClick}
+          onKeyDown={(e) => e.key === 'Enter' && handleEditClick(e as unknown as React.MouseEvent)}
+          className="absolute bottom-4 right-4 p-2.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-xl shadow-sm transition-colors z-10"
+        >
+          <Pencil size={16} className="text-stone-600 dark:text-stone-400" />
+        </div>
+      )}
     </button>
   );
 }
