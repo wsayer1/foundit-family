@@ -117,11 +117,16 @@ export async function describeImageWithChromeAI(imageData: string): Promise<stri
   }
 }
 
+export interface AIDescriptionResult {
+  tag: string;
+  description: string;
+}
+
 export async function describeImageWithFallback(
   imageData: string,
   supabaseUrl: string,
   supabaseKey: string
-): Promise<string> {
+): Promise<AIDescriptionResult> {
   const chromeAIAvailable = await checkChromeAIAvailability();
   console.log('[AI Description] Chrome AI available:', chromeAIAvailable);
 
@@ -131,7 +136,7 @@ export async function describeImageWithFallback(
       const description = await describeImageWithChromeAI(imageData);
       if (description && description.length > 0) {
         console.log('[AI Description] Chrome AI success:', description);
-        return description;
+        return { tag: 'item', description };
       }
     } catch (error) {
       console.log('[AI Description] Chrome AI failed, falling back to server:', error);
@@ -158,7 +163,10 @@ export async function describeImageWithFallback(
       if (data.debug) {
         console.warn('[AI Description] Server debug info:', data.debug, data.message || data.error);
       }
-      return data.description || 'Curbside find';
+      return {
+        tag: data.tag || 'item',
+        description: data.description || 'Curbside find'
+      };
     } else {
       console.error('[AI Description] Server error:', response.status, response.statusText);
     }
@@ -166,5 +174,5 @@ export async function describeImageWithFallback(
     console.error('[AI Description] Server fallback failed:', error);
   }
 
-  return 'Curbside find';
+  return { tag: 'item', description: 'Curbside find' };
 }

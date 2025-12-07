@@ -1,8 +1,9 @@
-import { ArrowLeft, Loader2, Sparkles, Send } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Send, Tag } from 'lucide-react';
 
 interface DescriptionEditorProps {
   imageData: string;
   description: string;
+  tag: string;
   loading: boolean;
   posting: boolean;
   error: string | null;
@@ -11,9 +12,14 @@ interface DescriptionEditorProps {
   onBack: () => void;
 }
 
+function formatTag(tag: string): string {
+  return tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase();
+}
+
 export function DescriptionEditor({
   imageData,
   description,
+  tag,
   loading,
   posting,
   error,
@@ -45,17 +51,25 @@ export function DescriptionEditor({
           </div>
 
           <div className="bg-white dark:bg-stone-900 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              {loading ? (
-                <>
-                  <Loader2 size={18} className="text-emerald-500 animate-spin" />
-                  <span className="text-sm text-stone-500 dark:text-stone-400">AI is describing your find...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles size={18} className="text-amber-500" />
-                  <span className="text-sm text-stone-500 dark:text-stone-400">AI-generated description</span>
-                </>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                {loading ? (
+                  <>
+                    <Loader2 size={18} className="text-emerald-500 animate-spin" />
+                    <span className="text-sm text-stone-500 dark:text-stone-400">AI is describing your find...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={18} className="text-amber-500" />
+                    <span className="text-sm text-stone-500 dark:text-stone-400">AI-generated description</span>
+                  </>
+                )}
+              </div>
+              {!loading && tag && (
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-medium">
+                  <Tag size={14} />
+                  <span>{formatTag(tag)}</span>
+                </div>
               )}
             </div>
 

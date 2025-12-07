@@ -21,6 +21,7 @@ export function PostPage() {
   const [imageData, setImageData] = useState<string | null>(null);
   const [pinLocation, setPinLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [description, setDescription] = useState('');
+  const [tag, setTag] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,13 +68,15 @@ export function PostPage() {
     setAiGenerating(true);
 
     try {
-      const generatedDescription = await describeImageWithFallback(
+      const result = await describeImageWithFallback(
         imageData,
         import.meta.env.VITE_SUPABASE_URL,
         import.meta.env.VITE_SUPABASE_ANON_KEY
       );
-      setDescription(generatedDescription);
+      setTag(result.tag);
+      setDescription(result.description);
     } catch {
+      setTag('item');
       setDescription('Curbside find - tap to edit description');
     } finally {
       setAiGenerating(false);
@@ -153,6 +156,7 @@ export function PostPage() {
       <DescriptionEditor
         imageData={imageData!}
         description={description}
+        tag={tag}
         loading={aiGenerating}
         posting={posting}
         error={error}
