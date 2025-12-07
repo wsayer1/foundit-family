@@ -47,14 +47,10 @@ export function PostPage() {
   }, [user, checkPermission, requestLocation, navigate]);
 
   useEffect(() => {
-    if (step === 'map' && !pinLocation && permissionStatus === 'granted') {
-      requestLocation().then((coords) => {
-        if (coords) {
-          setPinLocation({ lat: coords.latitude, lng: coords.longitude });
-        }
-      });
+    if (step === 'map' && !pinLocation && permissionStatus === 'granted' && location) {
+      setPinLocation({ lat: location.latitude, lng: location.longitude });
     }
-  }, [step, pinLocation, permissionStatus, requestLocation]);
+  }, [step, pinLocation, permissionStatus, location]);
 
   const handleLocationGranted = async () => {
     const coords = await requestLocation();

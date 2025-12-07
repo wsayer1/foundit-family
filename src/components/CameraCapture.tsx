@@ -11,50 +11,55 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [compressing, setCompressing] = useState(false);
+  const [switching, setSwitching] = useState(false);
 
-  const startCamera = useCallback(async () => {
+  const stopStream = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  }, []);
+
+  const startCamera = useCallback(async (mode: 'user' | 'environment') => {
     try {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
+      stopStream();
 
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode,
+          facingMode: mode,
           width: { ideal: 1920 },
           height: { ideal: 1080 }
         }
       });
 
-      setStream(newStream);
+      streamRef.current = newStream;
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
       }
       setCameraError(null);
-    } catch (err) {
+    } catch {
       setCameraError('Unable to access camera. Please use the gallery option.');
     }
-  }, [facingMode, stream]);
+    setSwitching(false);
+  }, [stopStream]);
 
   useEffect(() => {
-    startCamera();
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
+    startCamera(facingMode);
+    return stopStream;
   }, []);
 
-  useEffect(() => {
-    if (!capturedImage) {
-      startCamera();
-    }
-  }, [facingMode]);
+  const switchCamera = useCallback(async () => {
+    if (switching) return;
+    setSwitching(true);
+    const newMode = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(newMode);
+    await startCamera(newMode);
+  }, [facingMode, startCamera, switching]);
 
   const takePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -70,14 +75,12 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
     const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
     setCapturedImage(dataUrl);
 
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
+    stopStream();
   };
 
   const retake = () => {
     setCapturedImage(null);
-    startCamera();
+    startCamera(facingMode);
   };
 
   const confirmPhoto = async () => {
@@ -92,17 +95,11 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
     }
   };
 
-  const switchCamera = () => {
-    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
+    stopStream();
 
     const reader = new FileReader();
     reader.onload = (event) => {
