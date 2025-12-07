@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2, Pencil } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
+import { EditItemModal } from '../components/EditItemModal';
 import type { ItemWithProfile } from '../types/database';
 import { formatTimeAgo } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
@@ -23,6 +24,7 @@ export function ItemDetailPage() {
   const [claiming, setClaiming] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [hasConfirmed, setHasConfirmed] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -197,9 +199,19 @@ export function ItemDetailPage() {
           <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-stone-600 dark:text-stone-400">
             <ArrowLeft size={24} />
           </button>
-          <button onClick={handleShare} className="p-2 -mr-2 text-stone-600 dark:text-stone-400">
-            <Share2 size={22} />
-          </button>
+          <div className="flex items-center gap-1">
+            {isOwner && (
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="p-2 text-stone-600 dark:text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+              >
+                <Pencil size={20} />
+              </button>
+            )}
+            <button onClick={handleShare} className="p-2 -mr-2 text-stone-600 dark:text-stone-400">
+              <Share2 size={22} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -316,6 +328,21 @@ export function ItemDetailPage() {
             <p className="text-emerald-600 dark:text-emerald-400 text-sm mt-1">You earned 5 points</p>
           </div>
         </div>
+      )}
+
+      {showEditModal && (
+        <EditItemModal
+          item={item}
+          onClose={() => setShowEditModal(false)}
+          onSaved={(updatedItem) => {
+            setItem(updatedItem);
+            setShowEditModal(false);
+          }}
+          onDeleted={() => {
+            refreshProfile();
+            navigate('/', { replace: true });
+          }}
+        />
       )}
     </div>
   );

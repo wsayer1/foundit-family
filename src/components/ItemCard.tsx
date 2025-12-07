@@ -1,4 +1,4 @@
-import { MapPin, Clock, Check, ThumbsUp } from 'lucide-react';
+import { MapPin, Clock, Check, ThumbsUp, Pencil } from 'lucide-react';
 import type { ItemWithProfile } from '../types/database';
 import { formatTimeAgo } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
@@ -7,10 +7,13 @@ import { getThumbnailUrl } from '../utils/image';
 interface ItemCardProps {
   item: ItemWithProfile;
   userLocation?: { lat: number; lng: number } | null;
+  currentUserId?: string | null;
   onClick?: () => void;
+  onEdit?: () => void;
 }
 
-export function ItemCard({ item, userLocation, onClick }: ItemCardProps) {
+export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }: ItemCardProps) {
+  const isOwner = currentUserId === item.user_id;
   const distance = userLocation
     ? calculateDistance(userLocation.lat, userLocation.lng, item.latitude, item.longitude)
     : null;
@@ -35,8 +38,19 @@ export function ItemCard({ item, userLocation, onClick }: ItemCardProps) {
             </div>
           </div>
         )}
+        {isOwner && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.();
+            }}
+            className="absolute top-3 right-3 bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white dark:hover:bg-stone-700 transition-colors"
+          >
+            <Pencil size={16} className="text-stone-600 dark:text-stone-300" />
+          </button>
+        )}
         {item.still_there_count > 0 && item.status === 'available' && (
-          <div className="absolute top-3 right-3 bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+          <div className="absolute bottom-3 right-3 bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
             <ThumbsUp size={14} className="text-emerald-600 dark:text-emerald-400" />
             <span className="text-xs font-medium text-stone-700 dark:text-stone-300">{item.still_there_count}</span>
           </div>

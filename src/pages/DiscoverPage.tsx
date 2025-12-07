@@ -3,17 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Sparkles, Loader2, SlidersHorizontal } from 'lucide-react';
 import { Layout, Header } from '../components/Layout';
 import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
+import { EditItemModal } from '../components/EditItemModal';
 import { FilterBar } from '../components/FilterBar';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { useItems } from '../hooks/useItems';
+import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters, DEFAULT_FILTERS } from '../contexts/FilterContext';
+import type { ItemWithProfile } from '../types/database';
 
 export function DiscoverPage() {
   const navigate = useNavigate();
+  const { user, refreshProfile } = useAuth();
   const { requestLocation, permissionStatus, checkPermission, locationEnabled } = useLocation();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters, hasActiveFilters } = useFilters();
+  const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
 
   const { items, loading, loadingMore, hasMore, loadMore, refresh } = useItems(
     locationEnabled ? userCoords : null,
@@ -123,7 +128,9 @@ export function DiscoverPage() {
                     key={item.id}
                     item={item}
                     userLocation={userCoords}
+                    currentUserId={user?.id}
                     onClick={() => navigate(`/item/${item.id}`)}
+                    onEdit={() => setEditingItem(item)}
                   />
                 ))}
               </div>
@@ -147,6 +154,22 @@ export function DiscoverPage() {
           )}
         </div>
       </PullToRefresh>
+
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSaved={() => {
+            setEditingItem(null);
+            refresh();
+          }}
+          onDeleted={() => {
+            setEditingItem(null);
+            refreshProfile();
+            refresh();
+          }}
+        />
+      )}
     </Layout>
   );
 }
