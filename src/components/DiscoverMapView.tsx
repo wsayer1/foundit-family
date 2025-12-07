@@ -1,17 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Navigation } from 'lucide-react';
+import { X, Navigation, WifiOff } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
 import { formatTimeAgo, getFreshness } from '../utils/time';
-import { getPreviewUrl } from '../utils/image';
+import { getPreviewUrl, getMapMarkerUrl } from '../utils/image';
 import { useTheme } from '../contexts/ThemeContext';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { imageCache } from '../lib/imageCache';
 
 interface DiscoverMapViewProps {
   items: ItemWithProfile[];
   userLocation: { lat: number; lng: number } | null;
+}
+
+interface Cluster {
+  items: ItemWithProfile[];
+  lat: number;
+  lng: number;
 }
 
 const MAP_STYLES = {
@@ -19,9 +27,278 @@ const MAP_STYLES = {
   dark: 'mapbox://styles/mapbox/dark-v11',
 };
 
+const MARKER_SIZE = 56;
+const CLUSTER_DISTANCE = 0.0003;
+
+function clusterItems(items: ItemWithProfile[]): Cluster[] {
+  const clusters: Cluster[] = [];
+  const used = new Set<string>();
+
+  for (const item of items) {
+    if (used.has(item.id)) continue;
+
+    const nearby = items.filter(
+      (other) =>
+        !used.has(other.id) &&
+        Math.abs(other.latitude - item.latitude) < CLUSTER_DISTANCE &&
+        Math.abs(other.longitude - item.longitude) < CLUSTER_DISTANCE
+    );
+
+    nearby.forEach((n) => used.add(n.id));
+
+    const avgLat = nearby.reduce((sum, n) => sum + n.latitude, 0) / nearby.length;
+    const avgLng = nearby.reduce((sum, n) => sum + n.longitude, 0) / nearby.length;
+
+    clusters.push({
+      items: nearby,
+      lat: avgLat,
+      lng: avgLng,
+    });
+  }
+
+  return clusters;
+}
+
+function createImageMarkerElement(
+  item: ItemWithProfile,
+  onClick: () => void
+): HTMLDivElement {
+  const freshness = getFreshness(item.created_at);
+  const el = document.createElement('div');
+  el.className = 'image-marker';
+  el.style.cssText = `
+    width: ${MARKER_SIZE}px;
+    height: ${MARKER_SIZE}px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    opacity: ${freshness};
+  `;
+
+  el.innerHTML = `
+    <div style="
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      background: #10b981;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <div class="marker-loader" style="
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      "></div>
+      <img
+        src="${getMapMarkerUrl(item.image_url)}"
+        alt=""
+        style="
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          position: absolute;
+          top: 0;
+          left: 0;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        "
+        onload="this.style.opacity='1'; this.previousElementSibling.style.display='none';"
+        onerror="this.style.display='none';"
+      />
+    </div>
+  `;
+
+  el.addEventListener('mouseenter', () => {
+    el.style.transform = 'scale(1.15)';
+    el.style.zIndex = '100';
+  });
+  el.addEventListener('mouseleave', () => {
+    el.style.transform = 'scale(1)';
+    el.style.zIndex = '1';
+  });
+  el.addEventListener('click', onClick);
+
+  loadAndCacheImage(item);
+
+  return el;
+}
+
+async function loadAndCacheImage(item: ItemWithProfile): Promise<void> {
+  const cacheKey = `marker-${item.id}`;
+  const cached = await imageCache.get(cacheKey);
+  if (cached) return;
+
+  try {
+    const response = await fetch(getMapMarkerUrl(item.image_url));
+    if (response.ok) {
+      const blob = await response.blob();
+      await imageCache.set(cacheKey, blob);
+    }
+  } catch {
+  }
+}
+
+function createFanClusterElement(
+  cluster: Cluster,
+  onItemClick: (item: ItemWithProfile) => void,
+  onExpand: () => void
+): HTMLDivElement {
+  const el = document.createElement('div');
+  el.className = 'fan-cluster';
+  const maxPreview = Math.min(cluster.items.length, 5);
+  const baseSize = MARKER_SIZE;
+
+  el.style.cssText = `
+    width: ${baseSize + 20}px;
+    height: ${baseSize + 20}px;
+    position: relative;
+    cursor: pointer;
+  `;
+
+  const container = document.createElement('div');
+  container.className = 'fan-container';
+  container.style.cssText = `
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  `;
+
+  cluster.items.slice(0, maxPreview).forEach((item, index) => {
+    const freshness = getFreshness(item.created_at);
+    const thumb = document.createElement('div');
+    const angle = -20 + (index * 40) / (maxPreview - 1 || 1);
+    const offset = index * 3;
+
+    thumb.className = 'fan-item';
+    thumb.style.cssText = `
+      width: ${baseSize - index * 4}px;
+      height: ${baseSize - index * 4}px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(${angle}deg) translateY(${-offset}px);
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      background: #10b981;
+      z-index: ${maxPreview - index};
+      opacity: ${freshness};
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    `;
+
+    thumb.innerHTML = `
+      <img
+        src="${getMapMarkerUrl(item.image_url)}"
+        alt=""
+        style="width: 100%; height: 100%; object-fit: cover;"
+        onerror="this.style.display='none';"
+      />
+    `;
+
+    thumb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (el.classList.contains('expanded')) {
+        onItemClick(item);
+      }
+    });
+
+    container.appendChild(thumb);
+    loadAndCacheImage(item);
+  });
+
+  if (cluster.items.length > 1) {
+    const badge = document.createElement('div');
+    badge.className = 'cluster-badge';
+    badge.style.cssText = `
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #10b981;
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 10;
+    `;
+    badge.textContent = String(cluster.items.length);
+    container.appendChild(badge);
+  }
+
+  el.appendChild(container);
+
+  el.addEventListener('click', () => {
+    if (el.classList.contains('expanded')) {
+      collapseCluster(el, cluster.items.length);
+    } else {
+      expandCluster(el, cluster.items.length);
+      onExpand();
+    }
+  });
+
+  el.addEventListener('mouseleave', () => {
+    if (el.classList.contains('expanded')) {
+      collapseCluster(el, cluster.items.length);
+    }
+  });
+
+  return el;
+}
+
+function expandCluster(el: HTMLDivElement, itemCount: number): void {
+  el.classList.add('expanded');
+  const items = el.querySelectorAll('.fan-item') as NodeListOf<HTMLDivElement>;
+  const maxPreview = Math.min(itemCount, 5);
+  const spreadAngle = 180;
+  const startAngle = -spreadAngle / 2;
+  const angleStep = maxPreview > 1 ? spreadAngle / (maxPreview - 1) : 0;
+  const radius = 45;
+
+  items.forEach((item, index) => {
+    const angle = startAngle + index * angleStep;
+    const radian = (angle * Math.PI) / 180;
+    const x = Math.sin(radian) * radius;
+    const y = -Math.cos(radian) * radius;
+
+    item.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(0deg) scale(0.85)`;
+    item.style.zIndex = String(10 + index);
+    item.style.cursor = 'pointer';
+  });
+}
+
+function collapseCluster(el: HTMLDivElement, itemCount: number): void {
+  el.classList.remove('expanded');
+  const items = el.querySelectorAll('.fan-item') as NodeListOf<HTMLDivElement>;
+  const maxPreview = Math.min(itemCount, 5);
+
+  items.forEach((item, index) => {
+    const angle = -20 + (index * 40) / (maxPreview - 1 || 1);
+    const offset = index * 3;
+    item.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(${-offset}px)`;
+    item.style.zIndex = String(maxPreview - index);
+    item.style.cursor = 'pointer';
+  });
+}
+
 export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
+  const isOnline = useOnlineStatus();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -31,6 +308,10 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
   const [selectedItem, setSelectedItem] = useState<ItemWithProfile | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapboxToken] = useState(() => import.meta.env.VITE_MAPBOX_TOKEN || '');
+
+  const handleItemClick = useCallback((item: ItemWithProfile) => {
+    setSelectedItem(item);
+  }, []);
 
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
@@ -92,13 +373,13 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
 
     if (userLocation) {
       const userEl = document.createElement('div');
-      userEl.style.cssText = 'width: 16px; height: 16px; position: relative;';
+      userEl.style.cssText = 'width: 18px; height: 18px; position: relative;';
 
       const dot = document.createElement('div');
-      dot.style.cssText = 'width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
+      dot.style.cssText = 'width: 18px; height: 18px; background: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
 
       const pulse = document.createElement('div');
-      pulse.style.cssText = 'position: absolute; top: 0; left: 0; width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; opacity: 0.4; animation: pulse 2s infinite;';
+      pulse.style.cssText = 'position: absolute; top: 0; left: 0; width: 18px; height: 18px; background: #3b82f6; border-radius: 50%; opacity: 0.4; animation: pulse 2s infinite;';
 
       userEl.appendChild(pulse);
       userEl.appendChild(dot);
@@ -123,31 +404,24 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
-    items.forEach((item) => {
-      const freshness = getFreshness(item.created_at);
-      const el = document.createElement('div');
-      el.className = 'item-marker';
-      el.style.opacity = String(freshness);
-      el.innerHTML = `
-        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-2 border-white">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-        </div>
-      `;
+    const clusters = clusterItems(items);
 
-      el.addEventListener('click', () => {
-        setSelectedItem(item);
-      });
+    clusters.forEach((cluster) => {
+      let el: HTMLDivElement;
 
-      const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([item.longitude, item.latitude])
+      if (cluster.items.length === 1) {
+        el = createImageMarkerElement(cluster.items[0], () => handleItemClick(cluster.items[0]));
+      } else {
+        el = createFanClusterElement(cluster, handleItemClick, () => {});
+      }
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([cluster.lng, cluster.lat])
         .addTo(map.current!);
 
       markersRef.current.push(marker);
     });
-  }, [items, mapLoaded]);
+  }, [items, mapLoaded, handleItemClick]);
 
   const handleFlyToUser = () => {
     if (map.current && userLocation) {
@@ -171,7 +445,34 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
 
   return (
     <div className="w-full h-full bg-stone-200 dark:bg-stone-800 relative">
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 0.4; }
+          50% { transform: scale(1.5); opacity: 0; }
+        }
+        .fan-cluster.expanded .cluster-badge {
+          opacity: 0;
+          transform: scale(0);
+        }
+        .cluster-badge {
+          transition: all 0.2s ease;
+        }
+      `}</style>
+
       <div ref={mapContainer} className="absolute inset-0" />
+
+      {!isOnline && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30">
+          <div className="bg-amber-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium">
+            <WifiOff size={16} />
+            You're offline
+          </div>
+        </div>
+      )}
 
       {!mapLoaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-stone-100 dark:bg-stone-900">
