@@ -224,7 +224,7 @@ export function LocationPicker({
           left: '50%',
           top: '50%',
           transform: 'translate(-50%, -50%)',
-          zIndex: 20,
+          zIndex: 30,
           transition: baseTransition,
           boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
         };
@@ -258,34 +258,74 @@ export function LocationPicker({
   return (
     <div className="fixed inset-0 bg-stone-900 flex flex-col overflow-hidden">
       <div
-        className="sticky top-0 z-40 bg-stone-900/90 backdrop-blur-lg px-4 h-14 flex items-center gap-4"
+        className="absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-black/60 via-black/30 to-transparent px-4 h-20 flex items-start pt-3 gap-4"
         style={getHeaderStyles()}
       >
         <button onClick={onBack} className="p-2 -ml-2 text-white">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="font-semibold text-white">Adjust location</h1>
+        <h1 className="font-semibold text-white pt-2">Adjust location</h1>
       </div>
 
-      <div className="flex-1 relative flex items-center justify-center">
+      <div className="flex-1 relative" style={getMapContainerStyles()}>
         <div
-          className="relative"
-          style={getMapContainerStyles()}
-        >
-          <div
-            ref={mapContainer}
-            className="w-72 h-72 rounded-full overflow-hidden shadow-2xl"
-            style={{ clipPath: 'circle(50% at 50% 50%)' }}
-          />
-          <div className="absolute inset-0 rounded-full border-4 border-white/30 pointer-events-none" />
+          ref={mapContainer}
+          className="absolute inset-0 w-full h-full"
+        />
 
-          <div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            style={{ opacity: animationPhase === 'complete' ? 1 : 0, transition: 'opacity 300ms ease-out' }}
-          >
-            <div className="absolute w-20 h-20 rounded-full border-4 border-emerald-500 shadow-lg" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
-          </div>
-        </div>
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle at center, transparent 0%, transparent 35%, rgba(0,0,0,0.15) 35.5%, rgba(0,0,0,0.4) 100%)',
+            backdropFilter: 'blur(0px)',
+          }}
+        />
+
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 10 }}>
+          <defs>
+            <mask id="spotlight-mask">
+              <rect width="100%" height="100%" fill="white" />
+              <circle cx="50%" cy="50%" r="min(35vw, 35vh)" fill="black" />
+            </mask>
+            <filter id="blur-grayscale">
+              <feGaussianBlur stdDeviation="3" />
+              <feColorMatrix type="saturate" values="0.15" />
+            </filter>
+          </defs>
+        </svg>
+
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backdropFilter: 'blur(4px) grayscale(85%)',
+            WebkitBackdropFilter: 'blur(4px) grayscale(85%)',
+            maskImage: 'radial-gradient(circle at center, transparent 0%, transparent 34%, black 36%)',
+            WebkitMaskImage: 'radial-gradient(circle at center, transparent 0%, transparent 34%, black 36%)',
+            zIndex: 5,
+          }}
+        />
+
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white/40 pointer-events-none"
+          style={{
+            width: 'min(70vw, 70vh)',
+            height: 'min(70vw, 70vh)',
+            boxShadow: '0 0 0 1px rgba(255,255,255,0.1), inset 0 0 30px rgba(0,0,0,0.1)',
+            zIndex: 15,
+          }}
+        />
+
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-emerald-500 pointer-events-none"
+          style={{
+            width: '88px',
+            height: '88px',
+            opacity: animationPhase === 'complete' ? 1 : 0,
+            transition: 'opacity 300ms ease-out',
+            zIndex: 25,
+            boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)',
+          }}
+        />
 
         <div
           className="overflow-hidden"
@@ -299,7 +339,7 @@ export function LocationPicker({
         </div>
 
         {animationPhase === 'complete' && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full">
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full z-40">
             <p className="text-white/90 text-sm whitespace-nowrap">
               Move the map to adjust location
             </p>
@@ -308,7 +348,7 @@ export function LocationPicker({
       </div>
 
       <div
-        className="p-4 pb-8"
+        className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/60 via-black/30 to-transparent pt-12"
         style={getFooterStyles()}
       >
         <button
