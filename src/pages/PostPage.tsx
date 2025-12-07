@@ -8,6 +8,7 @@ import { LocationPicker } from '../components/LocationPicker';
 import { DescriptionEditor } from '../components/DescriptionEditor';
 import { supabase } from '../lib/supabase';
 import { dataURLtoBlob } from '../utils/image';
+import { describeImageWithFallback } from '../utils/chromeAI';
 
 type PostStep = 'checking' | 'location' | 'camera' | 'map' | 'description' | 'posting';
 
@@ -66,24 +67,12 @@ export function PostPage() {
     setAiGenerating(true);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/describe-image`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ imageData }),
-        }
+      const generatedDescription = await describeImageWithFallback(
+        imageData,
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_ANON_KEY
       );
-
-      if (response.ok) {
-        const data = await response.json();
-        setDescription(data.description || 'Curbside find');
-      } else {
-        setDescription('Curbside find - tap to edit description');
-      }
+      setDescription(generatedDescription);
     } catch {
       setDescription('Curbside find - tap to edit description');
     } finally {
