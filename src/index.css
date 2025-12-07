@@ -23,8 +23,16 @@
 }
 
 @layer utilities {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
   .safe-area-bottom {
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .top-safe {
+    top: calc(1.5rem + env(safe-area-inset-top));
   }
 
   .h-screen-safe {

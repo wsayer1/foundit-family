@@ -9,14 +9,14 @@ import { DescriptionEditor } from '../components/DescriptionEditor';
 import { supabase } from '../lib/supabase';
 import { dataURLtoBlob } from '../utils/image';
 
-type PostStep = 'location' | 'camera' | 'map' | 'description' | 'posting';
+type PostStep = 'checking' | 'location' | 'camera' | 'map' | 'description' | 'posting';
 
 export function PostPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { location, permissionStatus, requestLocation, checkPermission } = useLocation();
 
-  const [step, setStep] = useState<PostStep>('location');
+  const [step, setStep] = useState<PostStep>('checking');
   const [imageData, setImageData] = useState<string | null>(null);
   const [pinLocation, setPinLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [description, setDescription] = useState('');
@@ -36,8 +36,12 @@ export function PostPage() {
           if (coords) {
             setPinLocation({ lat: coords.latitude, lng: coords.longitude });
             setStep('camera');
+          } else {
+            setStep('location');
           }
         });
+      } else {
+        setStep('location');
       }
     });
   }, [user, checkPermission, requestLocation, navigate]);
@@ -124,7 +128,15 @@ export function PostPage() {
     }
   };
 
-  if (step === 'location' && permissionStatus !== 'granted') {
+  if (step === 'checking') {
+    return (
+      <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (step === 'location') {
     return <LocationPermissionScreen onGranted={handleLocationGranted} onCancel={() => navigate(-1)} />;
   }
 

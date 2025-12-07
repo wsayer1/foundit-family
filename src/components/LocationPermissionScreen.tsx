@@ -16,7 +16,8 @@ export function LocationPermissionScreen({ onGranted, onCancel }: LocationPermis
 
       <button
         onClick={onCancel}
-        className="absolute top-6 right-6 p-2 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors z-10"
+        className="absolute top-safe right-6 p-3 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors z-10"
+        aria-label="Close"
       >
         <X size={24} />
       </button>
@@ -67,13 +68,6 @@ export function LocationPermissionScreen({ onGranted, onCancel }: LocationPermis
           className="w-full max-w-sm bg-white text-emerald-600 py-4 rounded-2xl font-semibold text-lg shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
           Enable Location
-        </button>
-
-        <button
-          onClick={onCancel}
-          className="mt-4 text-white/80 hover:text-white transition-colors"
-        >
-          Maybe later
         </button>
       </div>
     </div>
