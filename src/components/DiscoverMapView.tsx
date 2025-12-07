@@ -72,20 +72,26 @@ function createImageMarkerElement(
     cursor: pointer;
     transition: transform 0.2s ease;
     opacity: ${freshness};
+    position: relative;
+    transform-origin: center center;
+    will-change: transform;
   `;
 
   el.innerHTML = `
-    <div style="
+    <div class="marker-circle" style="
       width: 100%;
       height: 100%;
       border-radius: 50%;
       overflow: hidden;
-      border: 3px solid white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      border: 2px solid rgba(255,255,255,0.9);
+      outline: 1px solid rgba(0,0,0,0.1);
+      box-shadow:
+        0 4px 12px rgba(0,0,0,0.25),
+        0 2px 4px rgba(0,0,0,0.1),
+        inset 0 -2px 6px rgba(0,0,0,0.15),
+        inset 0 2px 6px rgba(255,255,255,0.2);
       background: #10b981;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: relative;
     ">
       <div class="marker-loader" style="
         width: 20px;
@@ -94,6 +100,10 @@ function createImageMarkerElement(
         border-top-color: white;
         border-radius: 50%;
         animation: spin 1s linear infinite;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
       "></div>
       <img
         src="${getMapMarkerUrl(item.image_url)}"
@@ -102,15 +112,29 @@ function createImageMarkerElement(
           width: 100%;
           height: 100%;
           object-fit: cover;
-          position: absolute;
-          top: 0;
-          left: 0;
+          display: block;
           opacity: 0;
           transition: opacity 0.3s ease;
         "
         onload="this.style.opacity='1'; this.previousElementSibling.style.display='none';"
         onerror="this.style.display='none';"
       />
+      <div class="marker-gloss" style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          rgba(255,255,255,0.3) 0%,
+          rgba(255,255,255,0.1) 30%,
+          transparent 50%,
+          rgba(0,0,0,0.05) 100%
+        );
+        pointer-events: none;
+      "></div>
     </div>
   `;
 
@@ -175,19 +199,26 @@ function createFanClusterElement(
     const thumb = document.createElement('div');
     const angle = -20 + (index * 40) / (maxPreview - 1 || 1);
     const offset = index * 3;
+    const size = baseSize - index * 4;
 
     thumb.className = 'fan-item';
     thumb.style.cssText = `
-      width: ${baseSize - index * 4}px;
-      height: ${baseSize - index * 4}px;
+      width: ${size}px;
+      height: ${size}px;
       position: absolute;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%) rotate(${angle}deg) translateY(${-offset}px);
+      transform-origin: center center;
       border-radius: 50%;
       overflow: hidden;
-      border: 2px solid white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      border: 2px solid rgba(255,255,255,0.9);
+      outline: 1px solid rgba(0,0,0,0.1);
+      box-shadow:
+        0 3px 10px rgba(0,0,0,0.2),
+        0 1px 3px rgba(0,0,0,0.1),
+        inset 0 -2px 5px rgba(0,0,0,0.12),
+        inset 0 2px 5px rgba(255,255,255,0.15);
       background: #10b981;
       z-index: ${maxPreview - index};
       opacity: ${freshness};
@@ -198,9 +229,25 @@ function createFanClusterElement(
       <img
         src="${getMapMarkerUrl(item.image_url)}"
         alt=""
-        style="width: 100%; height: 100%; object-fit: cover;"
+        style="width: 100%; height: 100%; object-fit: cover; display: block;"
         onerror="this.style.display='none';"
       />
+      <div style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          rgba(255,255,255,0.25) 0%,
+          rgba(255,255,255,0.08) 30%,
+          transparent 50%,
+          rgba(0,0,0,0.04) 100%
+        );
+        pointer-events: none;
+      "></div>
     `;
 
     thumb.addEventListener('click', (e) => {
