@@ -7,6 +7,7 @@ const DEFAULT_FILTERS: FilterState = {
   distance: 'any',
   time: 'all',
   sort: 'recent',
+  category: 'all',
 };
 
 function loadFilters(): FilterState {
@@ -52,7 +53,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const hasActiveFilters =
     filters.distance !== 'any' ||
     filters.time !== 'all' ||
-    filters.sort !== 'recent';
+    filters.sort !== 'recent' ||
+    filters.category !== 'all';
 
   return (
     <FilterContext.Provider value={{ filters, setFilters, resetFilters, hasActiveFilters }}>

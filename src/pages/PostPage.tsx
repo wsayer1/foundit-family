@@ -117,6 +117,7 @@ export function PostPage() {
         description: description.trim(),
         latitude: pinLocation.lat,
         longitude: pinLocation.lng,
+        category: tag || null,
       });
 
       if (insertError) throw insertError;

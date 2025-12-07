@@ -3,7 +3,7 @@ import { MapPin } from 'lucide-react';
 import { DiscoverMapView } from '../components/DiscoverMapView';
 import { FilterBar } from '../components/FilterBar';
 import { BottomNav } from '../components/BottomNav';
-import { useItems } from '../hooks/useItems';
+import { useItems, useCategories } from '../hooks/useItems';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters } from '../contexts/FilterContext';
 
@@ -13,6 +13,7 @@ export function MapPage() {
   const { filters, setFilters } = useFilters();
   const mapFilters = useMemo(() => ({ ...filters, distance: 'any' as const }), [filters]);
   const { items } = useItems(locationEnabled ? userCoords : null, mapFilters);
+  const { categories } = useCategories();
 
   useEffect(() => {
     checkPermission().then((status) => {
@@ -61,6 +62,7 @@ export function MapPage() {
               onEnableLocation={handleEnableLocation}
               hideDistance
               hideSort
+              categories={categories}
             />
           </div>
         </div>

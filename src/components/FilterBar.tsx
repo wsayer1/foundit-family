@@ -1,14 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import { MapPin, Clock, ArrowUpDown, ChevronDown, Navigation } from 'lucide-react';
+import { MapPin, Clock, ArrowUpDown, ChevronDown, Navigation, Tag } from 'lucide-react';
 
 export type DistanceFilter = 'any' | '500' | '1000' | '2000' | '5000' | '10000' | '25000';
 export type TimeFilter = 'all' | '2h' | '8h' | '24h' | '48h' | 'week';
 export type SortOption = 'nearest' | 'recent' | 'verified';
+export type CategoryFilter = string;
 
 export interface FilterState {
   distance: DistanceFilter;
   time: TimeFilter;
   sort: SortOption;
+  category: CategoryFilter;
 }
 
 interface FilterBarProps {
@@ -18,6 +20,7 @@ interface FilterBarProps {
   onEnableLocation: () => void;
   hideDistance?: boolean;
   hideSort?: boolean;
+  categories?: string[];
 }
 
 const distanceOptions: { value: DistanceFilter; label: string }[] = [
@@ -252,10 +255,19 @@ function SortDropdown({
   );
 }
 
-export function FilterBar({ filters, onFiltersChange, locationEnabled, onEnableLocation, hideDistance, hideSort }: FilterBarProps) {
+function formatCategoryLabel(category: string): string {
+  return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+}
+
+export function FilterBar({ filters, onFiltersChange, locationEnabled, onEnableLocation, hideDistance, hideSort, categories = [] }: FilterBarProps) {
   const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
     onFiltersChange({ ...filters, [key]: value });
   };
+
+  const categoryOptions: { value: string; label: string }[] = [
+    { value: 'all', label: 'All Categories' },
+    ...categories.map((cat) => ({ value: cat, label: formatCategoryLabel(cat) })),
+  ];
 
   return (
     <div className="flex items-center py-3 pl-4">
@@ -299,6 +311,19 @@ export function FilterBar({ filters, onFiltersChange, locationEnabled, onEnableL
           locationEnabled={locationEnabled}
           onEnableLocation={onEnableLocation}
         />
+
+        {categories.length > 0 && (
+          <FilterDropdown
+            icon={<Tag size={14} />}
+            label="Category"
+            options={categoryOptions}
+            value={filters.category}
+            defaultValue="all"
+            onChange={(value) => updateFilter('category', value)}
+            locationEnabled={locationEnabled}
+            onEnableLocation={onEnableLocation}
+          />
+        )}
       </div>
     </div>
   );

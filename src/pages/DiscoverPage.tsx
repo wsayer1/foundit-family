@@ -6,7 +6,7 @@ import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
 import { FilterBar } from '../components/FilterBar';
 import { PullToRefresh } from '../components/PullToRefresh';
-import { useItems } from '../hooks/useItems';
+import { useItems, useCategories } from '../hooks/useItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters, DEFAULT_FILTERS } from '../contexts/FilterContext';
@@ -24,6 +24,7 @@ export function DiscoverPage() {
     locationEnabled ? userCoords : null,
     filters
   );
+  const { categories } = useCategories();
 
   const handleRefresh = async () => {
     refresh();
@@ -61,6 +62,7 @@ export function DiscoverPage() {
           onFiltersChange={setFilters}
           locationEnabled={permissionStatus === 'granted'}
           onEnableLocation={handleEnableLocation}
+          categories={categories}
         />
       </div>
       <PullToRefresh onRefresh={handleRefresh} className="flex-1">
