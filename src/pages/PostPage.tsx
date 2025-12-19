@@ -34,17 +34,15 @@ export function PostPage() {
 
     checkPermission().then((status) => {
       if (status === 'granted') {
+        if (location) {
+          setPinLocation({ lat: location.latitude, lng: location.longitude });
+        }
         setStep('camera');
-        requestLocation().then((coords) => {
-          if (coords) {
-            setPinLocation({ lat: coords.latitude, lng: coords.longitude });
-          }
-        });
       } else {
         setStep('location');
       }
     });
-  }, [user, checkPermission, requestLocation, navigate]);
+  }, [user, checkPermission, navigate, location]);
 
   useEffect(() => {
     if (step === 'map' && !pinLocation && permissionStatus === 'granted' && location) {
@@ -53,7 +51,7 @@ export function PostPage() {
   }, [step, pinLocation, permissionStatus, location]);
 
   const handleLocationGranted = async () => {
-    const coords = await requestLocation();
+    const coords = await requestLocation(true);
     if (coords) {
       setPinLocation({ lat: coords.latitude, lng: coords.longitude });
       setStep('camera');

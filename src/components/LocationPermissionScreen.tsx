@@ -1,4 +1,4 @@
-import { MapPin, Shield, Navigation, X } from 'lucide-react';
+import { MapPin, Shield, Navigation, X, Camera } from 'lucide-react';
 
 interface LocationPermissionScreenProps {
   onGranted: () => void;
@@ -34,21 +34,31 @@ export function LocationPermissionScreen({ onGranted, onCancel }: LocationPermis
         </div>
 
         <h1 className="text-3xl font-bold text-white mb-4 text-center">
-          Enable Location
+          Permissions Needed
         </h1>
 
-        <p className="text-white/90 text-center text-lg leading-relaxed max-w-sm mb-12">
-          To share your find, we need to know where it is. This helps others discover it nearby.
+        <p className="text-white/90 text-center text-lg leading-relaxed max-w-sm mb-8">
+          To share your find, we need access to your location and camera
         </p>
 
-        <div className="w-full max-w-sm space-y-4 mb-12">
+        <div className="w-full max-w-sm space-y-3 mb-8">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4">
             <div className="bg-white/20 p-3 rounded-xl">
               <MapPin className="text-white" size={22} />
             </div>
             <div>
-              <p className="text-white font-medium">Precise location</p>
-              <p className="text-white/70 text-sm">Show exactly where the item is</p>
+              <p className="text-white font-medium">Location access</p>
+              <p className="text-white/70 text-sm">Show where items are found</p>
+            </div>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-xl">
+              <Camera className="text-white" size={22} />
+            </div>
+            <div>
+              <p className="text-white font-medium">Camera access</p>
+              <p className="text-white/70 text-sm">Take photos of your finds</p>
             </div>
           </div>
 
@@ -58,16 +68,20 @@ export function LocationPermissionScreen({ onGranted, onCancel }: LocationPermis
             </div>
             <div>
               <p className="text-white font-medium">Privacy protected</p>
-              <p className="text-white/70 text-sm">You can adjust the pin up to 100m</p>
+              <p className="text-white/70 text-sm">Adjust location pins up to 100m</p>
             </div>
           </div>
         </div>
+
+        <p className="text-white/70 text-sm text-center max-w-sm mb-6">
+          You'll see browser prompts to grant these permissions
+        </p>
 
         <button
           onClick={onGranted}
           className="w-full max-w-sm bg-white text-emerald-600 py-4 rounded-2xl font-semibold text-lg shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
-          Enable Location
+          Continue
         </button>
       </div>
     </div>
