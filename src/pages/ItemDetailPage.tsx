@@ -132,7 +132,11 @@ export function ItemDetailPage() {
     });
 
     if (!error) {
-      setItem({ ...item, still_there_count: item.still_there_count + 1 });
+      setItem({
+        ...item,
+        still_there_count: item.still_there_count + 1,
+        last_confirmed_at: new Date().toISOString()
+      });
       setHasConfirmed(true);
       refreshProfile();
     }

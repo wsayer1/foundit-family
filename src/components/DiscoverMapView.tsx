@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
-import { formatTimeAgo } from '../utils/time';
+import { formatTimeAgo, calculateFreshness, getFreshnessOpacity } from '../utils/time';
 import { getPreviewUrl } from '../utils/image';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -124,10 +124,15 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
     markersRef.current = [];
 
     items.forEach((item) => {
+      const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
+      const opacity = getFreshnessOpacity(freshness);
+      const pinColor = freshness > 0.7 ? '#10b981' : freshness > 0.4 ? '#f59e0b' : '#78716c';
+
       const el = document.createElement('div');
       el.className = 'item-marker';
+      el.style.opacity = String(opacity);
       el.innerHTML = `
-        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-2 border-white">
+        <div style="background-color: ${pinColor};" class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-2 border-white">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
             <circle cx="12" cy="10" r="3"></circle>

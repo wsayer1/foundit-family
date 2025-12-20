@@ -1,6 +1,6 @@
 import { MapPin, Clock, Check, ThumbsUp, Pencil } from 'lucide-react';
 import type { ItemWithProfile } from '../types/database';
-import { formatTimeAgo } from '../utils/time';
+import { formatTimeAgo, calculateFreshness, getFreshnessColor, getFreshnessLabel } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
 import { getThumbnailUrl } from '../utils/image';
 
@@ -17,6 +17,9 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
   const distance = userLocation
     ? calculateDistance(userLocation.lat, userLocation.lng, item.latitude, item.longitude)
     : null;
+  const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
+  const freshnessColor = getFreshnessColor(freshness);
+  const freshnessLabel = getFreshnessLabel(freshness);
 
   return (
     <button
@@ -74,6 +77,21 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
             {formatTimeAgo(item.created_at)}
           </span>
         </div>
+
+        {item.status === 'available' && (
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-stone-500 dark:text-stone-400">{freshnessLabel}</span>
+              <span className="text-xs text-stone-400 dark:text-stone-500">{Math.round(freshness * 100)}%</span>
+            </div>
+            <div className="h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${freshnessColor} rounded-full transition-all duration-300`}
+                style={{ width: `${freshness * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </button>
   );

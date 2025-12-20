@@ -29,3 +29,40 @@ export function formatTimeAgo(dateString: string): string {
 
   return date.toLocaleDateString();
 }
+
+const FRESHNESS_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+
+export function calculateFreshness(createdAt: string, lastConfirmedAt?: string | null): number {
+  const referenceDate = lastConfirmedAt ? new Date(lastConfirmedAt) : new Date(createdAt);
+  const now = new Date();
+  const elapsed = now.getTime() - referenceDate.getTime();
+  const freshness = 1 - Math.min(elapsed / FRESHNESS_DURATION_MS, 1);
+  return Math.max(freshness, 0);
+}
+
+export function getFreshnessOpacity(freshness: number): number {
+  const minOpacity = 0.2;
+  return minOpacity + freshness * (1 - minOpacity);
+}
+
+export function getFreshnessColor(freshness: number): string {
+  if (freshness > 0.7) return 'bg-emerald-500';
+  if (freshness > 0.4) return 'bg-amber-500';
+  return 'bg-stone-400';
+}
+
+export function getFreshnessLabel(freshness: number): string {
+  if (freshness > 0.85) return 'Just posted';
+  if (freshness > 0.7) return 'Fresh';
+  if (freshness > 0.4) return 'May still be there';
+  if (freshness > 0.15) return 'Likely gone';
+  return 'Probably gone';
+}
+
+export function getDaysRemaining(createdAt: string, lastConfirmedAt?: string | null): number {
+  const referenceDate = lastConfirmedAt ? new Date(lastConfirmedAt) : new Date(createdAt);
+  const expiryDate = new Date(referenceDate.getTime() + FRESHNESS_DURATION_MS);
+  const now = new Date();
+  const remaining = expiryDate.getTime() - now.getTime();
+  return Math.max(Math.ceil(remaining / (24 * 60 * 60 * 1000)), 0);
+}

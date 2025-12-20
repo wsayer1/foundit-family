@@ -52,6 +52,7 @@ export interface Database {
           claimed_at: string | null;
           claimed_by: string | null;
           category: string | null;
+          last_confirmed_at: string | null;
         };
         Insert: {
           id?: string;
@@ -66,6 +67,7 @@ export interface Database {
           claimed_at?: string | null;
           claimed_by?: string | null;
           category?: string | null;
+          last_confirmed_at?: string | null;
         };
         Update: {
           id?: string;
@@ -80,6 +82,7 @@ export interface Database {
           claimed_at?: string | null;
           claimed_by?: string | null;
           category?: string | null;
+          last_confirmed_at?: string | null;
         };
       };
       confirmations: {
