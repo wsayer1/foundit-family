@@ -25,7 +25,7 @@ export function Header({ title, showBack, rightAction }: { title?: string; showB
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 dark:bg-stone-900/80 backdrop-blur-lg border-b border-stone-200/50 dark:border-stone-800/50">
-      <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+      <div className="px-4 h-14 flex items-center">
         {showBack ? (
           <button
             onClick={() => navigate(-1)}
@@ -45,12 +45,12 @@ export function Header({ title, showBack, rightAction }: { title?: string; showB
         )}
 
         {title && (
-          <h1 className="absolute left-1/2 -translate-x-1/2 font-semibold text-stone-900 dark:text-stone-100">
+          <h1 className="flex-1 text-center font-semibold text-stone-900 dark:text-stone-100">
             {title}
           </h1>
         )}
 
-        <div className="flex justify-end">
+        <div className="ml-auto">
           {rightAction}
         </div>
       </div>
