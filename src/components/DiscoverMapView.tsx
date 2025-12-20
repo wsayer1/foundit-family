@@ -188,9 +188,9 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
       {mapLoaded && userLocation && (
         <button
           onClick={handleFlyToUser}
-          className="absolute bottom-24 right-4 bg-white dark:bg-stone-800 p-3 rounded-full shadow-lg hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors z-10"
+          className="absolute bottom-[220px] right-3 bg-white/95 dark:bg-stone-800/95 backdrop-blur-sm p-3 rounded-2xl shadow-lg hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors z-10"
         >
-          <Navigation size={20} className="text-stone-700 dark:text-stone-300" />
+          <Navigation size={20} className="text-stone-600 dark:text-stone-300" />
         </button>
       )}
 

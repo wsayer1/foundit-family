@@ -63,6 +63,72 @@
   display: none !important;
 }
 
+.mapboxgl-ctrl-bottom-right {
+  bottom: 100px !important;
+  right: 12px !important;
+}
+
+.mapboxgl-ctrl-group {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: none !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.dark .mapboxgl-ctrl-group {
+  background: rgba(41, 37, 36, 0.95) !important;
+}
+
+.mapboxgl-ctrl-group button {
+  width: 44px !important;
+  height: 44px !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .mapboxgl-ctrl-group button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.mapboxgl-ctrl-group button + button {
+  border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .mapboxgl-ctrl-group button + button {
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+  filter: none !important;
+  opacity: 0.7 !important;
+}
+
+.dark .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+  filter: invert(1) !important;
+  opacity: 0.8 !important;
+}
+
+.mapboxgl-ctrl-group button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.mapboxgl-ctrl-group button:focus-visible {
+  outline: 2px solid #10b981 !important;
+  outline-offset: -2px !important;
+}
+
 @keyframes pulse {
   0% {
     transform: scale(1);
