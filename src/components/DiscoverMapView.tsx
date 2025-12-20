@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Navigation } from 'lucide-react';
+import { X, Navigation, Plus, Minus, Compass } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
@@ -57,8 +57,6 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
       setMapLoaded(true);
       setTimeout(() => mapInstance.resize(), 0);
     });
-
-    mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
     const resizeObserver = new ResizeObserver(() => {
       if (mapInstance) {
@@ -161,6 +159,24 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
     }
   };
 
+  const handleZoomIn = () => {
+    if (map.current) {
+      map.current.zoomIn();
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (map.current) {
+      map.current.zoomOut();
+    }
+  };
+
+  const handleResetNorth = () => {
+    if (map.current) {
+      map.current.resetNorth();
+    }
+  };
+
   if (!mapboxToken) {
     return (
       <div className="flex-1 flex items-center justify-center bg-stone-100 dark:bg-stone-900">
@@ -185,13 +201,43 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
         </div>
       )}
 
-      {mapLoaded && userLocation && (
-        <button
-          onClick={handleFlyToUser}
-          className="absolute bottom-[220px] right-3 bg-white/95 dark:bg-stone-800/95 backdrop-blur-sm p-3 rounded-2xl shadow-lg hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors z-10"
-        >
-          <Navigation size={20} className="text-stone-600 dark:text-stone-300" />
-        </button>
+      {mapLoaded && (
+        <div className="absolute bottom-[100px] right-3 z-10 flex flex-col gap-2">
+          {userLocation && (
+            <button
+              onClick={handleFlyToUser}
+              className="bg-white/95 dark:bg-stone-800/95 backdrop-blur-sm w-11 h-11 rounded-xl shadow-lg flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
+              aria-label="Go to my location"
+            >
+              <Navigation size={18} className="text-stone-600 dark:text-stone-300" />
+            </button>
+          )}
+          <div className="bg-white/95 dark:bg-stone-800/95 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden">
+            <button
+              onClick={handleZoomIn}
+              className="w-11 h-11 flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+              aria-label="Zoom in"
+            >
+              <Plus size={18} className="text-stone-600 dark:text-stone-300" />
+            </button>
+            <div className="h-px bg-stone-200 dark:bg-stone-700" />
+            <button
+              onClick={handleZoomOut}
+              className="w-11 h-11 flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+              aria-label="Zoom out"
+            >
+              <Minus size={18} className="text-stone-600 dark:text-stone-300" />
+            </button>
+            <div className="h-px bg-stone-200 dark:bg-stone-700" />
+            <button
+              onClick={handleResetNorth}
+              className="w-11 h-11 flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+              aria-label="Reset north"
+            >
+              <Compass size={18} className="text-stone-600 dark:text-stone-300" />
+            </button>
+          </div>
+        </div>
       )}
 
       {selectedItem && (

@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
-import { MapPin } from 'lucide-react';
 import { DiscoverMapView } from '../components/DiscoverMapView';
 import { FilterBar } from '../components/FilterBar';
 import { BottomNav } from '../components/BottomNav';
+import { Header } from '../components/Layout';
 import { useItems, useCategories } from '../hooks/useItems';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters } from '../contexts/FilterContext';
@@ -39,18 +39,7 @@ export function MapPage() {
 
   return (
     <div className="h-screen-safe bg-stone-50 dark:bg-stone-950 flex flex-col overflow-hidden">
-      <header className="flex-shrink-0 z-40 bg-white/80 dark:bg-stone-900/80 backdrop-blur-lg border-b border-stone-200/50 dark:border-stone-800/50">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-emerald-500 p-1.5 rounded-lg">
-              <MapPin size={18} className="text-white" />
-            </div>
-            <span className="font-semibold text-stone-900 dark:text-stone-100">Street Finds</span>
-          </div>
-          <div className="flex justify-end" />
-        </div>
-      </header>
-
+      <Header />
       <div className="flex-1 min-h-0 relative">
         <DiscoverMapView items={items} userLocation={userCoords} />
         <div className="absolute top-3 left-3 right-3 z-10">
