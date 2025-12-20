@@ -172,6 +172,7 @@ export function PostPage() {
         posting={posting}
         error={error}
         onDescriptionChange={setDescription}
+        onTagChange={setTag}
         onPost={handlePost}
         onBack={() => setStep('map')}
       />
