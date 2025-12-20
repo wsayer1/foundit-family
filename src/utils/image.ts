@@ -1,5 +1,7 @@
 const MAX_IMAGE_WIDTH = 1200;
 const JPEG_QUALITY = 0.8;
+const AVATAR_SIZE = 200;
+const AVATAR_QUALITY = 0.85;
 
 export async function compressImage(file: File, maxWidth = MAX_IMAGE_WIDTH): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -96,4 +98,46 @@ export function dataURLtoBlob(dataURL: string): Blob {
     u8arr[n] = bstr.charCodeAt(n);
   }
   return new Blob([u8arr], { type: mime });
+}
+
+export async function compressAvatar(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    img.onload = () => {
+      const { width, height } = img;
+      const minDimension = Math.min(width, height);
+      const sx = (width - minDimension) / 2;
+      const sy = (height - minDimension) / 2;
+
+      canvas.width = AVATAR_SIZE;
+      canvas.height = AVATAR_SIZE;
+
+      ctx?.drawImage(img, sx, sy, minDimension, minDimension, 0, 0, AVATAR_SIZE, AVATAR_SIZE);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to compress avatar'));
+          }
+        },
+        'image/jpeg',
+        AVATAR_QUALITY
+      );
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+export function getAvatarUrl(url: string | null | undefined, size = 80): string {
+  if (!url) return '';
+  if (!url.includes('supabase')) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}width=${size}&height=${size}&quality=80`;
 }

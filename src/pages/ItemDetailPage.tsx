@@ -10,6 +10,7 @@ import { EditItemModal } from '../components/EditItemModal';
 import type { ItemWithProfile } from '../types/database';
 import { formatTimeAgo } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
+import { getAvatarUrl } from '../utils/image';
 
 export function ItemDetailPage() {
   const { id } = useParams();
@@ -267,8 +268,18 @@ export function ItemDetailPage() {
           </div>
 
           <div className="flex items-center gap-3 py-2">
-            <div className="w-10 h-10 bg-stone-200 dark:bg-stone-700 rounded-full flex items-center justify-center">
-              <User size={18} className="text-stone-500 dark:text-stone-400" />
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-200 dark:bg-stone-700 flex-shrink-0">
+              {item.profiles?.avatar_url ? (
+                <img
+                  src={getAvatarUrl(item.profiles.avatar_url, 80)}
+                  alt={item.profiles.username || 'User'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <User size={18} className="text-stone-500 dark:text-stone-400" />
+                </div>
+              )}
             </div>
             <div>
               <p className="font-medium text-stone-900 dark:text-stone-100">

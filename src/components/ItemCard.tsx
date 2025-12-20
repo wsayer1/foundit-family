@@ -1,8 +1,8 @@
-import { MapPin, Clock, Check, ThumbsUp, Pencil } from 'lucide-react';
+import { MapPin, Clock, Check, ThumbsUp, Pencil, User } from 'lucide-react';
 import type { ItemWithProfile } from '../types/database';
 import { formatTimeAgo, calculateFreshness, getFreshnessColor, getFreshnessLabel } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
-import { getThumbnailUrl } from '../utils/image';
+import { getThumbnailUrl, getAvatarUrl } from '../utils/image';
 
 interface ItemCardProps {
   item: ItemWithProfile;
@@ -65,7 +65,26 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
           {item.description}
         </p>
 
-        <div className="mt-3 flex items-center gap-4 text-sm text-stone-500 dark:text-stone-400">
+        <div className="mt-3 flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full overflow-hidden bg-stone-200 dark:bg-stone-700 flex-shrink-0">
+            {item.profiles?.avatar_url ? (
+              <img
+                src={getAvatarUrl(item.profiles.avatar_url, 48)}
+                alt={item.profiles.username || 'User'}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User size={12} className="text-stone-400 dark:text-stone-500" />
+              </div>
+            )}
+          </div>
+          <span className="text-sm text-stone-600 dark:text-stone-400 truncate">
+            {item.profiles?.username || 'Anonymous'}
+          </span>
+        </div>
+
+        <div className="mt-2 flex items-center gap-4 text-sm text-stone-500 dark:text-stone-400">
           {distance !== null && (
             <span className="flex items-center gap-1">
               <MapPin size={14} />
