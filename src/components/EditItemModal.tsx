@@ -62,13 +62,13 @@ export function EditItemModal({ item, onClose, onSaved, onDeleted }: EditItemMod
   const isLoading = saving || deleting;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={isLoading ? undefined : onClose}
       />
 
-      <div className="relative w-full max-w-lg bg-white dark:bg-stone-900 rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-lg bg-white dark:bg-stone-900 rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-hidden flex flex-col safe-area-bottom">
         <div className="flex items-center justify-between p-4 border-b border-stone-200 dark:border-stone-800">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Edit Post</h2>
           <button

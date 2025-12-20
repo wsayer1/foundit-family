@@ -303,14 +303,14 @@ export function ItemDetailPage() {
         </div>
       </div>
 
-      {item.status === 'available' && !isOwner && (
+      {item.status === 'available' && (!hasConfirmed || !isOwner) && (
         <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 safe-area-bottom">
           <div className="max-w-lg mx-auto flex gap-3">
             {!hasConfirmed && (
               <button
                 onClick={handleConfirmStillThere}
                 disabled={confirming}
-                className="flex-1 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 transition-colors"
+                className={`${isOwner ? 'w-full' : 'flex-1'} bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 transition-colors`}
               >
                 {confirming ? (
                   <Loader2 size={20} className="animate-spin" />
@@ -320,18 +320,20 @@ export function ItemDetailPage() {
                 Still there
               </button>
             )}
-            <button
-              onClick={handleClaim}
-              disabled={claiming}
-              className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 disabled:opacity-50 transition-colors"
-            >
-              {claiming ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                <Check size={20} />
-              )}
-              Claim it
-            </button>
+            {!isOwner && (
+              <button
+                onClick={handleClaim}
+                disabled={claiming}
+                className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 disabled:opacity-50 transition-colors"
+              >
+                {claiming ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <Check size={20} />
+                )}
+                Claim it
+              </button>
+            )}
           </div>
         </div>
       )}
