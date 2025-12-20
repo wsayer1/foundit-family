@@ -52,7 +52,7 @@ export function MapPage() {
       </header>
 
       <div className="flex-1 min-h-0 relative pb-20">
-        <DiscoverMapView items={items} userLocation={locationEnabled ? userCoords : null} />
+        <DiscoverMapView items={items} userLocation={userCoords} />
         <div className="absolute top-3 left-3 right-3 z-10">
           <div className="bg-white/90 dark:bg-stone-900/90 backdrop-blur-md rounded-2xl shadow-lg border border-stone-200/50 dark:border-stone-700/50">
             <FilterBar
