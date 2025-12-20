@@ -1,6 +1,6 @@
 import { MapPin, Clock, Check, ThumbsUp, Pencil, User } from 'lucide-react';
 import type { ItemWithProfile } from '../types/database';
-import { formatTimeAgo, calculateFreshness, getFreshnessColor, getFreshnessLabel } from '../utils/time';
+import { formatTimeAgo, calculateFreshness, getFreshnessColor } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
 import { getThumbnailUrl, getAvatarUrl } from '../utils/image';
 
@@ -19,7 +19,6 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
     : null;
   const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
   const freshnessColor = getFreshnessColor(freshness);
-  const freshnessLabel = getFreshnessLabel(freshness);
 
   return (
     <button
@@ -60,55 +59,49 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
         )}
       </div>
 
-      <div className="p-4">
-        <p className="text-stone-800 dark:text-stone-200 font-medium line-clamp-2 leading-snug">
+      <div className="p-3">
+        <p className="text-stone-800 dark:text-stone-200 font-medium line-clamp-2 leading-snug text-[15px]">
           {item.description}
         </p>
 
-        <div className="mt-3 flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full overflow-hidden bg-stone-200 dark:bg-stone-700 flex-shrink-0">
+        <div className="mt-2 flex items-center gap-1.5 text-sm text-stone-500 dark:text-stone-400">
+          <div className="w-5 h-5 rounded-full overflow-hidden bg-stone-200 dark:bg-stone-700 flex-shrink-0">
             {item.profiles?.avatar_url ? (
               <img
-                src={getAvatarUrl(item.profiles.avatar_url, 48)}
+                src={getAvatarUrl(item.profiles.avatar_url, 40)}
                 alt={item.profiles.username || 'User'}
                 className="w-full h-full object-cover"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <User size={12} className="text-stone-400 dark:text-stone-500" />
+                <User size={10} className="text-stone-400 dark:text-stone-500" />
               </div>
             )}
           </div>
-          <span className="text-sm text-stone-600 dark:text-stone-400 truncate">
+          <span className="text-stone-600 dark:text-stone-400 truncate max-w-[80px]">
             {item.profiles?.username || 'Anonymous'}
           </span>
-        </div>
-
-        <div className="mt-2 flex items-center gap-4 text-sm text-stone-500 dark:text-stone-400">
+          <span className="text-stone-300 dark:text-stone-600">·</span>
+          <Clock size={12} className="flex-shrink-0" />
+          <span className="flex-shrink-0">{formatTimeAgo(item.created_at)}</span>
           {distance !== null && (
-            <span className="flex items-center gap-1">
-              <MapPin size={14} />
-              {formatDistance(distance)}
-            </span>
+            <>
+              <span className="text-stone-300 dark:text-stone-600">·</span>
+              <MapPin size={12} className="flex-shrink-0" />
+              <span className="flex-shrink-0">{formatDistance(distance)}</span>
+            </>
           )}
-          <span className="flex items-center gap-1">
-            <Clock size={14} />
-            {formatTimeAgo(item.created_at)}
-          </span>
         </div>
 
         {item.status === 'available' && (
-          <div className="mt-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-stone-500 dark:text-stone-400">{freshnessLabel}</span>
-              <span className="text-xs text-stone-400 dark:text-stone-500">{Math.round(freshness * 100)}%</span>
-            </div>
-            <div className="h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+          <div className="mt-2 flex items-center gap-2">
+            <div className="flex-1 h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
               <div
                 className={`h-full ${freshnessColor} rounded-full transition-all duration-300`}
                 style={{ width: `${freshness * 100}%` }}
               />
             </div>
+            <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-shrink-0">{Math.round(freshness * 100)}%</span>
           </div>
         )}
       </div>
