@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Sparkles, Loader2, SlidersHorizontal } from 'lucide-react';
+import { MapPin, Sparkles, Loader2, SlidersHorizontal, LogIn } from 'lucide-react';
 import { Layout, Header } from '../components/Layout';
 import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
@@ -20,9 +20,10 @@ export function DiscoverPage() {
   const { filters, setFilters, hasActiveFilters } = useFilters();
   const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
 
-  const { items, loading, loadingMore, hasMore, loadMore, refresh } = useItems(
+  const { items, loading, loadingMore, hasMore, loadMore, refresh, guestLimitReached } = useItems(
     locationEnabled ? userCoords : null,
-    filters
+    filters,
+    !!user
   );
   const { categories } = useCategories();
 
@@ -136,7 +137,26 @@ export function DiscoverPage() {
                   />
                 ))}
               </div>
-              {hasMore && (
+              {guestLimitReached && (
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-6 text-center">
+                  <div className="bg-emerald-100 dark:bg-emerald-900/50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <LogIn className="text-emerald-600 dark:text-emerald-400" size={24} />
+                  </div>
+                  <h3 className="font-semibold text-stone-800 dark:text-stone-200 mb-1">
+                    Want to see more?
+                  </h3>
+                  <p className="text-sm text-stone-600 dark:text-stone-400 mb-4">
+                    Sign in to browse all available finds in your area
+                  </p>
+                  <button
+                    onClick={() => navigate('/auth')}
+                    className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-600 transition-colors"
+                  >
+                    Sign in to continue
+                  </button>
+                </div>
+              )}
+              {hasMore && !guestLimitReached && (
                 <button
                   onClick={loadMore}
                   disabled={loadingMore}
