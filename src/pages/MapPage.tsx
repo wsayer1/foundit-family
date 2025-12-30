@@ -23,6 +23,7 @@ function formatCategoryLabel(category: string): string {
 
 interface MapFilterDropdownProps<T extends string> {
   icon: React.ReactNode;
+  label: string;
   options: { value: T; label: string }[];
   value: T;
   defaultValue: T;
@@ -31,6 +32,7 @@ interface MapFilterDropdownProps<T extends string> {
 
 function MapFilterDropdown<T extends string>({
   icon,
+  label,
   options,
   value,
   defaultValue,
@@ -40,6 +42,7 @@ function MapFilterDropdown<T extends string>({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const selectedOption = options.find((opt) => opt.value === value);
   const isActive = value !== defaultValue;
 
   useEffect(() => {
@@ -63,13 +66,14 @@ function MapFilterDropdown<T extends string>({
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 px-4 py-3 min-h-[48px] rounded-xl text-sm font-semibold whitespace-nowrap transition-all shadow-lg ${
+        className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[48px] rounded-xl text-sm font-semibold whitespace-nowrap transition-all shadow-lg ${
           isActive
             ? 'bg-emerald-500 text-white shadow-emerald-500/30'
             : 'bg-white/95 dark:bg-stone-800/95 backdrop-blur-md text-stone-700 dark:text-stone-200 shadow-black/15'
         }`}
       >
         {icon}
+        <span className="hidden sm:inline">{isActive ? selectedOption?.label : label}</span>
         <ChevronDown
           size={18}
           className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -144,23 +148,33 @@ export function MapPage() {
         <DiscoverMapView items={items} userLocation={userCoords} isGuest={!user} />
 
         <div className="absolute top-0 left-0 right-0 z-20 safe-area-top">
-          <div className="flex items-center justify-end gap-2 px-4 pt-4">
-            <MapFilterDropdown
-              icon={<Clock size={20} />}
-              options={timeOptions}
-              value={filters.time}
-              defaultValue="all"
-              onChange={(value: TimeFilter) => setFilters({ ...filters, time: value })}
-            />
-            {categories.length > 0 && (
+          <div className="flex items-center justify-between gap-2 px-4 pt-4">
+            <div className="flex items-center gap-2 bg-white/95 dark:bg-stone-800/95 backdrop-blur-md px-3 py-2.5 rounded-xl shadow-lg shadow-black/15">
+              <div className="bg-emerald-500 p-1.5 rounded-lg">
+                <MapPin size={16} className="text-white" />
+              </div>
+              <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm">Foundit.Family</span>
+            </div>
+            <div className="flex items-center gap-2">
               <MapFilterDropdown
-                icon={<Tag size={20} />}
-                options={categoryOptions}
-                value={filters.category}
+                icon={<Clock size={20} />}
+                label="Time"
+                options={timeOptions}
+                value={filters.time}
                 defaultValue="all"
-                onChange={(value: CategoryFilter) => setFilters({ ...filters, category: value })}
+                onChange={(value: TimeFilter) => setFilters({ ...filters, time: value })}
               />
-            )}
+              {categories.length > 0 && (
+                <MapFilterDropdown
+                  icon={<Tag size={20} />}
+                  label="Category"
+                  options={categoryOptions}
+                  value={filters.category}
+                  defaultValue="all"
+                  onChange={(value: CategoryFilter) => setFilters({ ...filters, category: value })}
+                />
+              )}
+            </div>
           </div>
         </div>
 

@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Sparkles, Loader2, SlidersHorizontal } from 'lucide-react';
-import { Layout, Header } from '../components/Layout';
+import { MapPin, Sparkles, Loader2, SlidersHorizontal, Clock, Tag, ChevronDown, Navigation } from 'lucide-react';
+import { Layout } from '../components/Layout';
 import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
-import { FilterBar } from '../components/FilterBar';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { GuestHero, GuestBottomCTA } from '../components/GuestHero';
 import { useItems, useCategories, useSiteStats } from '../hooks/useItems';
@@ -12,6 +11,135 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters, DEFAULT_FILTERS } from '../contexts/FilterContext';
 import type { ItemWithProfile } from '../types/database';
+import type { DistanceFilter, TimeFilter, CategoryFilter } from '../components/FilterBar';
+
+const distanceOptions: { value: DistanceFilter; label: string }[] = [
+  { value: 'any', label: 'Any Distance' },
+  { value: '500', label: '500m' },
+  { value: '1000', label: '1 km' },
+  { value: '2000', label: '2 km' },
+  { value: '5000', label: '5 km' },
+  { value: '10000', label: '10 km' },
+  { value: '25000', label: '25 km' },
+];
+
+const timeOptions: { value: TimeFilter; label: string }[] = [
+  { value: '2h', label: 'Last 2 hours' },
+  { value: '8h', label: 'Last 8 hours' },
+  { value: '24h', label: 'Last 24 hours' },
+  { value: '48h', label: 'Last 48 hours' },
+  { value: 'week', label: 'Last week' },
+  { value: 'all', label: 'All time' },
+];
+
+function formatCategoryLabel(category: string): string {
+  return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+}
+
+interface DiscoverFilterDropdownProps<T extends string> {
+  icon: React.ReactNode;
+  label: string;
+  options: { value: T; label: string }[];
+  value: T;
+  defaultValue: T;
+  onChange: (value: T) => void;
+  requiresLocation?: T[];
+  locationEnabled: boolean;
+  onEnableLocation: () => void;
+}
+
+function DiscoverFilterDropdown<T extends string>({
+  icon,
+  label,
+  options,
+  value,
+  defaultValue,
+  onChange,
+  requiresLocation = [],
+  locationEnabled,
+  onEnableLocation,
+}: DiscoverFilterDropdownProps<T>) {
+  const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+  const isActive = value !== defaultValue;
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleOptionClick = (optionValue: T) => {
+    if (requiresLocation?.includes(optionValue) && !locationEnabled) {
+      onEnableLocation();
+      setIsOpen(false);
+      return;
+    }
+    onChange(optionValue);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[48px] rounded-xl text-sm font-semibold whitespace-nowrap transition-all shadow-sm ${
+          isActive
+            ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+            : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700'
+        }`}
+      >
+        {icon}
+        <span className="hidden sm:inline">{isActive ? selectedOption?.label : label}</span>
+        <ChevronDown
+          size={18}
+          className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          ref={dropdownRef}
+          className="absolute top-full right-0 mt-2 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 py-1 min-w-[160px] z-[100]"
+        >
+          {options.map((option) => {
+            const needsLocation = requiresLocation?.includes(option.value);
+            const isDisabled = needsLocation && !locationEnabled;
+
+            return (
+              <button
+                key={option.value}
+                onClick={() => handleOptionClick(option.value)}
+                className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between gap-2 transition-colors ${
+                  value === option.value
+                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 font-medium'
+                    : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
+                } ${isDisabled ? 'opacity-60' : ''}`}
+              >
+                <span>{option.label}</span>
+                {isDisabled && <Navigation size={12} className="text-amber-500" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function DiscoverPage() {
   const navigate = useNavigate();
@@ -57,18 +185,60 @@ export function DiscoverPage() {
     }
   };
 
+  const categoryOptions: { value: string; label: string }[] = [
+    { value: 'all', label: 'All Categories' },
+    ...categories.map((cat) => ({ value: cat, label: formatCategoryLabel(cat) })),
+  ];
+
+  const isLocationEnabled = permissionStatus === 'granted';
+
   return (
     <Layout>
-      <Header />
-      <div className="sticky top-14 z-30">
-        <FilterBar
-          filters={filters}
-          onFiltersChange={setFilters}
-          locationEnabled={permissionStatus === 'granted'}
-          onEnableLocation={handleEnableLocation}
-          categories={categories}
-        />
-      </div>
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-stone-900/80 backdrop-blur-lg border-b border-stone-200/50 dark:border-stone-800/50">
+        <div className="px-4 h-14 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="bg-emerald-500 p-1.5 rounded-lg">
+              <MapPin size={18} className="text-white" />
+            </div>
+            <span className="font-semibold text-stone-900 dark:text-stone-100">Foundit.Family</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <DiscoverFilterDropdown
+              icon={<MapPin size={18} />}
+              label="Distance"
+              options={distanceOptions}
+              value={filters.distance}
+              defaultValue="any"
+              onChange={(value: DistanceFilter) => setFilters({ ...filters, distance: value })}
+              requiresLocation={['500', '1000', '2000', '5000', '10000', '25000']}
+              locationEnabled={isLocationEnabled}
+              onEnableLocation={handleEnableLocation}
+            />
+            <DiscoverFilterDropdown
+              icon={<Clock size={18} />}
+              label="Time"
+              options={timeOptions}
+              value={filters.time}
+              defaultValue="all"
+              onChange={(value: TimeFilter) => setFilters({ ...filters, time: value })}
+              locationEnabled={isLocationEnabled}
+              onEnableLocation={handleEnableLocation}
+            />
+            {categories.length > 0 && (
+              <DiscoverFilterDropdown
+                icon={<Tag size={18} />}
+                label="Category"
+                options={categoryOptions}
+                value={filters.category}
+                defaultValue="all"
+                onChange={(value: CategoryFilter) => setFilters({ ...filters, category: value })}
+                locationEnabled={isLocationEnabled}
+                onEnableLocation={handleEnableLocation}
+              />
+            )}
+          </div>
+        </div>
+      </header>
       <PullToRefresh onRefresh={handleRefresh} className="flex-1">
         <div className="max-w-lg mx-auto px-4 py-4">
           {!user && <GuestHero stats={stats} />}
