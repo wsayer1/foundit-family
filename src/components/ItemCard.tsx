@@ -1,4 +1,4 @@
-import { MapPin, Clock, Check, ThumbsUp, Pencil, User } from 'lucide-react';
+import { MapPin, Clock, ThumbsUp, Pencil, User, Hand } from 'lucide-react';
 import type { ItemWithProfile } from '../types/database';
 import { formatTimeAgo, calculateFreshness, getFreshnessColor } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
@@ -12,6 +12,13 @@ interface ItemCardProps {
   onEdit?: () => void;
 }
 
+function getClaimerFirstName(item: ItemWithProfile): string {
+  const username = item.claimer_profile?.username;
+  if (!username) return 'Someone';
+  const firstName = username.split(' ')[0];
+  return firstName.charAt(0).toUpperCase() + firstName.slice(1);
+}
+
 export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }: ItemCardProps) {
   const isOwner = currentUserId === item.user_id;
   const distance = userLocation
@@ -19,6 +26,7 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
     : null;
   const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
   const freshnessColor = getFreshnessColor(freshness);
+  const isClaimed = item.status === 'claimed';
 
   return (
     <button
@@ -30,17 +38,21 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
           src={getThumbnailUrl(item.image_url)}
           alt={item.description}
           loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className={`w-full h-full object-cover transition-transform duration-300 ${isClaimed ? 'opacity-60' : 'group-hover:scale-105'}`}
         />
-        {item.status === 'claimed' && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-            <div className="bg-white/90 dark:bg-stone-800/90 px-4 py-2 rounded-full flex items-center gap-2">
-              <Check size={18} className="text-emerald-600 dark:text-emerald-400" />
-              <span className="font-medium text-stone-800 dark:text-stone-200">Claimed</span>
+        {isClaimed && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 -rotate-12">
+              <div className="bg-stone-700/90 backdrop-blur-sm py-2 px-4 flex items-center justify-center gap-2 shadow-lg">
+                <Hand size={16} className="text-white" />
+                <span className="font-semibold text-white text-sm tracking-wide">
+                  Claimed by {getClaimerFirstName(item)}
+                </span>
+              </div>
             </div>
           </div>
         )}
-        {isOwner && (
+        {isOwner && !isClaimed && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -51,7 +63,7 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
             <Pencil size={16} className="text-stone-600 dark:text-stone-300" />
           </button>
         )}
-        {item.still_there_count > 0 && item.status === 'available' && (
+        {item.still_there_count > 0 && !isClaimed && (
           <div className="absolute bottom-3 right-3 bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
             <ThumbsUp size={14} className="text-emerald-600 dark:text-emerald-400" />
             <span className="text-xs font-medium text-stone-700 dark:text-stone-300">{item.still_there_count}</span>

@@ -115,4 +115,5 @@ export type Confirmation = Database['public']['Tables']['confirmations']['Row'];
 
 export interface ItemWithProfile extends Item {
   profiles: Pick<Profile, 'username' | 'avatar_url'> | null;
+  claimer_profile?: Pick<Profile, 'username' | 'avatar_url'> | null;
 }

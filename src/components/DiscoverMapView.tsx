@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Navigation, Plus, Minus, Compass } from 'lucide-react';
+import { X, Navigation, Plus, Minus, Compass, Hand } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
@@ -20,6 +20,13 @@ const MAP_STYLES = {
   light: 'mapbox://styles/mapbox/streets-v12',
   dark: 'mapbox://styles/mapbox/dark-v11',
 };
+
+function getClaimerFirstName(item: ItemWithProfile): string {
+  const username = item.claimer_profile?.username;
+  if (!username) return 'Someone';
+  const firstName = username.split(' ')[0];
+  return firstName.charAt(0).toUpperCase() + firstName.slice(1);
+}
 
 export function DiscoverMapView({ items, userLocation, isGuest = false }: DiscoverMapViewProps) {
   const navigate = useNavigate();
@@ -58,7 +65,7 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
       container: mapContainer.current,
       style: MAP_STYLES[resolvedTheme],
       center,
-      zoom: userLocation ? 14 : 11,
+      zoom: userLocation ? 11 : 11,
       attributionControl: false
     });
 
@@ -120,7 +127,7 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
         initialFlyDoneRef.current = true;
         map.current.jumpTo({
           center: [userLocation.lng, userLocation.lat],
-          zoom: 14
+          zoom: 11
         });
       }
     }
@@ -133,9 +140,10 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
     markersRef.current = [];
 
     items.forEach((item) => {
+      const isClaimed = item.status === 'claimed';
       const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
-      const opacity = getFreshnessOpacity(freshness);
-      const pinColor = freshness > 0.7 ? '#10b981' : freshness > 0.4 ? '#f59e0b' : '#78716c';
+      const opacity = isClaimed ? 0.7 : getFreshnessOpacity(freshness);
+      const pinColor = isClaimed ? '#78716c' : freshness > 0.7 ? '#10b981' : freshness > 0.4 ? '#f59e0b' : '#78716c';
       const isSelected = selectedItem?.id === item.id;
 
       const el = document.createElement('div');
@@ -144,7 +152,45 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
       el.style.zIndex = isSelected ? '1000' : '1';
       el.style.transition = 'all 0.2s ease-out';
 
-      if (isSelected) {
+      if (isClaimed) {
+        if (isSelected) {
+          el.innerHTML = `
+            <div class="relative">
+              <div style="width: 52px; height: 52px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 3px solid #57534e; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(120, 113, 108, 0.2);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+                  <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+                  <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+                  <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                </svg>
+              </div>
+              <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #57534e;"></div>
+            </div>
+          `;
+        } else {
+          el.innerHTML = `
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 2px solid #57534e; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+                <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+                <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+                <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+              </svg>
+            </div>
+          `;
+          const innerEl = el.firstElementChild as HTMLElement;
+          if (innerEl) {
+            el.addEventListener('mouseenter', () => {
+              innerEl.style.transform = 'scale(1.1)';
+              innerEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+            });
+            el.addEventListener('mouseleave', () => {
+              innerEl.style.transform = 'scale(1)';
+              innerEl.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+            });
+          }
+        }
+      } else if (isSelected) {
         el.innerHTML = `
           <div class="relative">
             <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 3px solid ${pinColor}; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(16, 185, 129, 0.2);">
@@ -188,7 +234,7 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
     if (map.current && userLocation) {
       map.current.flyTo({
         center: [userLocation.lng, userLocation.lat],
-        zoom: 15
+        zoom: 14
       });
     }
   };
@@ -293,8 +339,18 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
                     src={getPreviewUrl(selectedItem.image_url)}
                     alt={selectedItem.description}
                     loading="lazy"
-                    className="w-full aspect-square object-cover bg-stone-100 dark:bg-stone-800"
+                    className={`w-full aspect-square object-cover bg-stone-100 dark:bg-stone-800 ${selectedItem.status === 'claimed' ? 'opacity-60' : ''}`}
                   />
+                  {selectedItem.status === 'claimed' && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="bg-stone-700/90 backdrop-blur-sm py-1.5 px-3 rounded-full flex items-center gap-1.5">
+                        <Hand size={14} className="text-white" />
+                        <span className="font-medium text-white text-xs">
+                          Claimed by {getClaimerFirstName(selectedItem)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-8">
                     <p className="text-xs text-white/80">
                       {formatTimeAgo(selectedItem.created_at)}
@@ -360,26 +416,42 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
                     src={getPreviewUrl(selectedItem.image_url)}
                     alt={selectedItem.description}
                     loading="lazy"
-                    className="w-full h-full object-cover bg-stone-100 dark:bg-stone-800"
+                    className={`w-full h-full object-cover bg-stone-100 dark:bg-stone-800 ${selectedItem.status === 'claimed' ? 'opacity-60' : ''}`}
                   />
+                  {selectedItem.status === 'claimed' && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="bg-stone-700/90 backdrop-blur-sm py-1 px-2 rounded-full flex items-center gap-1">
+                        <Hand size={12} className="text-white" />
+                        <span className="font-medium text-white text-[10px]">
+                          Claimed
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
                   <div>
-                    <p className="text-xs text-stone-500 dark:text-stone-400 mb-1.5">
-                      {formatTimeAgo(selectedItem.created_at)}
-                      {userLocation && (
-                        <span className="ml-1.5">
-                          · {formatDistance(
-                            calculateDistance(
-                              userLocation.lat,
-                              userLocation.lng,
-                              selectedItem.latitude,
-                              selectedItem.longitude
-                            )
-                          )}
-                        </span>
-                      )}
-                    </p>
+                    {selectedItem.status === 'claimed' ? (
+                      <p className="text-xs text-stone-500 dark:text-stone-400 mb-1.5">
+                        Claimed by {getClaimerFirstName(selectedItem)}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-stone-500 dark:text-stone-400 mb-1.5">
+                        {formatTimeAgo(selectedItem.created_at)}
+                        {userLocation && (
+                          <span className="ml-1.5">
+                            · {formatDistance(
+                              calculateDistance(
+                                userLocation.lat,
+                                userLocation.lng,
+                                selectedItem.latitude,
+                                selectedItem.longitude
+                              )
+                            )}
+                          </span>
+                        )}
+                      </p>
+                    )}
                     <p className="font-medium text-stone-900 dark:text-stone-100 text-sm line-clamp-3 leading-snug pr-8">
                       {selectedItem.description}
                     </p>

@@ -77,6 +77,10 @@ export function ItemDetailPage() {
 
     map.current = mapInstance;
 
+    mapInstance.on('load', () => {
+      mapInstance.resize();
+    });
+
     const el = document.createElement('div');
     el.innerHTML = `
       <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
@@ -320,14 +324,42 @@ export function ItemDetailPage() {
         </div>
       </div>
 
-      {item.status === 'available' && (isOwner || !hasConfirmed) && (
+      {item.status === 'available' && isOwner && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 safe-area-bottom">
+          <div className="max-w-lg mx-auto">
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="w-full bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors"
+            >
+              <Pencil size={20} />
+              Edit Item
+            </button>
+          </div>
+        </div>
+      )}
+
+      {item.status === 'available' && !isOwner && !isNearby && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 safe-area-bottom">
+          <div className="max-w-lg mx-auto">
+            <button
+              disabled
+              className="w-full bg-stone-200 dark:bg-stone-700 text-stone-500 dark:text-stone-400 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-not-allowed"
+            >
+              <MapPin size={20} />
+              Get closer to verify or claim
+            </button>
+          </div>
+        </div>
+      )}
+
+      {item.status === 'available' && !isOwner && isNearby && (
         <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 safe-area-bottom">
           <div className="max-w-lg mx-auto flex gap-3">
-            {!hasConfirmed && isNearby && (
+            {!hasConfirmed && (
               <button
                 onClick={() => setShowPhotoCapture(true)}
                 disabled={confirming}
-                className="flex-1 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 transition-colors"
+                className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 disabled:opacity-50 transition-colors"
               >
                 {confirming ? (
                   <Loader2 size={20} className="animate-spin" />
@@ -337,29 +369,18 @@ export function ItemDetailPage() {
                 Still there
               </button>
             )}
-            {isOwner && (
-              <button
-                onClick={() => setShowEditModal(true)}
-                className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors"
-              >
-                <Pencil size={20} />
-                Edit Item
-              </button>
-            )}
-            {!isOwner && (
-              <button
-                onClick={handleClaim}
-                disabled={claiming}
-                className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 disabled:opacity-50 transition-colors"
-              >
-                {claiming ? (
-                  <Loader2 size={20} className="animate-spin" />
-                ) : (
-                  <Check size={20} />
-                )}
-                Claim it
-              </button>
-            )}
+            <button
+              onClick={handleClaim}
+              disabled={claiming}
+              className={`${hasConfirmed ? 'w-full' : 'flex-1'} ${hasConfirmed ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700'} ${hasConfirmed ? 'text-white' : 'text-stone-700 dark:text-stone-300'} py-4 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors`}
+            >
+              {claiming ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <Check size={20} />
+              )}
+              Claim it
+            </button>
           </div>
         </div>
       )}
@@ -369,6 +390,22 @@ export function ItemDetailPage() {
           <div className="max-w-lg mx-auto text-center">
             <p className="text-emerald-700 dark:text-emerald-300 font-medium">You claimed this item!</p>
             <p className="text-emerald-600 dark:text-emerald-400 text-sm mt-1">You earned 5 points</p>
+          </div>
+        </div>
+      )}
+
+      {item.status === 'claimed' && !isClaimer && !isOwner && (
+        <div className="fixed bottom-0 left-0 right-0 bg-stone-100 dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 p-4 safe-area-bottom">
+          <div className="max-w-lg mx-auto text-center">
+            <p className="text-stone-600 dark:text-stone-400 font-medium">This item has been claimed</p>
+          </div>
+        </div>
+      )}
+
+      {item.status === 'claimed' && isOwner && (
+        <div className="fixed bottom-0 left-0 right-0 bg-stone-100 dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 p-4 safe-area-bottom">
+          <div className="max-w-lg mx-auto text-center">
+            <p className="text-stone-600 dark:text-stone-400 font-medium">Your item was claimed</p>
           </div>
         </div>
       )}

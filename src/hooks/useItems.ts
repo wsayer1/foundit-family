@@ -183,13 +183,16 @@ export function useItems(
       }
 
       try {
+        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
         let query = supabase
           .from('items')
           .select(`
           *,
-          profiles!items_user_id_fkey (username, avatar_url)
+          profiles!items_user_id_fkey (username, avatar_url),
+          claimer_profile:profiles!items_claimed_by_fkey (username, avatar_url)
         `)
-          .eq('status', 'available')
+          .or(`status.eq.available,and(status.eq.claimed,claimed_at.gte.${fortyEightHoursAgo})`)
           .order('created_at', { ascending: false })
           .limit(INITIAL_FETCH_LIMIT);
 
