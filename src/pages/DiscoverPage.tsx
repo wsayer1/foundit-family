@@ -6,6 +6,7 @@ import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { GuestHero, GuestBottomCTA } from '../components/GuestHero';
+import { FloatingAuthCard } from '../components/FloatingAuthCard';
 import { useItems, useCategories, useSiteStats } from '../hooks/useItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
@@ -148,6 +149,7 @@ export function DiscoverPage() {
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters, hasActiveFilters } = useFilters();
   const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const { items, loading, loadingMore, hasMore, loadMore, refresh, guestLimitReached } = useItems(
     locationEnabled ? userCoords : null,
@@ -355,7 +357,13 @@ export function DiscoverPage() {
                     item={item}
                     userLocation={userCoords}
                     currentUserId={user?.id}
-                    onClick={() => navigate(`/item/${item.id}`)}
+                    onClick={() => {
+                      if (user) {
+                        navigate(`/item/${item.id}`);
+                      } else {
+                        setShowAuthModal(true);
+                      }
+                    }}
                     onEdit={() => setEditingItem(item)}
                   />
                 ))}
@@ -396,6 +404,15 @@ export function DiscoverPage() {
             refresh();
           }}
         />
+      )}
+
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <FloatingAuthCard
+            onSuccess={() => setShowAuthModal(false)}
+            onClose={() => setShowAuthModal(false)}
+          />
+        </div>
       )}
     </Layout>
   );
