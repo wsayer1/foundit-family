@@ -4,15 +4,17 @@ import { FilterBar } from '../components/FilterBar';
 import { BottomNav } from '../components/BottomNav';
 import { Header } from '../components/Layout';
 import { useItems, useCategories } from '../hooks/useItems';
+import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters } from '../contexts/FilterContext';
 
 export function MapPage() {
+  const { user, loading: authLoading } = useAuth();
   const { requestLocation, checkPermission, permissionStatus, locationEnabled } = useLocation();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters } = useFilters();
   const mapFilters = useMemo(() => ({ ...filters, distance: 'any' as const }), [filters]);
-  const { items } = useItems(locationEnabled ? userCoords : null, mapFilters);
+  const { items } = useItems(locationEnabled ? userCoords : null, mapFilters, !!user, authLoading);
   const { categories } = useCategories();
 
   useEffect(() => {

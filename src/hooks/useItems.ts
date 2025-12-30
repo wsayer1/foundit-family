@@ -6,19 +6,20 @@ import type { FilterState, DistanceFilter, TimeFilter, SortOption } from '../com
 const ITEMS_PER_PAGE = 15;
 const GUEST_ITEMS_LIMIT = 8;
 const CACHE_KEY = 'streetfinds_items_cache';
-const CACHE_TTL = 2 * 60 * 1000;
+const CACHE_TTL = 5 * 60 * 1000;
+const INITIAL_FETCH_LIMIT = 30;
 
 interface CacheData {
   items: ItemWithProfile[];
   timestamp: number;
-  filterHash: string;
+  cacheKey: string;
 }
 
-function getFilterHash(filters: FilterState): string {
-  return `${filters.time}:${filters.category}`;
+function getCacheKey(filters: FilterState, isAuthenticated: boolean): string {
+  return `${filters.time}:${filters.category}:${isAuthenticated ? 'auth' : 'guest'}`;
 }
 
-function getCachedItems(filters: FilterState): ItemWithProfile[] | null {
+function getCachedItems(filters: FilterState, isAuthenticated: boolean): ItemWithProfile[] | null {
   try {
     const cached = sessionStorage.getItem(CACHE_KEY);
     if (!cached) return null;
@@ -29,7 +30,7 @@ function getCachedItems(filters: FilterState): ItemWithProfile[] | null {
       return null;
     }
 
-    if (data.filterHash !== getFilterHash(filters)) {
+    if (data.cacheKey !== getCacheKey(filters, isAuthenticated)) {
       return null;
     }
 
@@ -39,9 +40,9 @@ function getCachedItems(filters: FilterState): ItemWithProfile[] | null {
   }
 }
 
-function setCachedItems(items: ItemWithProfile[], filters: FilterState): void {
+function setCachedItems(items: ItemWithProfile[], filters: FilterState, isAuthenticated: boolean): void {
   try {
-    const data: CacheData = { items, timestamp: Date.now(), filterHash: getFilterHash(filters) };
+    const data: CacheData = { items, timestamp: Date.now(), cacheKey: getCacheKey(filters, isAuthenticated) };
     sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
   } catch {
   }
@@ -93,7 +94,8 @@ function getDistanceLimit(filter: DistanceFilter): number | null {
 export function useItems(
   userLocation: { lat: number; lng: number } | null,
   filters: FilterState,
-  isAuthenticated = true
+  isAuthenticated: boolean,
+  authLoading: boolean
 ) {
   const [items, setItems] = useState<ItemWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,6 +104,7 @@ export function useItems(
   const [hasMore, setHasMore] = useState(true);
   const [guestLimitReached, setGuestLimitReached] = useState(false);
   const allItemsRef = useRef<ItemWithProfile[]>([]);
+  const hasFetchedRef = useRef(false);
 
   const itemsLimit = isAuthenticated ? ITEMS_PER_PAGE : GUEST_ITEMS_LIMIT;
 
@@ -154,22 +157,24 @@ export function useItems(
   );
 
   const fetchItems = useCallback(
-    async (useCache = true) => {
+    async (useCache = true, forceAuth?: boolean) => {
+      const effectiveAuth = forceAuth !== undefined ? forceAuth : isAuthenticated;
       setLoading(true);
       setError(null);
 
       if (useCache) {
-        const cached = getCachedItems(filters);
+        const cached = getCachedItems(filters, effectiveAuth);
         if (cached) {
           const filtered = applyClientFilters(cached);
           const sorted = sortItems(filtered, filters.sort);
           allItemsRef.current = sorted;
-          setItems(sorted.slice(0, itemsLimit));
-          if (!isAuthenticated && sorted.length > GUEST_ITEMS_LIMIT) {
+          const limit = effectiveAuth ? ITEMS_PER_PAGE : GUEST_ITEMS_LIMIT;
+          setItems(sorted.slice(0, limit));
+          if (!effectiveAuth && sorted.length > GUEST_ITEMS_LIMIT) {
             setHasMore(false);
             setGuestLimitReached(true);
           } else {
-            setHasMore(sorted.length > itemsLimit);
+            setHasMore(sorted.length > limit);
             setGuestLimitReached(false);
           }
           setLoading(false);
@@ -186,7 +191,7 @@ export function useItems(
         `)
           .eq('status', 'available')
           .order('created_at', { ascending: false })
-          .limit(100);
+          .limit(INITIAL_FETCH_LIMIT);
 
         const timeFilterDate = getTimeFilterDate(filters.time);
         if (timeFilterDate) {
@@ -198,26 +203,28 @@ export function useItems(
         if (fetchError) throw fetchError;
 
         const allData = data as ItemWithProfile[];
-        setCachedItems(allData, filters);
+        setCachedItems(allData, filters, effectiveAuth);
 
         const filtered = applyClientFilters(allData);
         const sorted = sortItems(filtered, filters.sort);
         allItemsRef.current = sorted;
-        setItems(sorted.slice(0, itemsLimit));
-        if (!isAuthenticated && sorted.length > GUEST_ITEMS_LIMIT) {
+        const limit = effectiveAuth ? ITEMS_PER_PAGE : GUEST_ITEMS_LIMIT;
+        setItems(sorted.slice(0, limit));
+        if (!effectiveAuth && sorted.length > GUEST_ITEMS_LIMIT) {
           setHasMore(false);
           setGuestLimitReached(true);
         } else {
-          setHasMore(sorted.length > itemsLimit);
+          setHasMore(sorted.length > limit);
           setGuestLimitReached(false);
         }
+        hasFetchedRef.current = true;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch items');
       } finally {
         setLoading(false);
       }
     },
-    [filters, applyClientFilters, sortItems, isAuthenticated, itemsLimit]
+    [filters, applyClientFilters, sortItems, isAuthenticated]
   );
 
   const loadMore = useCallback(() => {
@@ -237,8 +244,31 @@ export function useItems(
   }, [fetchItems]);
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    if (authLoading) return;
+    if (!hasFetchedRef.current) {
+      fetchItems(true, isAuthenticated);
+    }
+  }, [authLoading, isAuthenticated, fetchItems]);
+
+  useEffect(() => {
+    if (authLoading || !hasFetchedRef.current) return;
+    const cached = getCachedItems(filters, isAuthenticated);
+    if (cached) {
+      const filtered = applyClientFilters(cached);
+      const sorted = sortItems(filtered, filters.sort);
+      allItemsRef.current = sorted;
+      setItems(sorted.slice(0, itemsLimit));
+      if (!isAuthenticated && sorted.length > GUEST_ITEMS_LIMIT) {
+        setHasMore(false);
+        setGuestLimitReached(true);
+      } else {
+        setHasMore(sorted.length > itemsLimit);
+        setGuestLimitReached(false);
+      }
+    } else {
+      fetchItems(false);
+    }
+  }, [filters.time, filters.category, filters.sort, filters.distance]);
 
   return { items, loading, loadingMore, error, hasMore, loadMore, refresh, guestLimitReached };
 }
@@ -351,11 +381,16 @@ export interface SiteStats {
   itemsThisWeek: number;
 }
 
-export function useSiteStats() {
+export function useSiteStats(skip = false) {
   const [stats, setStats] = useState<SiteStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!skip);
 
   useEffect(() => {
+    if (skip) {
+      setLoading(false);
+      return;
+    }
+
     async function fetchStats() {
       try {
         const oneWeekAgo = new Date();
@@ -383,7 +418,7 @@ export function useSiteStats() {
     }
 
     fetchStats();
-  }, []);
+  }, [skip]);
 
   return { stats, loading };
 }

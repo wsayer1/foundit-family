@@ -15,7 +15,7 @@ import type { ItemWithProfile } from '../types/database';
 
 export function DiscoverPage() {
   const navigate = useNavigate();
-  const { user, refreshProfile } = useAuth();
+  const { user, loading: authLoading, refreshProfile } = useAuth();
   const { requestLocation, permissionStatus, checkPermission, locationEnabled } = useLocation();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters, hasActiveFilters } = useFilters();
@@ -24,10 +24,11 @@ export function DiscoverPage() {
   const { items, loading, loadingMore, hasMore, loadMore, refresh, guestLimitReached } = useItems(
     locationEnabled ? userCoords : null,
     filters,
-    !!user
+    !!user,
+    authLoading
   );
   const { categories } = useCategories();
-  const { stats } = useSiteStats();
+  const { stats } = useSiteStats(!!user);
 
   const handleRefresh = async () => {
     refresh();
@@ -88,7 +89,7 @@ export function DiscoverPage() {
             </button>
           )}
 
-          {loading && !items.length ? (
+          {(loading || authLoading) && !items.length ? (
             <div className="grid gap-4">
               {[1, 2, 3].map((i) => (
                 <ItemCardSkeleton key={i} />
