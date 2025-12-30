@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext';
 
 const COORDINATE_CACHE_TTL = 30000;
 const SESSION_STORAGE_KEY = 'streetfinds_location_cache';
+const LOCATION_ENABLED_KEY = 'streetfinds_location_enabled';
 
 interface CachedLocation {
   coords: { latitude: number; longitude: number; accuracy: number };
@@ -74,7 +75,14 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<PermissionState | 'unknown'>('unknown');
   const [loading, setLoading] = useState(false);
-  const [locationEnabled, setLocationEnabledState] = useState(true);
+  const [locationEnabled, setLocationEnabledState] = useState(() => {
+    try {
+      const saved = localStorage.getItem(LOCATION_ENABLED_KEY);
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
   const pendingRequestRef = useRef<Promise<GeolocationCoordinates | null> | null>(null);
 
   useEffect(() => {
@@ -98,6 +106,11 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const setLocationEnabled = useCallback(async (enabled: boolean) => {
     setLocationEnabledState(enabled);
+    try {
+      localStorage.setItem(LOCATION_ENABLED_KEY, String(enabled));
+    } catch {
+      // localStorage unavailable
+    }
     if (profile) {
       await supabase
         .from('profiles')
@@ -147,6 +160,11 @@ export function LocationProvider({ children }: { children: ReactNode }) {
           setLocation(position.coords);
           setCachedLocation(position.coords);
           setPermissionStatus('granted');
+          try {
+            localStorage.setItem(LOCATION_ENABLED_KEY, 'true');
+          } catch {
+            // localStorage unavailable
+          }
           setLoading(false);
           pendingRequestRef.current = null;
           resolve(position.coords);

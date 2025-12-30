@@ -58,7 +58,7 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
       container: mapContainer.current,
       style: MAP_STYLES[resolvedTheme],
       center,
-      zoom: 14,
+      zoom: userLocation ? 14 : 11,
       attributionControl: false
     });
 
