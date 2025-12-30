@@ -264,57 +264,111 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
       )}
 
       {selectedItem && (
-        <div className="absolute top-[70px] left-3 z-20 w-56">
-          <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
-            <button
-              onClick={() => setSelectedItem(null)}
-              className="absolute top-2 right-2 z-10 bg-black/40 backdrop-blur-sm text-white p-1.5 rounded-full hover:bg-black/60 transition-colors"
-            >
-              <X size={14} />
-            </button>
-            <button
-              onClick={() => navigate(`/item/${selectedItem.id}`)}
-              className="w-full text-left"
-            >
-              <div className="relative">
-                <img
-                  src={getPreviewUrl(selectedItem.image_url)}
-                  alt={selectedItem.description}
-                  loading="lazy"
-                  className="w-full aspect-square object-cover bg-stone-100 dark:bg-stone-800"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-8">
-                  <p className="text-xs text-white/80">
-                    {formatTimeAgo(selectedItem.created_at)}
-                    {userLocation && (
-                      <span className="ml-1.5">
-                        · {formatDistance(
-                          calculateDistance(
-                            userLocation.lat,
-                            userLocation.lng,
-                            selectedItem.latitude,
-                            selectedItem.longitude
-                          )
-                        )}
-                      </span>
-                    )}
+        <>
+          <div className="hidden md:block absolute top-4 left-3 z-20 w-64">
+            <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="absolute top-2 right-2 z-10 bg-black/40 backdrop-blur-sm text-white p-1.5 rounded-full hover:bg-black/60 transition-colors"
+              >
+                <X size={14} />
+              </button>
+              <button
+                onClick={() => navigate(`/item/${selectedItem.id}`)}
+                className="w-full text-left"
+              >
+                <div className="relative">
+                  <img
+                    src={getPreviewUrl(selectedItem.image_url)}
+                    alt={selectedItem.description}
+                    loading="lazy"
+                    className="w-full aspect-square object-cover bg-stone-100 dark:bg-stone-800"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-8">
+                    <p className="text-xs text-white/80">
+                      {formatTimeAgo(selectedItem.created_at)}
+                      {userLocation && (
+                        <span className="ml-1.5">
+                          · {formatDistance(
+                            calculateDistance(
+                              userLocation.lat,
+                              userLocation.lng,
+                              selectedItem.latitude,
+                              selectedItem.longitude
+                            )
+                          )}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-3">
+                  <p className="font-medium text-stone-900 dark:text-stone-100 text-sm line-clamp-2 leading-snug">
+                    {selectedItem.description}
                   </p>
+                  <div className="mt-2 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                    <span>View details</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </div>
                 </div>
-              </div>
-              <div className="p-3">
-                <p className="font-medium text-stone-900 dark:text-stone-100 text-sm line-clamp-2 leading-snug">
-                  {selectedItem.description}
-                </p>
-                <div className="mt-2 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-                  <span>View details</span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
-                </div>
-              </div>
-            </button>
+              </button>
+            </div>
           </div>
-        </div>
+
+          <div className="md:hidden absolute bottom-[68px] left-0 right-0 z-20 px-3">
+            <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="absolute top-3 right-3 z-10 bg-black/40 backdrop-blur-sm text-white p-1.5 rounded-full hover:bg-black/60 transition-colors"
+              >
+                <X size={16} />
+              </button>
+              <button
+                onClick={() => navigate(`/item/${selectedItem.id}`)}
+                className="w-full text-left flex"
+              >
+                <div className="relative w-28 h-28 flex-shrink-0">
+                  <img
+                    src={getPreviewUrl(selectedItem.image_url)}
+                    alt={selectedItem.description}
+                    loading="lazy"
+                    className="w-full h-full object-cover bg-stone-100 dark:bg-stone-800"
+                  />
+                </div>
+                <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
+                  <div>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 mb-1">
+                      {formatTimeAgo(selectedItem.created_at)}
+                      {userLocation && (
+                        <span className="ml-1.5">
+                          · {formatDistance(
+                            calculateDistance(
+                              userLocation.lat,
+                              userLocation.lng,
+                              selectedItem.latitude,
+                              selectedItem.longitude
+                            )
+                          )}
+                        </span>
+                      )}
+                    </p>
+                    <p className="font-medium text-stone-900 dark:text-stone-100 text-sm line-clamp-2 leading-snug">
+                      {selectedItem.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium mt-2">
+                    <span>View details</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
