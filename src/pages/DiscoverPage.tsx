@@ -229,10 +229,8 @@ export function DiscoverPage() {
     <Layout>
       <div className="absolute top-0 left-0 right-0 z-40 safe-area-top">
         <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-          <div className="flex-shrink-0 bg-white/95 dark:bg-stone-800/95 backdrop-blur-md p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/15">
-            <div className="bg-emerald-500 p-1.5 rounded-lg">
-              <MapPin size={16} className="text-white" />
-            </div>
+          <div className="flex-shrink-0 bg-emerald-500 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-emerald-500/30 flex items-center justify-center">
+            <MapPin size={20} className="text-white" />
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-1 justify-end overflow-x-auto scrollbar-hide">
             <FloatingFilterDropdown
