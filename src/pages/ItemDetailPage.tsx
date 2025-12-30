@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2, X, Camera, Pencil } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2, X, Camera, Pencil, Car, Footprints, MapPinOff } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '../lib/supabase';
@@ -12,13 +12,29 @@ import { formatTimeAgo } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
 import { getAvatarUrl, dataURLtoBlob } from '../utils/image';
 
+interface TravelTimes {
+  driving: string | null;
+  walking: string | null;
+}
+
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return '< 1 min';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (remainingMinutes === 0) return `${hours} hr`;
+  return `${hours} hr ${remainingMinutes} min`;
+}
+
 export function ItemDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
-  const { location } = useLocation();
+  const { location, permissionStatus, requestLocation, loading: locationLoading } = useLocation();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const mapInitialized = useRef(false);
 
   const [item, setItem] = useState<ItemWithProfile | null>(null);
@@ -28,6 +44,8 @@ export function ItemDetailPage() {
   const [hasConfirmed, setHasConfirmed] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPhotoCapture, setShowPhotoCapture] = useState(false);
+  const [travelTimes, setTravelTimes] = useState<TravelTimes>({ driving: null, walking: null });
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -59,6 +77,37 @@ export function ItemDetailPage() {
     fetchItem();
   }, [id, user]);
 
+  const fetchTravelTimes = useCallback(async (
+    userLat: number,
+    userLng: number,
+    itemLat: number,
+    itemLng: number
+  ) => {
+    const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (!mapboxToken) return;
+
+    const coordinates = `${userLng},${userLat};${itemLng},${itemLat}`;
+
+    try {
+      const [drivingRes, walkingRes] = await Promise.all([
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?access_token=${mapboxToken}`),
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?access_token=${mapboxToken}`)
+      ]);
+
+      const [drivingData, walkingData] = await Promise.all([
+        drivingRes.json(),
+        walkingRes.json()
+      ]);
+
+      setTravelTimes({
+        driving: drivingData.routes?.[0]?.duration ? formatDuration(drivingData.routes[0].duration) : null,
+        walking: walkingData.routes?.[0]?.duration ? formatDuration(walkingData.routes[0].duration) : null
+      });
+    } catch {
+      setTravelTimes({ driving: null, walking: null });
+    }
+  }, []);
+
   useEffect(() => {
     const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
     if (!mapContainer.current || !item || !mapboxToken || mapInitialized.current) return;
@@ -66,24 +115,58 @@ export function ItemDetailPage() {
     mapInitialized.current = true;
     mapboxgl.accessToken = mapboxToken;
 
+    const hasUserLocation = location !== null;
+    const itemCoords: [number, number] = [item.longitude, item.latitude];
+    const userCoords: [number, number] | null = hasUserLocation
+      ? [location.longitude, location.latitude]
+      : null;
+
+    let initialCenter: [number, number];
+    let initialZoom: number;
+
+    if (userCoords) {
+      const midLng = (itemCoords[0] + userCoords[0]) / 2;
+      const midLat = (itemCoords[1] + userCoords[1]) / 2;
+      initialCenter = [midLng, midLat];
+      initialZoom = 12;
+    } else {
+      initialCenter = itemCoords;
+      initialZoom = 15;
+    }
+
     const mapInstance = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [item.longitude, item.latitude],
-      zoom: 15,
+      center: initialCenter,
+      zoom: initialZoom,
       attributionControl: false,
-      interactive: false
+      interactive: true
     });
 
     map.current = mapInstance;
 
     mapInstance.on('load', () => {
+      setMapReady(true);
       mapInstance.resize();
+
+      if (userCoords) {
+        const bounds = new mapboxgl.LngLatBounds();
+        bounds.extend(itemCoords);
+        bounds.extend(userCoords);
+
+        mapInstance.fitBounds(bounds, {
+          padding: { top: 40, bottom: 40, left: 40, right: 40 },
+          maxZoom: 16,
+          duration: 0
+        });
+
+        fetchTravelTimes(location.latitude, location.longitude, item.latitude, item.longitude);
+      }
     });
 
-    const el = document.createElement('div');
-    el.innerHTML = `
-      <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+    const itemEl = document.createElement('div');
+    itemEl.innerHTML = `
+      <div style="width: 32px; height: 32px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
@@ -91,18 +174,42 @@ export function ItemDetailPage() {
       </div>
     `;
 
-    new mapboxgl.Marker({ element: el })
-      .setLngLat([item.longitude, item.latitude])
+    new mapboxgl.Marker({ element: itemEl, anchor: 'center' })
+      .setLngLat(itemCoords)
       .addTo(mapInstance);
+
+    if (userCoords) {
+      const userEl = document.createElement('div');
+      userEl.innerHTML = `
+        <div style="position: relative; width: 20px; height: 20px;">
+          <div style="position: absolute; inset: 0; background: #3b82f6; border-radius: 50%; opacity: 0.3; animation: pulse-ring 2s ease-out infinite;"></div>
+          <div style="position: absolute; inset: 2px; background: #3b82f6; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>
+        </div>
+        <style>
+          @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(2); opacity: 0; }
+          }
+        </style>
+      `;
+
+      userMarkerRef.current = new mapboxgl.Marker({ element: userEl, anchor: 'center' })
+        .setLngLat(userCoords)
+        .addTo(mapInstance);
+    }
 
     return () => {
       if (map.current) {
         map.current.remove();
         map.current = null;
         mapInitialized.current = false;
+        setMapReady(false);
+      }
+      if (userMarkerRef.current) {
+        userMarkerRef.current = null;
       }
     };
-  }, [item]);
+  }, [item, location, fetchTravelTimes]);
 
   const handleClaim = async () => {
     if (!user || !item) {
@@ -310,8 +417,46 @@ export function ItemDetailPage() {
             </div>
           </div>
 
-          <div className="h-48 rounded-2xl overflow-hidden shadow-sm bg-stone-200 dark:bg-stone-800">
+          <div className="relative h-48 rounded-2xl overflow-hidden shadow-sm bg-stone-200 dark:bg-stone-800">
             <div ref={mapContainer} className="w-full h-full" />
+
+            {!location && permissionStatus !== 'granted' && mapReady && (
+              <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/60 to-transparent flex flex-col items-center justify-end p-4">
+                <div className="flex items-center gap-2 text-white/80 mb-2">
+                  <MapPinOff size={16} />
+                  <span className="text-sm">Location not available</span>
+                </div>
+                <button
+                  onClick={() => requestLocation(true)}
+                  disabled={locationLoading}
+                  className="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors flex items-center gap-2"
+                >
+                  {locationLoading ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <MapPin size={14} />
+                  )}
+                  Enable location
+                </button>
+              </div>
+            )}
+
+            {(travelTimes.driving || travelTimes.walking) && (
+              <div className="absolute top-2 left-2 flex gap-2">
+                {travelTimes.driving && (
+                  <div className="bg-white/95 dark:bg-stone-800/95 backdrop-blur-sm px-2.5 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
+                    <Car size={14} className="text-stone-500 dark:text-stone-400" />
+                    <span className="text-xs font-medium text-stone-700 dark:text-stone-300">{travelTimes.driving}</span>
+                  </div>
+                )}
+                {travelTimes.walking && (
+                  <div className="bg-white/95 dark:bg-stone-800/95 backdrop-blur-sm px-2.5 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
+                    <Footprints size={14} className="text-stone-500 dark:text-stone-400" />
+                    <span className="text-xs font-medium text-stone-700 dark:text-stone-300">{travelTimes.walking}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <button
