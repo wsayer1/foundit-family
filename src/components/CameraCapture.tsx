@@ -13,10 +13,8 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [compressing, setCompressing] = useState(false);
-  const [switching, setSwitching] = useState(false);
 
   const stopStream = useCallback(() => {
     if (streamRef.current) {
@@ -25,13 +23,13 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
     }
   }, []);
 
-  const startCamera = useCallback(async (mode: 'user' | 'environment') => {
+  const startCamera = useCallback(async () => {
     try {
       stopStream();
 
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: mode,
+          facingMode: 'environment',
           width: { ideal: 1920 },
           height: { ideal: 1080 }
         }
@@ -45,21 +43,12 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
     } catch {
       setCameraError('Unable to access camera. Please use the gallery option.');
     }
-    setSwitching(false);
   }, [stopStream]);
 
   useEffect(() => {
-    startCamera(facingMode);
+    startCamera();
     return stopStream;
   }, []);
-
-  const switchCamera = useCallback(async () => {
-    if (switching) return;
-    setSwitching(true);
-    const newMode = facingMode === 'user' ? 'environment' : 'user';
-    setFacingMode(newMode);
-    await startCamera(newMode);
-  }, [facingMode, startCamera, switching]);
 
   const takePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -80,7 +69,7 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
 
   const retake = () => {
     setCapturedImage(null);
-    startCamera(facingMode);
+    startCamera();
   };
 
   const confirmPhoto = async () => {
@@ -150,12 +139,6 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
         {capturedImage ? (
           <div className="flex items-center justify-center gap-6">
             <button
-              onClick={onCancel}
-              className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
-            >
-              <X size={28} />
-            </button>
-            <button
               onClick={retake}
               className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
             >
@@ -168,15 +151,15 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
             >
               {compressing ? <Loader2 size={32} className="animate-spin" /> : <Check size={32} />}
             </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center gap-6">
             <button
               onClick={onCancel}
               className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
             >
-              <X size={24} />
+              <X size={28} />
             </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-6">
             <button
               onClick={() => fileInputRef.current?.click()}
               className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
@@ -191,10 +174,10 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
               <div className="w-16 h-16 border-4 border-stone-300 rounded-full" />
             </button>
             <button
-              onClick={switchCamera}
+              onClick={onCancel}
               className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
             >
-              <RotateCcw size={24} />
+              <X size={24} />
             </button>
           </div>
         )}
