@@ -91,36 +91,19 @@ export function PostPage() {
     setPosting(true);
     setError(null);
 
-    try {
-      const blob = dataURLtoBlob(imageData);
-      const fileName = `${user.id}/${Date.now()}.jpg`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('items')
-        .upload(fileName, blob, { contentType: 'image/jpeg' });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('items')
-        .getPublicUrl(fileName);
-
-      const { error: insertError } = await supabase.from('items').insert({
-        user_id: user.id,
-        image_url: publicUrl,
-        description: description.trim(),
-        latitude: pinLocation.lat,
-        longitude: pinLocation.lng,
-        category: tag || null,
-      });
-
-      if (insertError) throw insertError;
-
-      navigate('/', { replace: true });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to post item');
-      setPosting(false);
-    }
+    navigate('/', {
+      replace: true,
+      state: {
+        pendingPost: {
+          imageData,
+          description: description.trim(),
+          latitude: pinLocation.lat,
+          longitude: pinLocation.lng,
+          category: tag || null,
+          userId: user.id,
+        },
+      },
+    });
   };
 
   if (step === 'checking') {

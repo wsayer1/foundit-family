@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MapPin, Sparkles, Loader2, SlidersHorizontal, Clock, Tag, ChevronDown, Navigation } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
+import { MapPin, Sparkles, Loader2, SlidersHorizontal, Clock, Tag, ChevronDown, Navigation, Check } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
@@ -10,9 +10,77 @@ import { FloatingAuthCard } from '../components/FloatingAuthCard';
 import { useItems, useCategories, useSiteStats } from '../hooks/useItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
+import { supabase } from '../lib/supabase';
+import { dataURLtoBlob } from '../utils/image';
 import { useFilters, DEFAULT_FILTERS } from '../contexts/FilterContext';
 import type { ItemWithProfile } from '../types/database';
 import type { DistanceFilter, TimeFilter, CategoryFilter } from '../components/FilterBar';
+
+interface PendingPost {
+  imageData: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  category: string | null;
+  userId: string;
+}
+
+type PostingStatus = 'uploading' | 'success' | 'error';
+
+function PendingPostCard({
+  imageData,
+  description,
+  status,
+  error,
+}: {
+  imageData: string;
+  description: string;
+  status: PostingStatus;
+  error?: string;
+}) {
+  return (
+    <div className="bg-white dark:bg-stone-900 rounded-2xl overflow-hidden shadow-sm border border-stone-200/50 dark:border-stone-700/50 mb-4">
+      <div className="flex items-center gap-3 p-3">
+        <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-stone-100 dark:bg-stone-800">
+          <img
+            src={imageData}
+            alt="Posting"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-stone-800 dark:text-stone-200 font-medium text-sm line-clamp-2 leading-snug">
+            {description}
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            {status === 'uploading' && (
+              <>
+                <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full animate-pulse w-2/3" />
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+                  <Loader2 size={12} className="animate-spin" />
+                  <span>Posting</span>
+                </div>
+              </>
+            )}
+            {status === 'success' && (
+              <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                  <Check size={12} />
+                </div>
+                <span>Posted successfully</span>
+              </div>
+            )}
+            {status === 'error' && (
+              <p className="text-xs text-red-500">{error || 'Failed to post'}</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const distanceOptions: { value: DistanceFilter; label: string }[] = [
   { value: 'any', label: 'Any Distance' },
@@ -144,12 +212,18 @@ function DiscoverFilterDropdown<T extends string>({
 
 export function DiscoverPage() {
   const navigate = useNavigate();
+  const routerLocation = useRouterLocation();
   const { user, loading: authLoading, refreshProfile } = useAuth();
   const { requestLocation, permissionStatus, checkPermission, locationEnabled } = useLocation();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters, hasActiveFilters } = useFilters();
   const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const [pendingPost, setPendingPost] = useState<PendingPost | null>(null);
+  const [postingStatus, setPostingStatus] = useState<PostingStatus>('uploading');
+  const [postingError, setPostingError] = useState<string | undefined>();
+  const isPostingRef = useRef(false);
 
   const { items, loading, loadingMore, hasMore, loadMore, refresh, guestLimitReached } = useItems(
     locationEnabled ? userCoords : null,
@@ -164,6 +238,60 @@ export function DiscoverPage() {
     refresh();
     await new Promise(resolve => setTimeout(resolve, 800));
   };
+
+  const uploadPost = useCallback(async (post: PendingPost) => {
+    if (isPostingRef.current) return;
+    isPostingRef.current = true;
+
+    try {
+      const blob = dataURLtoBlob(post.imageData);
+      const fileName = `${post.userId}/${Date.now()}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('items')
+        .upload(fileName, blob, { contentType: 'image/jpeg' });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('items')
+        .getPublicUrl(fileName);
+
+      const { error: insertError } = await supabase.from('items').insert({
+        user_id: post.userId,
+        image_url: publicUrl,
+        description: post.description,
+        latitude: post.latitude,
+        longitude: post.longitude,
+        category: post.category,
+      });
+
+      if (insertError) throw insertError;
+
+      setPostingStatus('success');
+      refreshProfile();
+
+      setTimeout(() => {
+        setPendingPost(null);
+        refresh();
+      }, 1500);
+    } catch (err) {
+      setPostingStatus('error');
+      setPostingError(err instanceof Error ? err.message : 'Failed to post');
+      isPostingRef.current = false;
+    }
+  }, [refresh, refreshProfile]);
+
+  useEffect(() => {
+    const state = routerLocation.state as { pendingPost?: PendingPost } | null;
+    if (state?.pendingPost && !pendingPost && !isPostingRef.current) {
+      setPendingPost(state.pendingPost);
+      setPostingStatus('uploading');
+      setPostingError(undefined);
+      uploadPost(state.pendingPost);
+      navigate(routerLocation.pathname, { replace: true, state: {} });
+    }
+  }, [routerLocation, pendingPost, uploadPost, navigate]);
 
   useEffect(() => {
     checkPermission().then((status) => {
@@ -259,6 +387,15 @@ export function DiscoverPage() {
               </div>
               <Sparkles className="text-amber-500 dark:text-amber-400" size={20} />
             </button>
+          )}
+
+          {pendingPost && (
+            <PendingPostCard
+              imageData={pendingPost.imageData}
+              description={pendingPost.description}
+              status={postingStatus}
+              error={postingError}
+            />
           )}
 
           {(loading || authLoading) && !items.length ? (
