@@ -8,10 +8,12 @@ import { formatDistance, calculateDistance } from '../hooks/useItems';
 import { formatTimeAgo, calculateFreshness, getFreshnessOpacity } from '../utils/time';
 import { getPreviewUrl } from '../utils/image';
 import { useTheme } from '../contexts/ThemeContext';
+import { FloatingAuthCard } from './FloatingAuthCard';
 
 interface DiscoverMapViewProps {
   items: ItemWithProfile[];
   userLocation: { lat: number; lng: number } | null;
+  isGuest?: boolean;
 }
 
 const MAP_STYLES = {
@@ -19,7 +21,7 @@ const MAP_STYLES = {
   dark: 'mapbox://styles/mapbox/dark-v11',
 };
 
-export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
+export function DiscoverMapView({ items, userLocation, isGuest = false }: DiscoverMapViewProps) {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -31,6 +33,15 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
   const [selectedItem, setSelectedItem] = useState<ItemWithProfile | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapboxToken] = useState(() => import.meta.env.VITE_MAPBOX_TOKEN || '');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const handleItemClick = () => {
+    if (isGuest) {
+      setShowAuthModal(true);
+    } else if (selectedItem) {
+      navigate(`/item/${selectedItem.id}`);
+    }
+  };
 
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
@@ -274,7 +285,7 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
                 <X size={14} />
               </button>
               <button
-                onClick={() => navigate(`/item/${selectedItem.id}`)}
+                onClick={handleItemClick}
                 className="w-full text-left"
               >
                 <div className="relative">
@@ -322,7 +333,7 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
                     );
                   })()}
                   <div className="mt-2 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-                    <span>View details</span>
+                    <span>{isGuest ? 'Sign up to view' : 'View details'}</span>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
@@ -341,7 +352,7 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
                 <X size={18} />
               </button>
               <button
-                onClick={() => navigate(`/item/${selectedItem.id}`)}
+                onClick={handleItemClick}
                 className="w-full text-left flex"
               >
                 <div className="relative w-32 h-32 flex-shrink-0">
@@ -389,7 +400,7 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
                     })()}
                   </div>
                   <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-sm font-medium mt-2">
-                    <span>View details</span>
+                    <span>{isGuest ? 'Sign up to view' : 'View details'}</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
@@ -399,6 +410,15 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
             </div>
           </div>
         </>
+      )}
+
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <FloatingAuthCard
+            onSuccess={() => setShowAuthModal(false)}
+            onClose={() => setShowAuthModal(false)}
+          />
+        </div>
       )}
     </div>
   );

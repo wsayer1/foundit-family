@@ -4,7 +4,7 @@ import type { ItemWithProfile } from '../types/database';
 import type { FilterState, DistanceFilter, TimeFilter, SortOption } from '../components/FilterBar';
 
 const ITEMS_PER_PAGE = 15;
-const GUEST_ITEMS_LIMIT = 8;
+const GUEST_ITEMS_LIMIT = 3;
 const CACHE_KEY = 'streetfinds_items_cache';
 const CACHE_TTL = 5 * 60 * 1000;
 const INITIAL_FETCH_LIMIT = 30;

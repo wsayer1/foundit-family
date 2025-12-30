@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2, Pencil, X, Camera } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2, X, Camera, Pencil } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '../lib/supabase';
@@ -231,19 +231,9 @@ export function ItemDetailPage() {
           <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-stone-600 dark:text-stone-400">
             <ArrowLeft size={24} />
           </button>
-          <div className="flex items-center gap-1">
-            {isOwner && (
-              <button
-                onClick={() => setShowEditModal(true)}
-                className="p-2 text-stone-600 dark:text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-              >
-                <Pencil size={20} />
-              </button>
-            )}
-            <button onClick={handleShare} className="p-2 -mr-2 text-stone-600 dark:text-stone-400">
-              <Share2 size={22} />
-            </button>
-          </div>
+          <button onClick={handleShare} className="p-2 -mr-2 text-stone-600 dark:text-stone-400">
+            <Share2 size={22} />
+          </button>
         </div>
       </div>
 
@@ -330,14 +320,14 @@ export function ItemDetailPage() {
         </div>
       </div>
 
-      {item.status === 'available' && (!hasConfirmed || !isOwner) && (
+      {item.status === 'available' && (isOwner || !hasConfirmed) && (
         <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 safe-area-bottom">
           <div className="max-w-lg mx-auto flex gap-3">
             {!hasConfirmed && isNearby && (
               <button
                 onClick={() => setShowPhotoCapture(true)}
                 disabled={confirming}
-                className={`${isOwner ? 'w-full' : 'flex-1'} bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 transition-colors`}
+                className="flex-1 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 transition-colors"
               >
                 {confirming ? (
                   <Loader2 size={20} className="animate-spin" />
@@ -345,6 +335,15 @@ export function ItemDetailPage() {
                   <ThumbsUp size={20} />
                 )}
                 Still there
+              </button>
+            )}
+            {isOwner && (
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors"
+              >
+                <Pencil size={20} />
+                Edit Item
               </button>
             )}
             {!isOwner && (
