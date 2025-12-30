@@ -28,12 +28,80 @@ function getClaimerFirstName(item: ItemWithProfile): string {
   return firstName.charAt(0).toUpperCase() + firstName.slice(1);
 }
 
+function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string {
+  const isClaimed = item.status === 'claimed';
+  const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
+  const pinColor = isClaimed ? '#78716c' : freshness > 0.7 ? '#10b981' : freshness > 0.4 ? '#f59e0b' : '#78716c';
+
+  if (isClaimed) {
+    if (isSelected) {
+      return `
+        <div class="relative">
+          <div style="width: 52px; height: 52px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 3px solid #57534e; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(120, 113, 108, 0.2);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+              <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+              <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+              <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+            </svg>
+          </div>
+          <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #57534e;"></div>
+        </div>
+      `;
+    }
+    return `
+      <div style="width: 36px; height: 36px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 2px solid #57534e; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+          <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+          <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+          <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+        </svg>
+      </div>
+    `;
+  }
+
+  if (isSelected) {
+    return `
+      <div class="relative">
+        <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 3px solid ${pinColor}; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(16, 185, 129, 0.2);">
+          <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid ${pinColor};"></div>
+      </div>
+    `;
+  }
+
+  return `
+    <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
+      <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
+    </div>
+  `;
+}
+
+function setupHoverEffects(el: HTMLElement, isSelected: boolean) {
+  if (isSelected) return;
+  const innerEl = el.firstElementChild as HTMLElement;
+  if (!innerEl) return;
+
+  const handleEnter = () => {
+    innerEl.style.transform = 'scale(1.1)';
+    innerEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+  };
+  const handleLeave = () => {
+    innerEl.style.transform = 'scale(1)';
+    innerEl.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+  };
+  el.addEventListener('mouseenter', handleEnter);
+  el.addEventListener('mouseleave', handleLeave);
+}
+
 export function DiscoverMapView({ items, userLocation, isGuest = false }: DiscoverMapViewProps) {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const markersMapRef = useRef<Map<string, { marker: mapboxgl.Marker; element: HTMLElement; item: ItemWithProfile }>>(new Map());
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const initialFlyDoneRef = useRef(false);
   const currentStyleRef = useRef(resolvedTheme);
@@ -136,87 +204,32 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
+    const currentItemIds = new Set(items.map(item => item.id));
+    const existingIds = new Set(markersMapRef.current.keys());
+
+    existingIds.forEach(id => {
+      if (!currentItemIds.has(id)) {
+        const entry = markersMapRef.current.get(id);
+        if (entry) {
+          entry.marker.remove();
+          markersMapRef.current.delete(id);
+        }
+      }
+    });
 
     items.forEach((item) => {
+      if (markersMapRef.current.has(item.id)) return;
+
       const isClaimed = item.status === 'claimed';
       const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
       const opacity = isClaimed ? 0.7 : getFreshnessOpacity(freshness);
-      const pinColor = isClaimed ? '#78716c' : freshness > 0.7 ? '#10b981' : freshness > 0.4 ? '#f59e0b' : '#78716c';
-      const isSelected = selectedItem?.id === item.id;
 
       const el = document.createElement('div');
       el.className = 'item-marker';
       el.style.opacity = String(opacity);
-      el.style.zIndex = isSelected ? '1000' : '1';
-      el.style.transition = 'all 0.2s ease-out';
-
-      if (isClaimed) {
-        if (isSelected) {
-          el.innerHTML = `
-            <div class="relative">
-              <div style="width: 52px; height: 52px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 3px solid #57534e; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(120, 113, 108, 0.2);">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
-                  <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
-                  <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
-                  <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
-                </svg>
-              </div>
-              <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #57534e;"></div>
-            </div>
-          `;
-        } else {
-          el.innerHTML = `
-            <div style="width: 36px; height: 36px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 2px solid #57534e; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
-                <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
-                <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
-                <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
-              </svg>
-            </div>
-          `;
-          const innerEl = el.firstElementChild as HTMLElement;
-          if (innerEl) {
-            el.addEventListener('mouseenter', () => {
-              innerEl.style.transform = 'scale(1.1)';
-              innerEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
-            });
-            el.addEventListener('mouseleave', () => {
-              innerEl.style.transform = 'scale(1)';
-              innerEl.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-            });
-          }
-        }
-      } else if (isSelected) {
-        el.innerHTML = `
-          <div class="relative">
-            <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 3px solid ${pinColor}; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(16, 185, 129, 0.2);">
-              <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
-            </div>
-            <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid ${pinColor};"></div>
-          </div>
-        `;
-      } else {
-        el.innerHTML = `
-          <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
-            <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
-          </div>
-        `;
-        const innerEl = el.firstElementChild as HTMLElement;
-        if (innerEl) {
-          el.addEventListener('mouseenter', () => {
-            innerEl.style.transform = 'scale(1.1)';
-            innerEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
-          });
-          el.addEventListener('mouseleave', () => {
-            innerEl.style.transform = 'scale(1)';
-            innerEl.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-          });
-        }
-      }
+      el.style.zIndex = '1';
+      el.innerHTML = createMarkerContent(item, false);
+      setupHoverEffects(el, false);
 
       el.addEventListener('click', () => {
         setSelectedItem(item);
@@ -226,9 +239,20 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
         .setLngLat([item.longitude, item.latitude])
         .addTo(map.current!);
 
-      markersRef.current.push(marker);
+      markersMapRef.current.set(item.id, { marker, element: el, item });
     });
-  }, [items, mapLoaded, selectedItem]);
+  }, [items, mapLoaded]);
+
+  useEffect(() => {
+    if (!mapLoaded) return;
+
+    markersMapRef.current.forEach(({ element, item }) => {
+      const isSelected = selectedItem?.id === item.id;
+      element.style.zIndex = isSelected ? '1000' : '1';
+      element.innerHTML = createMarkerContent(item, isSelected);
+      setupHoverEffects(element, isSelected);
+    });
+  }, [selectedItem, mapLoaded]);
 
   const handleFlyToUser = () => {
     if (map.current && userLocation) {
