@@ -423,7 +423,7 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
             </div>
           </div>
 
-          <div className="md:hidden absolute bottom-[140px] left-0 right-0 z-20 px-3">
+          <div className="md:hidden absolute bottom-[92px] left-0 right-0 z-20 px-3">
             <div className="relative bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
               <button
                 onClick={() => setSelectedItem(null)}

@@ -228,16 +228,15 @@ export function DiscoverPage() {
   return (
     <Layout>
       <div className="absolute top-0 left-0 right-0 z-40 safe-area-top">
-        <div className="flex items-center justify-between gap-2 px-4 pt-4">
-          <div className="flex items-center gap-2 bg-white/95 dark:bg-stone-800/95 backdrop-blur-md px-3 py-2.5 rounded-xl shadow-lg shadow-black/15">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
+          <div className="flex-shrink-0 bg-white/95 dark:bg-stone-800/95 backdrop-blur-md p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/15">
             <div className="bg-emerald-500 p-1.5 rounded-lg">
               <MapPin size={16} className="text-white" />
             </div>
-            <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm">Foundit.Family</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-1 justify-end overflow-x-auto scrollbar-hide">
             <FloatingFilterDropdown
-              icon={<ArrowUpDown size={20} />}
+              icon={<ArrowUpDown size={18} className="sm:w-5 sm:h-5" />}
               label="Sort"
               options={sortOptions}
               value={filters.sort}
@@ -248,7 +247,7 @@ export function DiscoverPage() {
               onEnableLocation={handleEnableLocation}
             />
             <FloatingFilterDropdown
-              icon={<MapPin size={20} />}
+              icon={<MapPin size={18} className="sm:w-5 sm:h-5" />}
               label="Distance"
               options={distanceOptions}
               value={filters.distance}
@@ -259,7 +258,7 @@ export function DiscoverPage() {
               onEnableLocation={handleEnableLocation}
             />
             <FloatingFilterDropdown
-              icon={<Clock size={20} />}
+              icon={<Clock size={18} className="sm:w-5 sm:h-5" />}
               label="Time"
               options={timeOptions}
               value={filters.time}
@@ -268,7 +267,7 @@ export function DiscoverPage() {
             />
             {categories.length > 0 && (
               <FloatingFilterDropdown
-                icon={<Tag size={20} />}
+                icon={<Tag size={18} className="sm:w-5 sm:h-5" />}
                 label="Category"
                 options={categoryOptions}
                 value={filters.category}

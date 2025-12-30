@@ -58,11 +58,11 @@ export function FloatingFilterDropdown<T extends string>({
   };
 
   return (
-    <div className="relative">
+    <div className="relative flex-shrink-0">
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[48px] rounded-xl text-sm font-semibold whitespace-nowrap transition-all shadow-lg ${
+        className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 sm:py-3 min-h-[44px] sm:min-h-[48px] rounded-xl text-sm font-semibold whitespace-nowrap transition-all shadow-lg ${
           isActive
             ? 'bg-emerald-500 text-white shadow-emerald-500/30'
             : 'bg-white/95 dark:bg-stone-800/95 backdrop-blur-md text-stone-700 dark:text-stone-200 shadow-black/15'
@@ -71,8 +71,8 @@ export function FloatingFilterDropdown<T extends string>({
         {icon}
         <span className="hidden sm:inline">{isActive ? selectedOption?.label : label}</span>
         <ChevronDown
-          size={18}
-          className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          size={16}
+          className={`transition-transform sm:w-[18px] sm:h-[18px] ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
