@@ -399,8 +399,8 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
             </div>
           </div>
 
-          <div className="md:hidden absolute bottom-[76px] left-0 right-0 z-20 px-3 pb-2">
-            <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
+          <div className="md:hidden absolute bottom-[140px] left-0 right-0 z-20 px-3">
+            <div className="relative bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
               <button
                 onClick={() => setSelectedItem(null)}
                 className="absolute top-2 right-2 z-10 bg-black/50 backdrop-blur-sm text-white w-9 h-9 min-w-[44px] min-h-[44px] rounded-full hover:bg-black/70 transition-colors flex items-center justify-center"
@@ -411,12 +411,12 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
                 onClick={handleItemClick}
                 className="w-full text-left flex"
               >
-                <div className="relative w-32 h-32 flex-shrink-0">
+                <div className="relative w-36 flex-shrink-0 self-stretch min-h-[120px]">
                   <img
                     src={getPreviewUrl(selectedItem.image_url)}
                     alt={selectedItem.description}
                     loading="lazy"
-                    className={`w-full h-full object-cover bg-stone-100 dark:bg-stone-800 ${selectedItem.status === 'claimed' ? 'opacity-60' : ''}`}
+                    className={`absolute inset-0 w-full h-full object-cover bg-stone-100 dark:bg-stone-800 ${selectedItem.status === 'claimed' ? 'opacity-60' : ''}`}
                   />
                   {selectedItem.status === 'claimed' && (
                     <div className="absolute inset-0 flex items-center justify-center">
