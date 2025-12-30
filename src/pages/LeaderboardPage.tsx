@@ -58,7 +58,6 @@ function LeaderboardRow({
   isCurrentUser: boolean;
 }) {
   const rankStyle = getRankStyle(entry.rank);
-  const initial = entry.username?.charAt(0).toUpperCase() || '?';
 
   return (
     <div
@@ -73,16 +72,6 @@ function LeaderboardRow({
           className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-2 ${rankStyle.bg} ${rankStyle.text} ${rankStyle.border}`}
         >
           {entry.rank}
-        </div>
-
-        <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-            isCurrentUser
-              ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400'
-              : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
-          }`}
-        >
-          {initial}
         </div>
 
         <div className="flex-1 min-w-0">
