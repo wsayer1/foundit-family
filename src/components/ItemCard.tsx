@@ -123,14 +123,24 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
 
 export function ItemCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-stone-900 rounded-2xl overflow-hidden shadow-sm animate-pulse">
-      <div className="aspect-[4/3] bg-stone-200 dark:bg-stone-700" />
-      <div className="p-4 space-y-3">
-        <div className="h-4 bg-stone-200 dark:bg-stone-700 rounded w-3/4" />
-        <div className="h-4 bg-stone-200 dark:bg-stone-700 rounded w-1/2" />
-        <div className="flex gap-4">
-          <div className="h-3 bg-stone-200 dark:bg-stone-700 rounded w-16" />
-          <div className="h-3 bg-stone-200 dark:bg-stone-700 rounded w-16" />
+    <div className="bg-white dark:bg-stone-900 rounded-2xl overflow-hidden shadow-sm">
+      <div className="aspect-[4/3] bg-stone-200 dark:bg-stone-800 animate-pulse" />
+      <div className="p-3">
+        <div className="space-y-1.5">
+          <div className="h-[18px] bg-stone-200 dark:bg-stone-700 rounded animate-pulse w-full" />
+          <div className="h-[18px] bg-stone-200 dark:bg-stone-700 rounded animate-pulse w-2/3" />
+        </div>
+        <div className="mt-2 flex items-center gap-1.5">
+          <div className="w-5 h-5 rounded-full bg-stone-200 dark:bg-stone-700 animate-pulse flex-shrink-0" />
+          <div className="h-3.5 bg-stone-200 dark:bg-stone-700 rounded animate-pulse w-16" />
+          <div className="w-1 h-1 rounded-full bg-stone-200 dark:bg-stone-700" />
+          <div className="h-3.5 bg-stone-200 dark:bg-stone-700 rounded animate-pulse w-12" />
+          <div className="w-1 h-1 rounded-full bg-stone-200 dark:bg-stone-700" />
+          <div className="h-3.5 bg-stone-200 dark:bg-stone-700 rounded animate-pulse w-10" />
+        </div>
+        <div className="mt-2 flex items-center gap-2">
+          <div className="flex-1 h-1 bg-stone-200 dark:bg-stone-700 rounded-full animate-pulse" />
+          <div className="h-3 bg-stone-200 dark:bg-stone-700 rounded animate-pulse w-8" />
         </div>
       </div>
     </div>
