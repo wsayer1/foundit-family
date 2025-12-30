@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Sparkles, Loader2, SlidersHorizontal, LogIn } from 'lucide-react';
+import { MapPin, Sparkles, Loader2, SlidersHorizontal } from 'lucide-react';
 import { Layout, Header } from '../components/Layout';
 import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
 import { FilterBar } from '../components/FilterBar';
 import { PullToRefresh } from '../components/PullToRefresh';
-import { useItems, useCategories } from '../hooks/useItems';
+import { GuestHero, GuestBottomCTA } from '../components/GuestHero';
+import { useItems, useCategories, useSiteStats } from '../hooks/useItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters, DEFAULT_FILTERS } from '../contexts/FilterContext';
@@ -26,6 +27,7 @@ export function DiscoverPage() {
     !!user
   );
   const { categories } = useCategories();
+  const { stats } = useSiteStats();
 
   const handleRefresh = async () => {
     refresh();
@@ -68,7 +70,9 @@ export function DiscoverPage() {
       </div>
       <PullToRefresh onRefresh={handleRefresh} className="flex-1">
         <div className="max-w-lg mx-auto px-4 py-4">
-          {permissionStatus !== 'granted' && permissionStatus !== 'unknown' && (
+          {!user && <GuestHero stats={stats} />}
+
+          {user && permissionStatus !== 'granted' && permissionStatus !== 'unknown' && (
             <button
               onClick={handleEnableLocation}
               className="w-full mb-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4 flex items-center gap-4 hover:shadow-md transition-shadow"
@@ -137,25 +141,7 @@ export function DiscoverPage() {
                   />
                 ))}
               </div>
-              {guestLimitReached && (
-                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-6 text-center">
-                  <div className="bg-emerald-100 dark:bg-emerald-900/50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <LogIn className="text-emerald-600 dark:text-emerald-400" size={24} />
-                  </div>
-                  <h3 className="font-semibold text-stone-800 dark:text-stone-200 mb-1">
-                    Want to see more?
-                  </h3>
-                  <p className="text-sm text-stone-600 dark:text-stone-400 mb-4">
-                    Sign in to browse all available finds in your area
-                  </p>
-                  <button
-                    onClick={() => navigate('/auth')}
-                    className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-600 transition-colors"
-                  >
-                    Sign in to continue
-                  </button>
-                </div>
-              )}
+              {guestLimitReached && <GuestBottomCTA />}
               {hasMore && !guestLimitReached && (
                 <button
                   onClick={loadMore}

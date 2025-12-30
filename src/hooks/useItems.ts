@@ -344,3 +344,46 @@ export function useCategories() {
 
   return { categories, loading, refresh: fetchCategories };
 }
+
+export interface SiteStats {
+  totalItems: number;
+  totalUsers: number;
+  itemsThisWeek: number;
+}
+
+export function useSiteStats() {
+  const [stats, setStats] = useState<SiteStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        const [itemsResult, usersResult, weekResult] = await Promise.all([
+          supabase.from('items').select('id', { count: 'exact', head: true }),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
+          supabase
+            .from('items')
+            .select('id', { count: 'exact', head: true })
+            .gte('created_at', oneWeekAgo.toISOString()),
+        ]);
+
+        setStats({
+          totalItems: itemsResult.count || 0,
+          totalUsers: usersResult.count || 0,
+          itemsThisWeek: weekResult.count || 0,
+        });
+      } catch {
+        setStats(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchStats();
+  }, []);
+
+  return { stats, loading };
+}
