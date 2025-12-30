@@ -1,94 +1,24 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Award, Package, ShoppingBag, Sun, Moon, Monitor, User, Camera, Loader2 } from 'lucide-react';
+import { LogOut, Award, Package, ShoppingBag, User, Settings } from 'lucide-react';
 import { Layout, Header } from '../components/Layout';
 import { ItemCard } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
+import { SettingsModal } from '../components/SettingsModal';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { useUserItems } from '../hooks/useItems';
 import { useLocation } from '../contexts/LocationContext';
-import { supabase } from '../lib/supabase';
-import { compressAvatar, getAvatarUrl } from '../utils/image';
-import type { AppearancePreference, ItemWithProfile } from '../types/database';
-
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
-
-const themeOptions: { value: AppearancePreference; label: string; icon: typeof Sun }[] = [
-  { value: 'light', label: 'Light', icon: Sun },
-  { value: 'dark', label: 'Dark', icon: Moon },
-  { value: 'system', label: 'System', icon: Monitor },
-];
+import { getAvatarUrl } from '../utils/image';
+import type { ItemWithProfile } from '../types/database';
 
 export function ProfilePage() {
   const navigate = useNavigate();
   const { user, profile, signOut, refreshProfile } = useAuth();
-  const { preference, setPreference } = useTheme();
   const { items, loading, refresh } = useUserItems(user?.id);
   const { location } = useLocation();
   const [activeTab, setActiveTab] = useState<'posted' | 'claimed'>('posted');
   const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [avatarError, setAvatarError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      setAvatarError('Image must be less than 2 MB');
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      setAvatarError('Please select an image file');
-      return;
-    }
-
-    setAvatarError(null);
-    setUploadingAvatar(true);
-
-    try {
-      const compressedBlob = await compressAvatar(file);
-      const fileName = `${user.id}/avatar.jpg`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, compressedBlob, {
-          contentType: 'image/jpeg',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      const avatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: avatarUrl })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      await refreshProfile();
-    } catch (err) {
-      setAvatarError('Failed to upload avatar');
-    } finally {
-      setUploadingAvatar(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -136,19 +66,8 @@ export function ProfilePage() {
       <div className="flex-1 overflow-auto">
       <div className="max-w-lg mx-auto px-4 py-6">
         <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 mb-6">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarChange}
-            className="hidden"
-          />
           <div className="flex items-center gap-4 mb-6">
-            <button
-              onClick={handleAvatarClick}
-              disabled={uploadingAvatar}
-              className="relative w-16 h-16 rounded-full overflow-hidden bg-white/20 backdrop-blur-sm group"
-            >
+            <div className="relative w-16 h-16 rounded-full overflow-hidden bg-white/20 backdrop-blur-sm flex-shrink-0">
               {profile.avatar_url ? (
                 <img
                   src={getAvatarUrl(profile.avatar_url, 128)}
@@ -160,21 +79,18 @@ export function ProfilePage() {
                   <User size={28} className="text-white" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                {uploadingAvatar ? (
-                  <Loader2 size={20} className="text-white animate-spin" />
-                ) : (
-                  <Camera size={20} className="text-white" />
-                )}
-              </div>
-            </button>
-            <div>
-              <h1 className="text-xl font-bold">{profile.username || 'User'}</h1>
-              <p className="text-emerald-100 text-sm">{user.email}</p>
-              {avatarError && (
-                <p className="text-red-200 text-xs mt-1">{avatarError}</p>
-              )}
             </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl font-bold truncate">{profile.username || 'User'}</h1>
+              <p className="text-emerald-100 text-sm truncate">{user.email}</p>
+            </div>
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="p-2.5 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors flex-shrink-0"
+              aria-label="Open settings"
+            >
+              <Settings size={20} className="text-white" />
+            </button>
           </div>
 
           <div className="flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4">
@@ -207,30 +123,6 @@ export function ProfilePage() {
                 <p className="text-sm text-stone-500 dark:text-stone-400">Claimed</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm overflow-hidden mb-6 p-4">
-          <p className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-3">Appearance</p>
-          <div className="flex gap-2">
-            {themeOptions.map((option) => {
-              const Icon = option.icon;
-              const isActive = preference === option.value;
-              return (
-                <button
-                  key={option.value}
-                  onClick={() => setPreference(option.value)}
-                  className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
-                    isActive
-                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                      : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
-                  }`}
-                >
-                  <Icon size={20} />
-                  <span className="text-xs font-medium">{option.label}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
 
@@ -309,6 +201,10 @@ export function ProfilePage() {
             refresh();
           }}
         />
+      )}
+
+      {settingsOpen && (
+        <SettingsModal onClose={() => setSettingsOpen(false)} />
       )}
     </Layout>
   );
