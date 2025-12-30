@@ -125,30 +125,48 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
       const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
       const opacity = getFreshnessOpacity(freshness);
       const pinColor = freshness > 0.7 ? '#10b981' : freshness > 0.4 ? '#f59e0b' : '#78716c';
+      const isSelected = selectedItem?.id === item.id;
 
       const el = document.createElement('div');
       el.className = 'item-marker';
       el.style.opacity = String(opacity);
-      el.innerHTML = `
-        <div style="background-color: ${pinColor};" class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-2 border-white">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-        </div>
-      `;
+      el.style.zIndex = isSelected ? '1000' : '1';
+      el.style.transition = 'all 0.2s ease-out';
+
+      if (isSelected) {
+        el.innerHTML = `
+          <div class="relative">
+            <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 3px solid ${pinColor}; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(16, 185, 129, 0.2);">
+              <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
+            </div>
+            <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid ${pinColor};"></div>
+          </div>
+        `;
+      } else {
+        el.innerHTML = `
+          <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease;">
+            <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+        `;
+        el.addEventListener('mouseenter', () => {
+          el.style.transform = 'scale(1.15)';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.transform = 'scale(1)';
+        });
+      }
 
       el.addEventListener('click', () => {
         setSelectedItem(item);
       });
 
-      const marker = new mapboxgl.Marker({ element: el })
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([item.longitude, item.latitude])
         .addTo(map.current!);
 
       markersRef.current.push(marker);
     });
-  }, [items, mapLoaded]);
+  }, [items, mapLoaded, selectedItem]);
 
   const handleFlyToUser = () => {
     if (map.current && userLocation) {
@@ -241,50 +259,55 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
       )}
 
       {selectedItem && (
-        <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-          <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden max-w-lg mx-auto">
-            <div className="flex">
-              <img
-                src={getPreviewUrl(selectedItem.image_url)}
-                alt={selectedItem.description}
-                loading="lazy"
-                className="w-28 h-28 object-cover flex-shrink-0 bg-stone-100 dark:bg-stone-800"
-              />
-              <div className="flex-1 p-3 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-medium text-stone-900 dark:text-stone-100 line-clamp-2 text-sm">
-                    {selectedItem.description}
+        <div className="absolute top-[70px] left-3 z-20 w-56">
+          <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
+            <button
+              onClick={() => setSelectedItem(null)}
+              className="absolute top-2 right-2 z-10 bg-black/40 backdrop-blur-sm text-white p-1.5 rounded-full hover:bg-black/60 transition-colors"
+            >
+              <X size={14} />
+            </button>
+            <button
+              onClick={() => navigate(`/item/${selectedItem.id}`)}
+              className="w-full text-left"
+            >
+              <div className="relative">
+                <img
+                  src={getPreviewUrl(selectedItem.image_url)}
+                  alt={selectedItem.description}
+                  loading="lazy"
+                  className="w-full aspect-square object-cover bg-stone-100 dark:bg-stone-800"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-8">
+                  <p className="text-xs text-white/80">
+                    {formatTimeAgo(selectedItem.created_at)}
+                    {userLocation && (
+                      <span className="ml-1.5">
+                        · {formatDistance(
+                          calculateDistance(
+                            userLocation.lat,
+                            userLocation.lng,
+                            selectedItem.latitude,
+                            selectedItem.longitude
+                          )
+                        )}
+                      </span>
+                    )}
                   </p>
-                  <button
-                    onClick={() => setSelectedItem(null)}
-                    className="text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 flex-shrink-0"
-                  >
-                    <X size={18} />
-                  </button>
                 </div>
-                <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
-                  {formatTimeAgo(selectedItem.created_at)}
-                  {userLocation && (
-                    <span className="ml-2">
-                      {formatDistance(
-                        calculateDistance(
-                          userLocation.lat,
-                          userLocation.lng,
-                          selectedItem.latitude,
-                          selectedItem.longitude
-                        )
-                      )} away
-                    </span>
-                  )}
-                </p>
-                <button
-                  onClick={() => navigate(`/item/${selectedItem.id}`)}
-                  className="mt-2 bg-emerald-500 text-white text-sm px-4 py-1.5 rounded-lg font-medium hover:bg-emerald-600 transition-colors"
-                >
-                  View details
-                </button>
               </div>
-            </div>
+              <div className="p-3">
+                <p className="font-medium text-stone-900 dark:text-stone-100 text-sm line-clamp-2 leading-snug">
+                  {selectedItem.description}
+                </p>
+                <div className="mt-2 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                  <span>View details</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
           </div>
         </div>
       )}
