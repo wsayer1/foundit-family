@@ -1,4 +1,4 @@
-import { MapPin, Shield, Navigation, X, Camera } from 'lucide-react';
+import { MapPin, Navigation, X, Camera } from 'lucide-react';
 
 interface LocationPermissionScreenProps {
   onGranted: () => void;
@@ -16,7 +16,7 @@ export function LocationPermissionScreen({ onGranted, onCancel }: LocationPermis
 
       <button
         onClick={onCancel}
-        className="absolute top-safe right-6 p-3 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors z-10"
+        className="absolute top-4 right-4 p-3 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors z-50"
         aria-label="Close"
       >
         <X size={24} />
@@ -59,16 +59,6 @@ export function LocationPermissionScreen({ onGranted, onCancel }: LocationPermis
             <div>
               <p className="text-white font-medium">Camera access</p>
               <p className="text-white/70 text-sm">Take photos of your finds</p>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-xl">
-              <Shield className="text-white" size={22} />
-            </div>
-            <div>
-              <p className="text-white font-medium">Privacy protected</p>
-              <p className="text-white/70 text-sm">Adjust location pins up to 100m</p>
             </div>
           </div>
         </div>
