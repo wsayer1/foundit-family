@@ -1,7 +1,8 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { MapPin, Clock, Tag, ChevronDown } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { MapPin, Clock, Tag } from 'lucide-react';
 import { DiscoverMapView } from '../components/DiscoverMapView';
 import { BottomNav } from '../components/BottomNav';
+import { FloatingFilterDropdown } from '../components/FloatingFilterDropdown';
 import { useItems, useCategories } from '../hooks/useItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
@@ -19,92 +20,6 @@ const timeOptions: { value: TimeFilter; label: string }[] = [
 
 function formatCategoryLabel(category: string): string {
   return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-}
-
-interface MapFilterDropdownProps<T extends string> {
-  icon: React.ReactNode;
-  label: string;
-  options: { value: T; label: string }[];
-  value: T;
-  defaultValue: T;
-  onChange: (value: T) => void;
-}
-
-function MapFilterDropdown<T extends string>({
-  icon,
-  label,
-  options,
-  value,
-  defaultValue,
-  onChange,
-}: MapFilterDropdownProps<T>) {
-  const [isOpen, setIsOpen] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-  const isActive = value !== defaultValue;
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node) &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative">
-      <button
-        ref={buttonRef}
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[48px] rounded-xl text-sm font-semibold whitespace-nowrap transition-all shadow-lg ${
-          isActive
-            ? 'bg-emerald-500 text-white shadow-emerald-500/30'
-            : 'bg-white/95 dark:bg-stone-800/95 backdrop-blur-md text-stone-700 dark:text-stone-200 shadow-black/15'
-        }`}
-      >
-        {icon}
-        <span className="hidden sm:inline">{isActive ? selectedOption?.label : label}</span>
-        <ChevronDown
-          size={18}
-          className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
-
-      {isOpen && (
-        <div
-          ref={dropdownRef}
-          className="absolute top-full right-0 mt-2 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 py-1 min-w-[160px] z-[100]"
-        >
-          {options.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
-                value === option.value
-                  ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 font-medium'
-                  : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function MapPage() {
@@ -157,7 +72,7 @@ export function MapPage() {
               <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm">Foundit.Family</span>
             </div>
             <div className="flex items-center gap-2">
-              <MapFilterDropdown
+              <FloatingFilterDropdown
                 icon={<Clock size={20} />}
                 label="Time"
                 options={timeOptions}
@@ -166,7 +81,7 @@ export function MapPage() {
                 onChange={(value: TimeFilter) => setFilters({ ...filters, time: value })}
               />
               {categories.length > 0 && (
-                <MapFilterDropdown
+                <FloatingFilterDropdown
                   icon={<Tag size={20} />}
                   label="Category"
                   options={categoryOptions}
