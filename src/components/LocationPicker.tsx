@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { ArrowLeft, Check, MapPin } from 'lucide-react';
+import { Check, MapPin, X } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -25,8 +25,10 @@ export function LocationPicker({
 }: LocationPickerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const interactiveAreaRef = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [pinLocation, setPinLocation] = useState(initialLocation);
+  const [pinOffset, setPinOffset] = useState({ x: 0, y: 0 });
   const [mapboxToken] = useState(() => import.meta.env.VITE_MAPBOX_TOKEN || '');
   const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('full');
   const [mapReady, setMapReady] = useState(false);
@@ -72,29 +74,50 @@ export function LocationPicker({
     };
   }, [userLocation.lat, userLocation.lng]);
 
-  const createCircleGeoJSON = (lat: number, lng: number, radiusMeters: number) => {
-    const points = 64;
-    const coords: [number, number][] = [];
-    const distanceX = radiusMeters / (111320 * Math.cos((lat * Math.PI) / 180));
-    const distanceY = radiusMeters / 111320;
+  const handleCircleClick = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (animationPhase !== 'complete' || !map.current || !interactiveAreaRef.current) return;
 
-    for (let i = 0; i < points; i++) {
-      const theta = (i / points) * (2 * Math.PI);
-      const x = lng + distanceX * Math.cos(theta);
-      const y = lat + distanceY * Math.sin(theta);
-      coords.push([x, y]);
+    const rect = interactiveAreaRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    let clientX: number, clientY: number;
+    if ('touches' in e) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
     }
-    coords.push(coords[0]);
 
-    return {
-      type: 'Feature' as const,
-      properties: {},
-      geometry: {
-        type: 'Polygon' as const,
-        coordinates: [coords]
-      }
-    };
-  };
+    const clickX = clientX - centerX;
+    const clickY = clientY - centerY;
+
+    const distanceFromCenter = Math.sqrt(clickX * clickX + clickY * clickY);
+    if (distanceFromCenter > circleRadius) return;
+
+    const mapInstance = map.current;
+    const center = mapInstance.getCenter();
+    const zoom = mapInstance.getZoom();
+
+    const metersPerPixel = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
+    const deltaLat = -(clickY * metersPerPixel) / 111320;
+    const deltaLng = (clickX * metersPerPixel) / (111320 * Math.cos(center.lat * Math.PI / 180));
+
+    const newLat = center.lat + deltaLat;
+    const newLng = center.lng + deltaLng;
+
+    const constrained = constrainToRadius(newLat, newLng);
+    setPinLocation(constrained);
+
+    const constrainedDeltaLat = constrained.lat - center.lat;
+    const constrainedDeltaLng = constrained.lng - center.lng;
+
+    const newOffsetY = -(constrainedDeltaLat * 111320) / metersPerPixel;
+    const newOffsetX = (constrainedDeltaLng * 111320 * Math.cos(center.lat * Math.PI / 180)) / metersPerPixel;
+
+    setPinOffset({ x: newOffsetX, y: newOffsetY });
+  }, [animationPhase, circleRadius, constrainToRadius]);
 
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
@@ -113,43 +136,7 @@ export function LocationPicker({
     map.current = mapInstance;
 
     mapInstance.on('load', () => {
-      mapInstance.addSource('radius', {
-        type: 'geojson',
-        data: createCircleGeoJSON(userLocation.lat, userLocation.lng, MAX_DISTANCE_METERS)
-      });
-
-      mapInstance.addLayer({
-        id: 'radius-fill',
-        type: 'fill',
-        source: 'radius',
-        paint: {
-          'fill-color': '#10b981',
-          'fill-opacity': 0.05
-        }
-      });
-
-      mapInstance.addLayer({
-        id: 'radius-line',
-        type: 'line',
-        source: 'radius',
-        paint: {
-          'line-color': '#10b981',
-          'line-width': 1.5,
-          'line-opacity': 0.3
-        }
-      });
-
       setMapReady(true);
-    });
-
-    mapInstance.on('moveend', () => {
-      const center = mapInstance.getCenter();
-      const constrained = constrainToRadius(center.lat, center.lng);
-
-      if (constrained.lat !== center.lat || constrained.lng !== center.lng) {
-        mapInstance.setCenter([constrained.lng, constrained.lat]);
-      }
-      setPinLocation(constrained);
     });
 
     return () => {
@@ -172,15 +159,6 @@ export function LocationPicker({
 
     const timer = setTimeout(() => {
       setAnimationPhase('complete');
-      if (map.current) {
-        map.current.boxZoom.enable();
-        map.current.scrollZoom.enable();
-        map.current.dragPan.enable();
-        map.current.dragRotate.enable();
-        map.current.keyboard.enable();
-        map.current.doubleClickZoom.enable();
-        map.current.touchZoomRotate.enable();
-      }
     }, ANIMATION_DURATION);
 
     return () => clearTimeout(timer);
@@ -215,6 +193,7 @@ export function LocationPicker({
 
   const getPhotoStyles = (): React.CSSProperties => {
     const baseTransition = `all ${ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+    const moveTransition = 'left 200ms ease-out, top 200ms ease-out';
 
     switch (animationPhase) {
       case 'full':
@@ -228,7 +207,6 @@ export function LocationPicker({
           transition: baseTransition,
         };
       case 'shrinking':
-      case 'complete':
         return {
           position: 'absolute',
           width: '80px',
@@ -240,6 +218,21 @@ export function LocationPicker({
           zIndex: 30,
           transition: baseTransition,
           boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          border: '3px solid rgba(255,255,255,0.9)',
+        };
+      case 'complete':
+        return {
+          position: 'absolute',
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 30,
+          transition: moveTransition,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          border: '3px solid rgba(255,255,255,0.9)',
         };
     }
   };
@@ -271,7 +264,7 @@ export function LocationPicker({
   return (
     <div className="fixed inset-0 bg-stone-950 flex flex-col overflow-hidden">
       <div
-        className="absolute top-0 left-0 right-0 z-40 px-4 flex items-center gap-3"
+        className="absolute top-0 left-0 right-0 z-40 px-4 flex items-center justify-center"
         style={{
           ...getHeaderStyles(),
           paddingTop: 'max(12px, env(safe-area-inset-top))',
@@ -279,12 +272,6 @@ export function LocationPicker({
           background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)',
         }}
       >
-        <button
-          onClick={onBack}
-          className="p-2.5 -ml-1 text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors backdrop-blur-sm"
-        >
-          <ArrowLeft size={22} />
-        </button>
         <h1 className="font-semibold text-white text-lg">Adjust location</h1>
       </div>
 
@@ -335,20 +322,26 @@ export function LocationPicker({
         />
 
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-emerald-400 pointer-events-none"
+          ref={interactiveAreaRef}
+          onClick={handleCircleClick}
+          onTouchStart={handleCircleClick}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer"
           style={{
-            width: '96px',
-            height: '96px',
-            opacity: animationPhase === 'complete' ? 1 : 0,
-            transition: 'opacity 300ms ease-out',
-            zIndex: 25,
-            boxShadow: '0 0 0 4px rgba(16, 185, 129, 0.2), 0 2px 16px rgba(0,0,0,0.3)',
+            width: circleRadius * 2,
+            height: circleRadius * 2,
+            zIndex: 20,
           }}
         />
 
         <div
           className="overflow-hidden"
-          style={getPhotoStyles()}
+          style={{
+            ...getPhotoStyles(),
+            ...(animationPhase === 'complete' && {
+              left: `calc(50% + ${pinOffset.x}px)`,
+              top: `calc(50% + ${pinOffset.y}px)`,
+            }),
+          }}
         >
           <img
             src={imageData}
@@ -373,15 +366,24 @@ export function LocationPicker({
             transition: 'opacity 300ms ease-out 200ms',
           }}
         >
-          Drag to fine-tune the location
+          Tap within the circle to position the item
         </p>
         <div
-          className="px-4"
+          className="px-4 flex gap-3 max-w-md mx-auto"
           style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
         >
           <button
+            onClick={onBack}
+            className="flex-1 bg-white/10 backdrop-blur-sm text-white py-4 rounded-2xl font-semibold hover:bg-white/20 active:scale-[0.98] transition-all border border-white/20"
+          >
+            <span className="flex items-center justify-center gap-2">
+              <X size={20} strokeWidth={2.5} />
+              Cancel
+            </span>
+          </button>
+          <button
             onClick={() => onConfirm(pinLocation)}
-            className="w-full max-w-sm mx-auto block bg-emerald-500 text-white py-4 rounded-2xl font-semibold hover:bg-emerald-600 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20"
+            className="flex-[2] bg-emerald-500 text-white py-4 rounded-2xl font-semibold hover:bg-emerald-600 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20"
           >
             <span className="flex items-center justify-center gap-2">
               <Check size={20} strokeWidth={2.5} />

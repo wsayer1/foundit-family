@@ -113,15 +113,8 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
     <div className="fixed inset-0 bg-black flex flex-col">
       <canvas ref={canvasRef} className="hidden" />
 
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-        <button
-          onClick={onCancel}
-          className="p-2 bg-black/30 backdrop-blur-sm rounded-full text-white hover:bg-black/50 transition-colors"
-        >
-          <X size={24} />
-        </button>
+      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-center bg-gradient-to-b from-black/50 to-transparent">
         <h2 className="text-white font-medium">Take a photo</h2>
-        <div className="w-10" />
       </div>
 
       <div className="flex-1 relative">
@@ -155,7 +148,13 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-6 pb-10 bg-gradient-to-t from-black/80 to-transparent">
         {capturedImage ? (
-          <div className="flex items-center justify-center gap-8">
+          <div className="flex items-center justify-center gap-6">
+            <button
+              onClick={onCancel}
+              className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
+            >
+              <X size={28} />
+            </button>
             <button
               onClick={retake}
               className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
@@ -169,10 +168,15 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
             >
               {compressing ? <Loader2 size={32} className="animate-spin" /> : <Check size={32} />}
             </button>
-            <div className="w-[60px]" />
           </div>
         ) : (
-          <div className="flex items-center justify-center gap-8">
+          <div className="flex items-center justify-center gap-6">
+            <button
+              onClick={onCancel}
+              className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
+            >
+              <X size={24} />
+            </button>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
