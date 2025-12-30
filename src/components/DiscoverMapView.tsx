@@ -306,6 +306,21 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
                   <p className="font-medium text-stone-900 dark:text-stone-100 text-sm line-clamp-2 leading-snug">
                     {selectedItem.description}
                   </p>
+                  {selectedItem.status === 'available' && (() => {
+                    const itemFreshness = calculateFreshness(selectedItem.created_at, selectedItem.last_confirmed_at);
+                    const freshnessColor = itemFreshness > 0.7 ? 'bg-emerald-500' : itemFreshness > 0.4 ? 'bg-amber-500' : 'bg-stone-400';
+                    return (
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="flex-1 h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${freshnessColor} rounded-full transition-all duration-300`}
+                            style={{ width: `${itemFreshness * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-shrink-0">{Math.round(itemFreshness * 100)}%</span>
+                      </div>
+                    );
+                  })()}
                   <div className="mt-2 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
                     <span>View details</span>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -357,6 +372,21 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
                     <p className="font-medium text-stone-900 dark:text-stone-100 text-sm line-clamp-3 leading-snug pr-8">
                       {selectedItem.description}
                     </p>
+                    {selectedItem.status === 'available' && (() => {
+                      const itemFreshness = calculateFreshness(selectedItem.created_at, selectedItem.last_confirmed_at);
+                      const freshnessColor = itemFreshness > 0.7 ? 'bg-emerald-500' : itemFreshness > 0.4 ? 'bg-amber-500' : 'bg-stone-400';
+                      return (
+                        <div className="mt-2 flex items-center gap-2 pr-8">
+                          <div className="flex-1 h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${freshnessColor} rounded-full transition-all duration-300`}
+                              style={{ width: `${itemFreshness * 100}%` }}
+                            />
+                          </div>
+                          <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-shrink-0">{Math.round(itemFreshness * 100)}%</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-sm font-medium mt-2">
                     <span>View details</span>

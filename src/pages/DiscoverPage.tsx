@@ -60,7 +60,7 @@ export function DiscoverPage() {
   return (
     <Layout>
       <Header />
-      <div className="sticky top-14 z-30 bg-stone-50 dark:bg-stone-950 border-b border-stone-200/50 dark:border-stone-800/50">
+      <div className="sticky top-14 z-30">
         <FilterBar
           filters={filters}
           onFiltersChange={setFilters}

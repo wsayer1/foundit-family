@@ -30,7 +30,8 @@ export function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString();
 }
 
-const FRESHNESS_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const FRESHNESS_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function calculateFreshness(createdAt: string, lastConfirmedAt?: string | null): number {
   const referenceDate = lastConfirmedAt ? new Date(lastConfirmedAt) : new Date(createdAt);
@@ -41,8 +42,14 @@ export function calculateFreshness(createdAt: string, lastConfirmedAt?: string |
 }
 
 export function getFreshnessOpacity(freshness: number): number {
-  const minOpacity = 0.2;
-  return minOpacity + freshness * (1 - minOpacity);
+  const elapsed = (1 - freshness) * FRESHNESS_DURATION_MS;
+
+  if (elapsed <= SEVEN_DAYS_MS) {
+    return 1 - (elapsed / SEVEN_DAYS_MS) * 0.8;
+  } else {
+    const daysAfterSeven = (elapsed - SEVEN_DAYS_MS) / (24 * 60 * 60 * 1000);
+    return Math.max(0.2 - (daysAfterSeven / 7) * 0.2, 0);
+  }
 }
 
 export function getFreshnessColor(freshness: number): string {
