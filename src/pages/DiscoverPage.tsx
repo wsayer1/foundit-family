@@ -284,7 +284,7 @@ export function DiscoverPage() {
                   Clear filters
                 </button>
               </div>
-            ) : (
+            ) : user ? (
               <div className="py-8">
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
@@ -297,39 +297,6 @@ export function DiscoverPage() {
                   <p className="text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
                     Help your community by sharing curbside treasures. Post items you find and help others discover hidden gems nearby.
                   </p>
-                </div>
-
-                <div className="relative mb-8">
-                  <div className="absolute -inset-4 bg-gradient-to-b from-emerald-100/50 to-transparent dark:from-emerald-900/20 dark:to-transparent rounded-3xl" />
-                  <div className="relative bg-white dark:bg-stone-900 rounded-2xl overflow-hidden shadow-lg border border-stone-200/50 dark:border-stone-700/50">
-                    <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-800 dark:to-stone-700">
-                      <img
-                        src="https://images.pexels.com/photos/276583/pexels-photo-276583.jpeg?auto=compress&cs=tinysrgb&w=800"
-                        alt="Example item"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-3 left-3 bg-emerald-500 text-white text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
-                        <Sparkles size={12} />
-                        Example
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <p className="text-stone-800 dark:text-stone-200 font-medium leading-snug">
-                        Vintage wooden bookshelf in great condition. Perfect for a reading nook!
-                      </p>
-                      <div className="mt-3 flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400">
-                        <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Y</span>
-                        </div>
-                        <span className="text-stone-600 dark:text-stone-400">You</span>
-                        <span className="text-stone-300 dark:text-stone-600">·</span>
-                        <span>Just now</span>
-                        <span className="text-stone-300 dark:text-stone-600">·</span>
-                        <MapPin size={12} />
-                        <span>Nearby</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -359,6 +326,24 @@ export function DiscoverPage() {
                     <div className="text-xs text-stone-500 dark:text-stone-400 mt-1">Real-time updates</div>
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className="bg-stone-100 dark:bg-stone-800 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="text-stone-400 dark:text-stone-500" size={32} />
+                </div>
+                <h3 className="font-semibold text-stone-800 dark:text-stone-200 text-lg mb-2">
+                  No finds yet
+                </h3>
+                <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-xs mx-auto">
+                  Be the first to share a curbside find in your area!
+                </p>
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-600 transition-colors"
+                >
+                  Sign up to post
+                </button>
               </div>
             )
           ) : (
