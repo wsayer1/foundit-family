@@ -144,16 +144,21 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
         `;
       } else {
         el.innerHTML = `
-          <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
             <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
           </div>
         `;
-        el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.15)';
-        });
-        el.addEventListener('mouseleave', () => {
-          el.style.transform = 'scale(1)';
-        });
+        const innerEl = el.firstElementChild as HTMLElement;
+        if (innerEl) {
+          el.addEventListener('mouseenter', () => {
+            innerEl.style.transform = 'scale(1.1)';
+            innerEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+          });
+          el.addEventListener('mouseleave', () => {
+            innerEl.style.transform = 'scale(1)';
+            innerEl.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+          });
+        }
       }
 
       el.addEventListener('click', () => {
