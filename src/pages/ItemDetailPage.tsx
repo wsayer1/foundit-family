@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2, Pencil } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2, Pencil, X, Camera } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '../lib/supabase';
@@ -10,7 +10,7 @@ import { EditItemModal } from '../components/EditItemModal';
 import type { ItemWithProfile } from '../types/database';
 import { formatTimeAgo } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
-import { getAvatarUrl } from '../utils/image';
+import { getAvatarUrl, dataURLtoBlob } from '../utils/image';
 
 export function ItemDetailPage() {
   const { id } = useParams();
@@ -19,6 +19,7 @@ export function ItemDetailPage() {
   const { location } = useLocation();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const mapInitialized = useRef(false);
 
   const [item, setItem] = useState<ItemWithProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,7 @@ export function ItemDetailPage() {
   const [confirming, setConfirming] = useState(false);
   const [hasConfirmed, setHasConfirmed] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPhotoCapture, setShowPhotoCapture] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -59,8 +61,9 @@ export function ItemDetailPage() {
 
   useEffect(() => {
     const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (!mapContainer.current || !item || !mapboxToken) return;
+    if (!mapContainer.current || !item || !mapboxToken || mapInitialized.current) return;
 
+    mapInitialized.current = true;
     mapboxgl.accessToken = mapboxToken;
 
     const mapInstance = new mapboxgl.Map({
@@ -89,7 +92,11 @@ export function ItemDetailPage() {
       .addTo(mapInstance);
 
     return () => {
-      mapInstance.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+        mapInitialized.current = false;
+      }
     };
   }, [item]);
 
@@ -119,7 +126,7 @@ export function ItemDetailPage() {
     setClaiming(false);
   };
 
-  const handleConfirmStillThere = async () => {
+  const handleConfirmStillThere = async (photoDataUrl: string) => {
     if (!user || !item) {
       navigate('/auth');
       return;
@@ -127,22 +134,41 @@ export function ItemDetailPage() {
 
     setConfirming(true);
 
-    const { error } = await supabase.from('confirmations').insert({
-      item_id: item.id,
-      user_id: user.id
-    });
+    try {
+      const blob = dataURLtoBlob(photoDataUrl);
+      const fileName = `confirmations/${item.id}/${user.id}/${Date.now()}.jpg`;
 
-    if (!error) {
-      setItem({
-        ...item,
-        still_there_count: item.still_there_count + 1,
-        last_confirmed_at: new Date().toISOString()
+      const { error: uploadError } = await supabase.storage
+        .from('items')
+        .upload(fileName, blob, { contentType: 'image/jpeg' });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('items')
+        .getPublicUrl(fileName);
+
+      const { error } = await supabase.from('confirmations').insert({
+        item_id: item.id,
+        user_id: user.id,
+        photo_url: publicUrl
       });
-      setHasConfirmed(true);
-      refreshProfile();
-    }
 
-    setConfirming(false);
+      if (!error) {
+        setItem({
+          ...item,
+          still_there_count: item.still_there_count + 1,
+          last_confirmed_at: new Date().toISOString()
+        });
+        setHasConfirmed(true);
+        refreshProfile();
+      }
+    } catch (err) {
+      console.error('Error confirming item:', err);
+    } finally {
+      setConfirming(false);
+      setShowPhotoCapture(false);
+    }
   };
 
   const handleShare = async () => {
@@ -196,6 +222,7 @@ export function ItemDetailPage() {
 
   const isOwner = user?.id === item.user_id;
   const isClaimer = user?.id === item.claimed_by;
+  const isNearby = distance !== null && distance <= 0.1;
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950 pb-32">
@@ -306,9 +333,9 @@ export function ItemDetailPage() {
       {item.status === 'available' && (!hasConfirmed || !isOwner) && (
         <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 safe-area-bottom">
           <div className="max-w-lg mx-auto flex gap-3">
-            {!hasConfirmed && (
+            {!hasConfirmed && isNearby && (
               <button
-                onClick={handleConfirmStillThere}
+                onClick={() => setShowPhotoCapture(true)}
                 disabled={confirming}
                 className={`${isOwner ? 'w-full' : 'flex-1'} bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 transition-colors`}
               >
@@ -361,6 +388,123 @@ export function ItemDetailPage() {
           }}
         />
       )}
+
+      {showPhotoCapture && (
+        <div className="fixed inset-0 z-50 bg-stone-950">
+          <div className="h-full flex flex-col">
+            <div className="sticky top-0 z-40 bg-stone-950 border-b border-stone-800">
+              <div className="px-4 h-14 flex items-center justify-between">
+                <button
+                  onClick={() => setShowPhotoCapture(false)}
+                  className="p-2 -ml-2 text-stone-400 hover:text-stone-100"
+                >
+                  <X size={24} />
+                </button>
+                <span className="font-semibold text-stone-100">Verify Item</span>
+                <div className="w-10" />
+              </div>
+            </div>
+            <div className="flex-1 flex items-center justify-center p-4">
+              <ConfirmationPhotoCapture
+                onCapture={handleConfirmStillThere}
+                onCancel={() => setShowPhotoCapture(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConfirmationPhotoCapture({ onCapture, onCancel }: { onCapture: (dataUrl: string) => void; onCancel: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const startCamera = async () => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+        });
+        setStream(mediaStream);
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
+      } catch (err) {
+        setError('Unable to access camera');
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(videoRef.current, 0, 0);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+
+    onCapture(dataUrl);
+  };
+
+  if (error) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-stone-400 mb-4">{error}</p>
+        <button
+          onClick={onCancel}
+          className="bg-stone-800 text-stone-200 px-6 py-3 rounded-xl font-medium"
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-lg">
+      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-stone-900 mb-4">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="flex gap-3">
+        <button
+          onClick={onCancel}
+          className="flex-1 bg-stone-800 text-stone-200 py-4 rounded-xl font-semibold"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={capturePhoto}
+          className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2"
+        >
+          <Camera size={20} />
+          Take Photo
+        </button>
+      </div>
     </div>
   );
 }

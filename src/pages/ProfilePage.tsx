@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Award, Package, ShoppingBag, Sun, Moon, Monitor, User, MapPin, Camera, Loader2 } from 'lucide-react';
+import { LogOut, Award, Package, ShoppingBag, Sun, Moon, Monitor, User, Camera, Loader2 } from 'lucide-react';
 import { Layout, Header } from '../components/Layout';
 import { ItemCard } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
@@ -25,7 +25,7 @@ export function ProfilePage() {
   const { user, profile, signOut, refreshProfile } = useAuth();
   const { preference, setPreference } = useTheme();
   const { items, loading, refresh } = useUserItems(user?.id);
-  const { location, locationEnabled, setLocationEnabled } = useLocation();
+  const { location } = useLocation();
   const [activeTab, setActiveTab] = useState<'posted' | 'claimed'>('posted');
   const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -231,32 +231,6 @@ export function ProfilePage() {
                 </button>
               );
             })}
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm overflow-hidden mb-6 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${locationEnabled ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-stone-100 dark:bg-stone-800'}`}>
-                <MapPin className={locationEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-stone-400 dark:text-stone-500'} size={20} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Location sorting</p>
-                <p className="text-xs text-stone-500 dark:text-stone-400">Show nearby items first</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setLocationEnabled(!locationEnabled)}
-              className={`relative w-12 h-7 rounded-full transition-colors ${
-                locationEnabled ? 'bg-emerald-500' : 'bg-stone-300 dark:bg-stone-600'
-              }`}
-            >
-              <span
-                className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                  locationEnabled ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
           </div>
         </div>
 
