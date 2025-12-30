@@ -66,16 +66,15 @@ function HeaderFilterDropdown<T extends string>({
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+        className={`flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-all ${
           isActive
             ? 'bg-emerald-500 text-white'
-            : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'
+            : 'bg-stone-700/80 text-stone-300 hover:bg-stone-600/80'
         }`}
       >
         {icon}
-        <span className="hidden sm:inline">{isActive ? selectedOption?.label : label}</span>
         <ChevronDown
-          size={12}
+          size={16}
           className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
@@ -143,8 +142,10 @@ export function Header({ title, showBack, rightAction, filters, onFiltersChange,
     }
   };
 
+  const hasFilters = filters && onFiltersChange;
+
   return (
-    <header className="sticky top-0 z-40 bg-white/80 dark:bg-stone-900/80 backdrop-blur-lg border-b border-stone-200/50 dark:border-stone-800/50">
+    <header className={`sticky top-0 z-40 ${hasFilters ? '' : 'bg-white/80 dark:bg-stone-900/80 backdrop-blur-lg border-b border-stone-200/50 dark:border-stone-800/50'}`}>
       <div className="px-4 h-14 flex items-center gap-3">
         {showBack ? (
           <button
@@ -173,7 +174,7 @@ export function Header({ title, showBack, rightAction, filters, onFiltersChange,
         {filters && onFiltersChange && (
           <div className="flex items-center gap-2 ml-auto">
             <HeaderFilterDropdown
-              icon={<Clock size={12} />}
+              icon={<Clock size={18} />}
               label="Time"
               options={timeOptions}
               value={filters.time}
@@ -182,7 +183,7 @@ export function Header({ title, showBack, rightAction, filters, onFiltersChange,
             />
             {categories.length > 0 && (
               <HeaderFilterDropdown
-                icon={<Tag size={12} />}
+                icon={<Tag size={18} />}
                 label="Category"
                 options={categoryOptions}
                 value={filters.category}

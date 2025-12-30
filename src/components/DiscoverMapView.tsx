@@ -317,19 +317,19 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
             </div>
           </div>
 
-          <div className="md:hidden absolute bottom-[68px] left-0 right-0 z-20 px-3">
+          <div className="md:hidden absolute bottom-[76px] left-0 right-0 z-20 px-3 pb-2">
             <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
               <button
                 onClick={() => setSelectedItem(null)}
-                className="absolute top-3 right-3 z-10 bg-black/40 backdrop-blur-sm text-white p-1.5 rounded-full hover:bg-black/60 transition-colors"
+                className="absolute top-2 right-2 z-10 bg-black/50 backdrop-blur-sm text-white w-9 h-9 min-w-[44px] min-h-[44px] rounded-full hover:bg-black/70 transition-colors flex items-center justify-center"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
               <button
                 onClick={() => navigate(`/item/${selectedItem.id}`)}
                 className="w-full text-left flex"
               >
-                <div className="relative w-28 h-28 flex-shrink-0">
+                <div className="relative w-32 h-32 flex-shrink-0">
                   <img
                     src={getPreviewUrl(selectedItem.image_url)}
                     alt={selectedItem.description}
@@ -339,7 +339,7 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
                 </div>
                 <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
                   <div>
-                    <p className="text-xs text-stone-500 dark:text-stone-400 mb-1">
+                    <p className="text-xs text-stone-500 dark:text-stone-400 mb-1.5">
                       {formatTimeAgo(selectedItem.created_at)}
                       {userLocation && (
                         <span className="ml-1.5">
@@ -354,13 +354,13 @@ export function DiscoverMapView({ items, userLocation }: DiscoverMapViewProps) {
                         </span>
                       )}
                     </p>
-                    <p className="font-medium text-stone-900 dark:text-stone-100 text-sm line-clamp-2 leading-snug">
+                    <p className="font-medium text-stone-900 dark:text-stone-100 text-sm line-clamp-3 leading-snug pr-8">
                       {selectedItem.description}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium mt-2">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-sm font-medium mt-2">
                     <span>View details</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
                   </div>
