@@ -256,17 +256,16 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
             </div>
           </div>
 
-          <button
-            onClick={() => setShowEmailForm(!showEmailForm)}
-            className="w-full flex items-center justify-center gap-2 text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 py-3 rounded-xl font-medium transition-colors duration-200"
-          >
-            <Mail size={18} />
-            <span>Continue with Email</span>
-            <ChevronDown
-              size={16}
-              className={`transition-transform duration-300 ease-out ${showEmailForm ? 'rotate-180' : ''}`}
-            />
-          </button>
+          {!showEmailForm && (
+            <button
+              onClick={() => setShowEmailForm(true)}
+              className="w-full flex items-center justify-center gap-2 text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 py-3 rounded-xl font-medium transition-colors duration-200"
+            >
+              <Mail size={18} />
+              <span>Continue with Email</span>
+              <ChevronDown size={16} />
+            </button>
+          )}
 
           <div
             className={`overflow-hidden transition-all duration-300 ease-out ${
