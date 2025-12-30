@@ -214,7 +214,7 @@ export function DiscoverPage() {
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
   const { user, loading: authLoading, refreshProfile } = useAuth();
-  const { requestLocation, permissionStatus, checkPermission, locationEnabled } = useLocation();
+  const { requestLocation, permissionStatus, checkPermission, locationEnabled, setLocationEnabled } = useLocation();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters, hasActiveFilters } = useFilters();
   const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
@@ -309,6 +309,7 @@ export function DiscoverPage() {
     const coords = await requestLocation();
     if (coords) {
       setUserCoords({ lat: coords.latitude, lng: coords.longitude });
+      setLocationEnabled(true);
       if (filters.sort === 'recent' && filters.distance === 'any') {
         setFilters({ ...filters, sort: 'nearest' });
       }
@@ -373,19 +374,18 @@ export function DiscoverPage() {
         <div className="max-w-lg mx-auto px-4 py-4">
           {!user && <GuestHero stats={stats} />}
 
-          {user && permissionStatus !== 'granted' && permissionStatus !== 'unknown' && (
+          {user && !locationEnabled && permissionStatus !== 'granted' && permissionStatus !== 'unknown' && (
             <button
               onClick={handleEnableLocation}
-              className="w-full mb-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4 flex items-center gap-4 hover:shadow-md transition-shadow"
+              className="w-full mb-4 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md text-stone-900 dark:text-stone-100 py-4 px-6 rounded-2xl font-semibold text-base shadow-lg shadow-black/10 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-stone-200/50 dark:border-stone-700/50"
             >
-              <div className="bg-amber-100 dark:bg-amber-900/50 p-3 rounded-xl">
-                <MapPin className="text-amber-600 dark:text-amber-400" size={24} />
+              <div className="flex items-center justify-center gap-3">
+                <div className="bg-emerald-500 p-2 rounded-lg">
+                  <MapPin size={20} className="text-white" />
+                </div>
+                <span>Enable Location</span>
               </div>
-              <div className="text-left flex-1">
-                <p className="font-medium text-stone-800 dark:text-stone-200">Enable location</p>
-                <p className="text-sm text-stone-500 dark:text-stone-400">See items near you first</p>
-              </div>
-              <Sparkles className="text-amber-500 dark:text-amber-400" size={20} />
+              <p className="text-sm text-stone-500 dark:text-stone-400 mt-2 font-normal">To see treasure nearby</p>
             </button>
           )}
 

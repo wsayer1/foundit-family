@@ -109,7 +109,7 @@ function MapFilterDropdown<T extends string>({
 
 export function MapPage() {
   const { user, loading: authLoading } = useAuth();
-  const { requestLocation, checkPermission, locationEnabled, permissionStatus } = useLocation();
+  const { requestLocation, checkPermission, locationEnabled, permissionStatus, setLocationEnabled } = useLocation();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters } = useFilters();
   const mapFilters = useMemo(() => ({ ...filters, distance: 'any' as const }), [filters]);
@@ -137,10 +137,11 @@ export function MapPage() {
     const coords = await requestLocation();
     if (coords) {
       setUserCoords({ lat: coords.latitude, lng: coords.longitude });
+      setLocationEnabled(true);
     }
   };
 
-  const showLocationPrompt = permissionStatus !== 'granted' && permissionStatus !== 'unknown';
+  const showLocationPrompt = !locationEnabled && permissionStatus !== 'granted' && permissionStatus !== 'unknown';
 
   return (
     <div className="h-screen-safe bg-stone-50 dark:bg-stone-950 flex flex-col overflow-hidden">
@@ -182,12 +183,15 @@ export function MapPage() {
           <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 w-full max-w-sm px-4">
             <button
               onClick={handleEnableLocation}
-              className="w-full bg-white/95 dark:bg-stone-900/95 backdrop-blur-md text-stone-900 dark:text-stone-100 py-4 px-6 rounded-2xl font-semibold text-base shadow-xl shadow-black/20 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-3 border border-stone-200/50 dark:border-stone-700/50 min-h-[56px]"
+              className="w-full bg-white/95 dark:bg-stone-900/95 backdrop-blur-md text-stone-900 dark:text-stone-100 py-4 px-6 rounded-2xl font-semibold text-base shadow-xl shadow-black/20 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-stone-200/50 dark:border-stone-700/50"
             >
-              <div className="bg-emerald-500 p-2 rounded-lg">
-                <MapPin size={20} className="text-white" />
+              <div className="flex items-center justify-center gap-3">
+                <div className="bg-emerald-500 p-2 rounded-lg">
+                  <MapPin size={20} className="text-white" />
+                </div>
+                <span>Enable Location</span>
               </div>
-              <span>Enable Location</span>
+              <p className="text-sm text-stone-400 dark:text-stone-500 mt-2 font-normal">To see treasure nearby</p>
             </button>
           </div>
         )}
