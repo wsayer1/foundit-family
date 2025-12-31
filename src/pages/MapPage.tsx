@@ -106,18 +106,13 @@ export function MapPage() {
         </div>
 
         {showLocationPrompt && !locationLoading && (
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 w-full max-w-sm px-4">
+          <div className="absolute top-20 left-0 right-0 z-20 px-3 sm:px-4">
             <button
               onClick={handleEnableLocation}
-              className="w-full bg-white/95 dark:bg-stone-900/95 backdrop-blur-md text-stone-900 dark:text-stone-100 py-4 px-6 rounded-2xl font-semibold text-base shadow-xl shadow-black/20 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-stone-200/50 dark:border-stone-700/50"
+              className="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3.5 px-5 rounded-xl font-semibold text-base shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-3"
             >
-              <div className="flex items-center justify-center gap-3">
-                <div className="bg-emerald-500 p-2 rounded-lg">
-                  <MapPin size={20} className="text-white" />
-                </div>
-                <span>Enable Location</span>
-              </div>
-              <p className="text-sm text-stone-400 dark:text-stone-500 mt-2 font-normal">To see your location on the map</p>
+              <MapPin size={20} className="text-white" />
+              <span>Enable Location</span>
             </button>
           </div>
         )}
