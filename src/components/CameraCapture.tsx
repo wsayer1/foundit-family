@@ -104,20 +104,10 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
       <canvas ref={canvasRef} className="hidden" />
 
       <div
-        className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 bg-gradient-to-b from-black/70 to-transparent"
+        className="absolute top-0 left-0 right-0 z-10 flex items-center justify-center px-4 bg-gradient-to-b from-black/70 to-transparent"
         style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: '16px' }}
       >
-        <div className="w-10" />
-        <div className="[&_*]:!text-white [&_.bg-white]:!bg-white/90 [&_.bg-white\\/20]:!bg-white/20">
-          <StepIndicator currentStep={1} />
-        </div>
-        <button
-          onClick={onCancel}
-          className="p-2.5 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
-          aria-label="Close"
-        >
-          <X size={20} />
-        </button>
+        <StepIndicator currentStep={1} />
       </div>
 
       <div className="flex-1 relative">

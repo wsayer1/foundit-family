@@ -258,19 +258,10 @@ export function DescriptionEditor({
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex flex-col">
       <div
-        className="relative z-40 flex items-center justify-between px-4"
+        className="relative z-40 flex items-center justify-center px-4"
         style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: '16px' }}
       >
-        <div className="w-10" />
         <StepIndicator currentStep={3} />
-        <button
-          onClick={onBack}
-          disabled={posting}
-          className="p-2.5 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors disabled:opacity-50"
-          aria-label="Back"
-        >
-          <X size={20} />
-        </button>
       </div>
 
       <div className="flex-1 px-4 pb-40 overflow-y-auto">

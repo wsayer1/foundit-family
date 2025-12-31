@@ -1,4 +1,4 @@
-import { MapPin, Navigation, X, Camera, Check } from 'lucide-react';
+import { MapPin, Navigation, Camera, Check } from 'lucide-react';
 
 interface LocationPermissionScreenProps {
   onGranted: () => void;
@@ -13,16 +13,16 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
   ];
 
   return (
-    <div className="flex items-center justify-center gap-2 w-full max-w-sm">
+    <div className="flex items-center justify-center gap-2 w-full">
       {steps.map((step, index) => (
         <div key={step.number} className="flex items-center">
           <div className="flex flex-col items-center">
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                 step.number < currentStep
-                  ? 'bg-white text-emerald-600'
+                  ? 'bg-emerald-500 text-white'
                   : step.number === currentStep
-                  ? 'bg-white text-emerald-600 ring-2 ring-white/50 ring-offset-2 ring-offset-transparent'
+                  ? 'bg-emerald-500 text-white ring-2 ring-emerald-400/50 ring-offset-2 ring-offset-transparent'
                   : 'bg-white/20 text-white/70'
               }`}
             >
@@ -36,7 +36,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
           </div>
           {index < steps.length - 1 && (
             <div className={`w-8 h-0.5 mx-1 mb-5 ${
-              step.number < currentStep ? 'bg-white' : 'bg-white/20'
+              step.number < currentStep ? 'bg-emerald-500' : 'bg-white/20'
             }`} />
           )}
         </div>
@@ -57,18 +57,10 @@ export function LocationPermissionScreen({ onGranted, onCancel }: LocationPermis
       </div>
 
       <div
-        className="relative z-50 flex items-center justify-between px-4"
+        className="relative z-50 flex items-center justify-center px-4"
         style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}
       >
-        <div className="w-10" />
         <StepIndicator currentStep={1} />
-        <button
-          onClick={onCancel}
-          className="p-2.5 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
-          aria-label="Close"
-        >
-          <X size={20} />
-        </button>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10 -mt-8">

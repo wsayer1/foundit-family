@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { StepIndicator } from './LocationPermissionScreen';
@@ -82,33 +82,32 @@ export function LocationPicker({
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    const clickX = clientX - centerX;
-    const clickY = clientY - centerY;
+    let offsetX = clientX - centerX;
+    let offsetY = clientY - centerY;
 
-    const distanceFromCenter = Math.sqrt(clickX * clickX + clickY * clickY);
-    if (distanceFromCenter > circleRadius) return;
+    const distanceFromCenter = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+
+    if (distanceFromCenter > circleRadius - 40) {
+      const scale = (circleRadius - 40) / distanceFromCenter;
+      offsetX *= scale;
+      offsetY *= scale;
+    }
+
+    setPinOffset({ x: offsetX, y: offsetY });
 
     const mapInstance = map.current;
     const center = mapInstance.getCenter();
     const zoom = mapInstance.getZoom();
 
     const metersPerPixel = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
-    const deltaLat = -(clickY * metersPerPixel) / 111320;
-    const deltaLng = (clickX * metersPerPixel) / (111320 * Math.cos(center.lat * Math.PI / 180));
+    const deltaLat = -(offsetY * metersPerPixel) / 111320;
+    const deltaLng = (offsetX * metersPerPixel) / (111320 * Math.cos(center.lat * Math.PI / 180));
 
     const newLat = center.lat + deltaLat;
     const newLng = center.lng + deltaLng;
 
     const constrained = constrainToRadius(newLat, newLng);
     setPinLocation(constrained);
-
-    const constrainedDeltaLat = constrained.lat - center.lat;
-    const constrainedDeltaLng = constrained.lng - center.lng;
-
-    const newOffsetY = -(constrainedDeltaLat * 111320) / metersPerPixel;
-    const newOffsetX = (constrainedDeltaLng * 111320 * Math.cos(center.lat * Math.PI / 180)) / metersPerPixel;
-
-    setPinOffset({ x: newOffsetX, y: newOffsetY });
   }, [animationPhase, circleRadius, constrainToRadius]);
 
   const handleCircleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -214,7 +213,6 @@ export function LocationPicker({
 
   const getPhotoStyles = (): React.CSSProperties => {
     const baseTransition = `all ${ANIMATION_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`;
-    const moveTransition = 'left 200ms ease-out, top 200ms ease-out';
 
     switch (animationPhase) {
       case 'full':
@@ -251,7 +249,6 @@ export function LocationPicker({
           top: '50%',
           transform: 'translate(-50%, -50%)',
           zIndex: 30,
-          transition: moveTransition,
           boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
           border: '3px solid rgba(255,255,255,0.9)',
         };
@@ -285,7 +282,7 @@ export function LocationPicker({
   return (
     <div className="fixed inset-0 bg-stone-950 flex flex-col overflow-hidden">
       <div
-        className="absolute top-0 left-0 right-0 z-40 px-4 flex items-center justify-between"
+        className="absolute top-0 left-0 right-0 z-40 px-4 flex items-center justify-center"
         style={{
           ...getHeaderStyles(),
           paddingTop: 'max(16px, env(safe-area-inset-top))',
@@ -293,17 +290,7 @@ export function LocationPicker({
           background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)',
         }}
       >
-        <div className="w-10" />
-        <div className="[&_*]:!text-white [&_.bg-white]:!bg-white/90 [&_.bg-white\\/20]:!bg-white/20">
-          <StepIndicator currentStep={2} />
-        </div>
-        <button
-          onClick={onBack}
-          className="p-2.5 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
-          aria-label="Back"
-        >
-          <X size={20} />
-        </button>
+        <StepIndicator currentStep={2} />
       </div>
 
       <div className="flex-1 relative" style={getMapContainerStyles()}>
@@ -312,32 +299,14 @@ export function LocationPicker({
           className="absolute inset-0 w-full h-full"
         />
 
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
-          <defs>
-            <mask id="circle-mask">
-              <rect width="100%" height="100%" fill="white" />
-              <circle cx="50%" cy="50%" r={circleRadius} fill="black" />
-            </mask>
-            <radialGradient id="vignette-gradient" cx="50%" cy="50%" r="50%">
-              <stop offset="60%" stopColor="black" stopOpacity="0" />
-              <stop offset="100%" stopColor="black" stopOpacity="0.6" />
-            </radialGradient>
-          </defs>
-          <rect
-            width="100%"
-            height="100%"
-            fill="url(#vignette-gradient)"
-          />
-        </svg>
-
         <div
           ref={overlayRef}
           className="absolute inset-0 pointer-events-none"
           style={{
-            backdropFilter: 'blur(8px) grayscale(100%) brightness(0.7)',
-            WebkitBackdropFilter: 'blur(8px) grayscale(100%) brightness(0.7)',
-            maskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 85%, black 100%)`,
-            WebkitMaskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 85%, black 100%)`,
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            maskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 95%, black 100%)`,
+            WebkitMaskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 95%, black 100%)`,
             zIndex: 6,
           }}
         />
@@ -347,7 +316,8 @@ export function LocationPicker({
           style={{
             width: circleRadius * 2,
             height: circleRadius * 2,
-            border: '2px solid rgba(255,255,255,0.2)',
+            border: '2px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 0 20px rgba(0,0,0,0.3)',
             zIndex: 10,
           }}
         />
