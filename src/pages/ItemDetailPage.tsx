@@ -331,7 +331,7 @@ export function ItemDetailPage() {
 
   const isOwner = user?.id === item.user_id;
   const isClaimer = user?.id === item.claimed_by;
-  const isNearby = distance !== null && distance <= 0.1;
+  const isNearby = distance !== null && distance <= 100;
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950 pb-32">
