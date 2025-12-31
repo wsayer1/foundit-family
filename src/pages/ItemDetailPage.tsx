@@ -35,7 +35,7 @@ export function ItemDetailPage() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const mapInitialized = useRef(false);
+  const itemMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
   const [item, setItem] = useState<ItemWithProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +46,7 @@ export function ItemDetailPage() {
   const [showPhotoCapture, setShowPhotoCapture] = useState(false);
   const [travelTimes, setTravelTimes] = useState<TravelTimes>({ driving: null, walking: null });
   const [mapReady, setMapReady] = useState(false);
+  const [mapboxToken] = useState(() => import.meta.env.VITE_MAPBOX_TOKEN || '');
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -109,36 +110,17 @@ export function ItemDetailPage() {
   }, []);
 
   useEffect(() => {
-    const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (!mapContainer.current || !item || !mapboxToken || mapInitialized.current) return;
+    if (!mapContainer.current || !item || !mapboxToken) return;
 
-    mapInitialized.current = true;
     mapboxgl.accessToken = mapboxToken;
 
-    const hasUserLocation = location !== null;
     const itemCoords: [number, number] = [item.longitude, item.latitude];
-    const userCoords: [number, number] | null = hasUserLocation
-      ? [location.longitude, location.latitude]
-      : null;
-
-    let initialCenter: [number, number];
-    let initialZoom: number;
-
-    if (userCoords) {
-      const midLng = (itemCoords[0] + userCoords[0]) / 2;
-      const midLat = (itemCoords[1] + userCoords[1]) / 2;
-      initialCenter = [midLng, midLat];
-      initialZoom = 12;
-    } else {
-      initialCenter = itemCoords;
-      initialZoom = 15;
-    }
 
     const mapInstance = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: initialCenter,
-      zoom: initialZoom,
+      center: itemCoords,
+      zoom: 15,
       attributionControl: false,
       interactive: true
     });
@@ -148,20 +130,6 @@ export function ItemDetailPage() {
     mapInstance.on('load', () => {
       setMapReady(true);
       mapInstance.resize();
-
-      if (userCoords) {
-        const bounds = new mapboxgl.LngLatBounds();
-        bounds.extend(itemCoords);
-        bounds.extend(userCoords);
-
-        mapInstance.fitBounds(bounds, {
-          padding: { top: 40, bottom: 40, left: 40, right: 40 },
-          maxZoom: 16,
-          duration: 0
-        });
-
-        fetchTravelTimes(location.latitude, location.longitude, item.latitude, item.longitude);
-      }
     });
 
     const itemEl = document.createElement('div');
@@ -174,11 +142,33 @@ export function ItemDetailPage() {
       </div>
     `;
 
-    new mapboxgl.Marker({ element: itemEl, anchor: 'center' })
+    itemMarkerRef.current = new mapboxgl.Marker({ element: itemEl, anchor: 'center' })
       .setLngLat(itemCoords)
       .addTo(mapInstance);
 
-    if (userCoords) {
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+        setMapReady(false);
+      }
+      itemMarkerRef.current = null;
+      userMarkerRef.current = null;
+    };
+  }, [item, mapboxToken]);
+
+  useEffect(() => {
+    if (!map.current || !mapReady || !item) return;
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+
+    if (location) {
+      const userCoords: [number, number] = [location.longitude, location.latitude];
+      const itemCoords: [number, number] = [item.longitude, item.latitude];
+
       const userEl = document.createElement('div');
       userEl.innerHTML = `
         <div style="position: relative; width: 20px; height: 20px;">
@@ -195,21 +185,21 @@ export function ItemDetailPage() {
 
       userMarkerRef.current = new mapboxgl.Marker({ element: userEl, anchor: 'center' })
         .setLngLat(userCoords)
-        .addTo(mapInstance);
-    }
+        .addTo(map.current);
 
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-        mapInitialized.current = false;
-        setMapReady(false);
-      }
-      if (userMarkerRef.current) {
-        userMarkerRef.current = null;
-      }
-    };
-  }, [item, location, fetchTravelTimes]);
+      const bounds = new mapboxgl.LngLatBounds();
+      bounds.extend(itemCoords);
+      bounds.extend(userCoords);
+
+      map.current.fitBounds(bounds, {
+        padding: { top: 40, bottom: 40, left: 40, right: 40 },
+        maxZoom: 16,
+        duration: 500
+      });
+
+      fetchTravelTimes(location.latitude, location.longitude, item.latitude, item.longitude);
+    }
+  }, [location, mapReady, item, fetchTravelTimes]);
 
   const handleClaim = async () => {
     if (!user || !item) {
