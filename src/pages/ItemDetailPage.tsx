@@ -172,7 +172,12 @@ export function ItemDetailPage() {
   }, []);
 
   useEffect(() => {
-    if (!mapContainer.current || !MAPBOX_TOKEN) return;
+    if (!mapContainer.current || !MAPBOX_TOKEN) {
+      if (!MAPBOX_TOKEN) {
+        console.warn('Mapbox token not configured');
+      }
+      return;
+    }
 
     let isCleanedUp = false;
     const containerRef = mapContainer.current;
@@ -181,42 +186,60 @@ export function ItemDetailPage() {
 
     const defaultCenter: [number, number] = [-122.4194, 37.7749];
 
-    const mapInstance = new mapboxgl.Map({
-      container: containerRef,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: defaultCenter,
-      zoom: 14,
-      attributionControl: false,
-      interactive: true
-    });
+    try {
+      const mapInstance = new mapboxgl.Map({
+        container: containerRef,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: defaultCenter,
+        zoom: 14,
+        attributionControl: false,
+        interactive: true
+      });
 
-    map.current = mapInstance;
+      map.current = mapInstance;
 
-    mapInstance.on('load', () => {
-      if (isCleanedUp) return;
+      const handleLoad = () => {
+        if (isCleanedUp) return;
+        setMapLoaded(true);
+        setTimeout(() => mapInstance.resize(), 0);
+      };
+
+      mapInstance.on('load', handleLoad);
+
+      mapInstance.on('error', (e) => {
+        console.error('Map error:', e.error);
+        if (!isCleanedUp) {
+          setMapLoaded(true);
+        }
+      });
+
+      if (mapInstance.loaded()) {
+        handleLoad();
+      }
+
+      const resizeObserver = new ResizeObserver(() => {
+        if (!isCleanedUp && mapInstance) {
+          mapInstance.resize();
+        }
+      });
+      resizeObserver.observe(containerRef);
+
+      return () => {
+        isCleanedUp = true;
+        resizeObserver.disconnect();
+        if (map.current) {
+          map.current.remove();
+          map.current = null;
+          setMapLoaded(false);
+          setMapReady(false);
+        }
+        itemMarkerRef.current = null;
+        userMarkerRef.current = null;
+      };
+    } catch (err) {
+      console.error('Failed to initialize map:', err);
       setMapLoaded(true);
-      setTimeout(() => mapInstance.resize(), 0);
-    });
-
-    const resizeObserver = new ResizeObserver(() => {
-      if (!isCleanedUp && mapInstance) {
-        mapInstance.resize();
-      }
-    });
-    resizeObserver.observe(containerRef);
-
-    return () => {
-      isCleanedUp = true;
-      resizeObserver.disconnect();
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-        setMapLoaded(false);
-        setMapReady(false);
-      }
-      itemMarkerRef.current = null;
-      userMarkerRef.current = null;
-    };
+    }
   }, []);
 
   useEffect(() => {
@@ -569,10 +592,17 @@ export function ItemDetailPage() {
 
             {!mapLoaded && (
               <div className="absolute inset-0 flex items-center justify-center bg-stone-100 dark:bg-stone-800">
-                <div className="text-center">
-                  <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                  <p className="text-xs text-stone-500 dark:text-stone-400">Loading map...</p>
-                </div>
+                {MAPBOX_TOKEN ? (
+                  <div className="text-center">
+                    <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <p className="text-xs text-stone-500 dark:text-stone-400">Loading map...</p>
+                  </div>
+                ) : (
+                  <div className="text-center px-4">
+                    <MapPin size={24} className="text-stone-400 mx-auto mb-2" />
+                    <p className="text-xs text-stone-500 dark:text-stone-400">Map unavailable</p>
+                  </div>
+                )}
               </div>
             )}
 
