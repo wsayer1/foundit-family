@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Check, MapPin, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { StepIndicator } from './LocationPermissionScreen';
 
 interface LocationPickerProps {
   imageData: string;
@@ -74,21 +75,12 @@ export function LocationPicker({
     };
   }, [userLocation.lat, userLocation.lng]);
 
-  const handleCircleClick = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+  const handleInteraction = useCallback((clientX: number, clientY: number) => {
     if (animationPhase !== 'complete' || !map.current || !interactiveAreaRef.current) return;
 
     const rect = interactiveAreaRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-
-    let clientX: number, clientY: number;
-    if ('touches' in e) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
 
     const clickX = clientX - centerX;
     const clickY = clientY - centerY;
@@ -119,6 +111,24 @@ export function LocationPicker({
     setPinOffset({ x: newOffsetX, y: newOffsetY });
   }, [animationPhase, circleRadius, constrainToRadius]);
 
+  const handleCircleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    handleInteraction(e.clientX, e.clientY);
+  }, [handleInteraction]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, [handleInteraction]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, [handleInteraction]);
+
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
 
@@ -136,6 +146,17 @@ export function LocationPicker({
     map.current = mapInstance;
 
     mapInstance.on('load', () => {
+      const userMarkerEl = document.createElement('div');
+      userMarkerEl.innerHTML = `
+        <div style="position: relative; width: 24px; height: 24px;">
+          <div style="position: absolute; inset: 0; background: rgba(59, 130, 246, 0.2); border-radius: 50%; animation: pulse 2s infinite;"></div>
+          <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; background: #3B82F6; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>
+        </div>
+      `;
+      new mapboxgl.Marker({ element: userMarkerEl })
+        .setLngLat([userLocation.lng, userLocation.lat])
+        .addTo(mapInstance);
+
       setMapReady(true);
     });
 
@@ -264,15 +285,25 @@ export function LocationPicker({
   return (
     <div className="fixed inset-0 bg-stone-950 flex flex-col overflow-hidden">
       <div
-        className="absolute top-0 left-0 right-0 z-40 px-4 flex items-center justify-center"
+        className="absolute top-0 left-0 right-0 z-40 px-4 flex items-center justify-between"
         style={{
           ...getHeaderStyles(),
-          paddingTop: 'max(12px, env(safe-area-inset-top))',
+          paddingTop: 'max(16px, env(safe-area-inset-top))',
           paddingBottom: '16px',
           background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)',
         }}
       >
-        <h1 className="font-semibold text-white text-lg">Adjust location</h1>
+        <div className="w-10" />
+        <div className="[&_*]:!text-white [&_.bg-white]:!bg-white/90 [&_.bg-white\\/20]:!bg-white/20">
+          <StepIndicator currentStep={2} />
+        </div>
+        <button
+          onClick={onBack}
+          className="p-2.5 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
+          aria-label="Back"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <div className="flex-1 relative" style={getMapContainerStyles()}>
@@ -324,8 +355,9 @@ export function LocationPicker({
         <div
           ref={interactiveAreaRef}
           onClick={handleCircleClick}
-          onTouchStart={handleCircleClick}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer touch-none"
           style={{
             width: circleRadius * 2,
             height: circleRadius * 2,

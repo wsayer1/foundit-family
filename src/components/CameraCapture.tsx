@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Camera, X, RotateCcw, Check, ImagePlus, Loader2 } from 'lucide-react';
 import { compressDataURL } from '../utils/image';
+import { StepIndicator } from './LocationPermissionScreen';
 
 interface CameraCaptureProps {
   onCapture: (dataUrl: string) => void;
@@ -102,8 +103,21 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
     <div className="fixed inset-0 bg-black flex flex-col">
       <canvas ref={canvasRef} className="hidden" />
 
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-center bg-gradient-to-b from-black/50 to-transparent">
-        <h2 className="text-white font-medium">Take a photo</h2>
+      <div
+        className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 bg-gradient-to-b from-black/70 to-transparent"
+        style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: '16px' }}
+      >
+        <div className="w-10" />
+        <div className="[&_*]:!text-white [&_.bg-white]:!bg-white/90 [&_.bg-white\\/20]:!bg-white/20">
+          <StepIndicator currentStep={1} />
+        </div>
+        <button
+          onClick={onCancel}
+          className="p-2.5 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
+          aria-label="Close"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <div className="flex-1 relative">
