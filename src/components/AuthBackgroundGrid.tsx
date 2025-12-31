@@ -71,8 +71,8 @@ function ItemCard({ data, isExpanded, onTap }: ItemCardProps) {
       }`}
       onClick={onTap}
     >
-      <div className={`relative w-full h-full overflow-hidden rounded-xl bg-stone-200 dark:bg-stone-800 shadow-md transition-shadow duration-300 ${
-        isExpanded ? 'shadow-xl ring-2 ring-emerald-500/50' : ''
+      <div className={`relative w-full h-full overflow-hidden rounded-xl bg-slate-800 shadow-md transition-shadow duration-300 ${
+        isExpanded ? 'shadow-xl ring-2 ring-amber-400/50' : ''
       }`}>
         <img
           src={data.image}
@@ -80,13 +80,13 @@ function ItemCard({ data, isExpanded, onTap }: ItemCardProps) {
           loading="lazy"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e27]/90 via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-2">
           <p className="text-white font-medium text-xs line-clamp-2 leading-snug mb-0.5">
             {data.title}
           </p>
           {data.category && (
-            <span className="inline-block px-1.5 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-[10px] text-white/90">
+            <span className="inline-block px-1.5 py-0.5 bg-amber-400/20 backdrop-blur-sm rounded-full text-[10px] text-amber-200">
               {data.category}
             </span>
           )}
@@ -192,14 +192,14 @@ export function AuthBackgroundGrid() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-stone-950">
+      <div className="fixed inset-0 bg-[#1a1f5c]">
         <div className="flex flex-col h-full justify-center gap-1 py-2">
           {Array.from({ length: ROW_COUNT }).map((_, row) => (
             <div key={row} className="flex gap-2 overflow-hidden items-center h-[140px] sm:h-[152px] px-1">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 w-44 h-32 sm:w-48 sm:h-36 rounded-xl bg-stone-800 animate-pulse"
+                  className="flex-shrink-0 w-44 h-32 sm:w-48 sm:h-36 rounded-xl bg-slate-700/50 animate-pulse"
                 />
               ))}
             </div>
@@ -210,7 +210,7 @@ export function AuthBackgroundGrid() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-stone-950">
+    <div className="fixed inset-0 overflow-hidden bg-[#1a1f5c]">
       <style>{`
         @keyframes scroll-right {
           0% { transform: translateX(-50%); }
