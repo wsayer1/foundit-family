@@ -146,7 +146,15 @@ export function ItemDetailPage() {
       .setLngLat(itemCoords)
       .addTo(mapInstance);
 
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapInstance) {
+        mapInstance.resize();
+      }
+    });
+    resizeObserver.observe(mapContainer.current);
+
     return () => {
+      resizeObserver.disconnect();
       if (map.current) {
         map.current.remove();
         map.current = null;
