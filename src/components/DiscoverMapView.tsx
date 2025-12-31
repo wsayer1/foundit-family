@@ -16,6 +16,8 @@ interface DiscoverMapViewProps {
   items: ItemWithProfile[];
   userLocation: { lat: number; lng: number } | null;
   isGuest?: boolean;
+  onEnableLocation?: () => void;
+  locationLoading?: boolean;
 }
 
 const MAP_STYLES = {
@@ -136,7 +138,7 @@ function setupHoverEffects(el: HTMLElement, isSelected: boolean) {
   el.addEventListener('mouseleave', handleLeave);
 }
 
-export function DiscoverMapView({ items, userLocation, isGuest = false }: DiscoverMapViewProps) {
+export function DiscoverMapView({ items, userLocation, isGuest = false, onEnableLocation, locationLoading = false }: DiscoverMapViewProps) {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -344,8 +346,10 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
           onZoomOut={handleZoomOut}
           onResetNorth={handleResetNorth}
           onFlyToUser={handleFlyToUser}
+          onEnableLocation={onEnableLocation}
           showCompass={true}
           showUserLocation={!!userLocation}
+          locationLoading={locationLoading}
           className="absolute bottom-[100px] right-3 z-10"
         />
       )}

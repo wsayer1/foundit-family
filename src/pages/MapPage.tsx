@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from 'react';
-import { MapPin, Clock, Tag } from 'lucide-react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { MapPin, Clock, Tag, MapPinOff } from 'lucide-react';
 import { DiscoverMapView } from '../components/DiscoverMapView';
 import { BottomNav } from '../components/BottomNav';
 import { FloatingFilterDropdown } from '../components/FloatingFilterDropdown';
@@ -24,17 +24,23 @@ function formatCategoryLabel(category: string): string {
 
 export function MapPage() {
   const { user, loading: authLoading } = useAuth();
-  const { requestLocation, checkPermission, locationEnabled, permissionStatus, setLocationEnabled } = useLocation();
+  const { location, requestLocation, checkPermission, permissionStatus, loading: locationLoading, setLocationEnabled } = useLocation();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters } = useFilters();
   const mapFilters = useMemo(() => ({ ...filters, distance: 'any' as const }), [filters]);
-  const { items } = useMapItems(locationEnabled ? userCoords : null, mapFilters, !!user, authLoading);
+  const { items } = useMapItems(userCoords, mapFilters, !!user, authLoading);
   const { categories } = useCategories();
 
   const categoryOptions: { value: string; label: string }[] = [
     { value: 'all', label: 'All Categories' },
     ...categories.map((cat) => ({ value: cat, label: formatCategoryLabel(cat) })),
   ];
+
+  useEffect(() => {
+    if (location) {
+      setUserCoords({ lat: location.latitude, lng: location.longitude });
+    }
+  }, [location]);
 
   useEffect(() => {
     checkPermission().then((status) => {
@@ -48,20 +54,27 @@ export function MapPage() {
     });
   }, [checkPermission, requestLocation]);
 
-  const handleEnableLocation = async () => {
-    const coords = await requestLocation();
+  const handleEnableLocation = useCallback(async () => {
+    const coords = await requestLocation(true);
     if (coords) {
       setUserCoords({ lat: coords.latitude, lng: coords.longitude });
       setLocationEnabled(true);
     }
-  };
+  }, [requestLocation, setLocationEnabled]);
 
-  const showLocationPrompt = !locationEnabled && permissionStatus !== 'granted' && permissionStatus !== 'unknown';
+  const showLocationPrompt = !userCoords && permissionStatus !== 'denied';
+  const showDeniedMessage = !userCoords && permissionStatus === 'denied';
 
   return (
     <div className="h-screen-safe bg-stone-50 dark:bg-stone-950 flex flex-col overflow-hidden">
       <div className="flex-1 min-h-0 relative">
-        <DiscoverMapView items={items} userLocation={userCoords} isGuest={!user} />
+        <DiscoverMapView
+          items={items}
+          userLocation={userCoords}
+          isGuest={!user}
+          onEnableLocation={handleEnableLocation}
+          locationLoading={locationLoading}
+        />
 
         <div className="absolute top-0 left-0 right-0 z-20 safe-area-top">
           <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
@@ -92,7 +105,7 @@ export function MapPage() {
           </div>
         </div>
 
-        {showLocationPrompt && (
+        {showLocationPrompt && !locationLoading && (
           <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 w-full max-w-sm px-4">
             <button
               onClick={handleEnableLocation}
@@ -104,8 +117,24 @@ export function MapPage() {
                 </div>
                 <span>Enable Location</span>
               </div>
-              <p className="text-sm text-stone-400 dark:text-stone-500 mt-2 font-normal">To see treasure nearby</p>
+              <p className="text-sm text-stone-400 dark:text-stone-500 mt-2 font-normal">To see your location on the map</p>
             </button>
+          </div>
+        )}
+
+        {showDeniedMessage && (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 w-full max-w-sm px-4">
+            <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-md text-stone-900 dark:text-stone-100 py-4 px-6 rounded-2xl text-center shadow-xl shadow-black/20 border border-stone-200/50 dark:border-stone-700/50">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="bg-stone-200 dark:bg-stone-700 p-2 rounded-lg">
+                  <MapPinOff size={20} className="text-stone-500 dark:text-stone-400" />
+                </div>
+                <span className="font-semibold">Location Blocked</span>
+              </div>
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                Enable location in your browser settings to see your position on the map
+              </p>
+            </div>
           </div>
         )}
 
