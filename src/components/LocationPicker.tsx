@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Check, X, MapPin } from 'lucide-react';
+import { Check, ArrowLeft, MapPin } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { StepIndicator } from './LocationPermissionScreen';
 import { MapZoomControls } from './MapZoomControls';
 import { createUserLocationElement } from './UserLocationMarker';
-import { metersToPixels, constrainToRadius, pixelOffsetToCoords } from '../utils/map';
+import { metersToPixels, constrainToRadius, pixelOffsetToCoords, coordsToPixelOffset } from '../utils/map';
 
 interface LocationPickerProps {
   imageData: string;
@@ -48,7 +48,21 @@ export function LocationPicker({
     const pixels = metersToPixels(MAX_DISTANCE_METERS, center.lat, zoom);
     setRadiusPixels(pixels);
     setCurrentZoom(zoom);
-  }, []);
+
+    setPinOffset((currentOffset) => {
+      if (currentOffset.x === 0 && currentOffset.y === 0) {
+        return currentOffset;
+      }
+      const newOffset = coordsToPixelOffset(
+        pinLocation.lat,
+        pinLocation.lng,
+        center.lat,
+        center.lng,
+        zoom
+      );
+      return newOffset;
+    });
+  }, [pinLocation.lat, pinLocation.lng]);
 
   const handleInteraction = useCallback((clientX: number, clientY: number) => {
     if (animationPhase !== 'complete' || !map.current) return;
@@ -431,8 +445,8 @@ export function LocationPicker({
             className="flex-1 bg-white/10 backdrop-blur-sm text-white py-4 rounded-2xl font-semibold hover:bg-white/20 active:scale-[0.98] transition-all border border-white/20"
           >
             <span className="flex items-center justify-center gap-2">
-              <X size={20} strokeWidth={2.5} />
-              Cancel
+              <ArrowLeft size={20} strokeWidth={2.5} />
+              Back
             </span>
           </button>
           <button

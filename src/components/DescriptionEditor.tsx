@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Loader2, Sparkles, Send, Tag, X, ChevronDown, Check } from 'lucide-react';
+import { Loader2, Sparkles, Send, Tag, X, ChevronDown, Check, ArrowLeft } from 'lucide-react';
 import { StepIndicator } from './LocationPermissionScreen';
 import { triggerConfettiFromElement } from '../utils/confetti';
 
@@ -333,24 +333,34 @@ export function DescriptionEditor({
         style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-lg mx-auto">
-          <button
-            ref={postButtonRef}
-            onClick={handlePost}
-            disabled={loading || posting || !description.trim()}
-            className="w-full bg-white text-emerald-600 py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
-          >
-            {posting ? (
-              <>
-                <Loader2 size={20} className="animate-spin" />
-                Posting...
-              </>
-            ) : (
-              <>
-                <Send size={20} />
-                Post your find
-              </>
-            )}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={onBack}
+              disabled={posting}
+              className="bg-white/20 backdrop-blur-sm text-white py-4 px-5 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:bg-white/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/30"
+            >
+              <ArrowLeft size={20} />
+              Back
+            </button>
+            <button
+              ref={postButtonRef}
+              onClick={handlePost}
+              disabled={loading || posting || !description.trim()}
+              className="flex-1 bg-white text-emerald-600 py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
+            >
+              {posting ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Posting...
+                </>
+              ) : (
+                <>
+                  <Send size={20} />
+                  Post your find
+                </>
+              )}
+            </button>
+          </div>
           <p className="text-center text-xs text-white/70 mt-3">
             You'll earn 10 points for sharing this find!
           </p>

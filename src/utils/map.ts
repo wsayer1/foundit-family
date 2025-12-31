@@ -63,3 +63,20 @@ export function pixelOffsetToCoords(
     lng: centerLng + deltaLng
   };
 }
+
+export function coordsToPixelOffset(
+  targetLat: number,
+  targetLng: number,
+  centerLat: number,
+  centerLng: number,
+  zoom: number
+): { x: number; y: number } {
+  const metersPerPixel = metersPerPixelAtZoom(centerLat, zoom);
+  const deltaLat = targetLat - centerLat;
+  const deltaLng = targetLng - centerLng;
+
+  const offsetY = -(deltaLat * 111320) / metersPerPixel;
+  const offsetX = (deltaLng * 111320 * Math.cos(centerLat * Math.PI / 180)) / metersPerPixel;
+
+  return { x: offsetX, y: offsetY };
+}
