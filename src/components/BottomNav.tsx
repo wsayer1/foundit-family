@@ -10,8 +10,8 @@ export function BottomNav() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-2 py-3 safe-area-bottom z-50">
-      <div className="max-w-lg mx-auto flex items-center justify-between">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-4 py-3 safe-area-bottom z-50">
+      <div className="max-w-lg mx-auto flex items-center justify-between px-2">
         <button
           onClick={() => navigate('/')}
           className={`flex flex-col items-center gap-1 transition-colors ${

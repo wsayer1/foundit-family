@@ -40,6 +40,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     }
   }, [profile?.username]);
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   const validateName = (name: string): string | null => {
     const trimmed = name.trim();
     if (trimmed.length < MIN_USERNAME_LENGTH) {
@@ -189,96 +196,44 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-title"
     >
-      <div className="bg-white dark:bg-stone-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-3xl max-h-[90vh] overflow-hidden shadow-2xl animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
-        <div className="sticky top-0 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700 px-4 py-4 flex items-center justify-between">
-          <h2 id="settings-title" className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-            Settings
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 -mr-2 text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 transition-colors rounded-full hover:bg-stone-100 dark:hover:bg-stone-800"
-            aria-label="Close settings"
-          >
-            <X size={20} />
-          </button>
+      <div className="bg-white dark:bg-stone-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-3xl h-[85vh] sm:h-auto sm:max-h-[85vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+        <div className="flex-shrink-0 px-5 pt-5 pb-4 border-b border-stone-100 dark:border-stone-800">
+          <div className="flex items-center justify-between">
+            <h2 id="settings-title" className="text-xl font-bold text-stone-900 dark:text-stone-100">
+              Settings
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 -mr-2 text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300 transition-colors rounded-full hover:bg-stone-100 dark:hover:bg-stone-800"
+              aria-label="Close settings"
+            >
+              <X size={22} />
+            </button>
+          </div>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-64px)] p-4 space-y-6">
-          <section>
-            <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-3">
-              Display Name
-            </h3>
-            <div className="space-y-3">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => {
-                    setDisplayName(e.target.value);
-                    setNameError(null);
-                    setNameSuccess(false);
-                  }}
-                  placeholder="Enter your name"
-                  maxLength={MAX_USERNAME_LENGTH}
-                  className="w-full px-4 py-3 bg-stone-100 dark:bg-stone-800 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-                  aria-describedby={nameError ? 'name-error' : undefined}
-                  aria-invalid={!!nameError}
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 dark:text-stone-500">
-                  {displayName.length}/{MAX_USERNAME_LENGTH}
-                </span>
-              </div>
-              {nameError && (
-                <p id="name-error" className="text-sm text-red-500" role="alert">
-                  {nameError}
-                </p>
-              )}
-              <button
-                onClick={handleNameSave}
-                disabled={nameSaving || displayName.trim() === profile.username}
-                className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-stone-300 dark:disabled:bg-stone-700 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
-              >
-                {nameSaving ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Saving...
-                  </>
-                ) : nameSuccess ? (
-                  <>
-                    <Check size={18} />
-                    Saved
-                  </>
-                ) : (
-                  'Save Name'
-                )}
-              </button>
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-3">
-              Profile Picture
-            </h3>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              className="hidden"
-              aria-label="Upload profile picture"
-            />
-            <div className="flex items-center gap-4">
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
+          <section className="bg-stone-50 dark:bg-stone-800/50 rounded-2xl p-4">
+            <div className="flex items-center gap-4 mb-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+                aria-label="Upload profile picture"
+              />
               <button
                 onClick={handleAvatarClick}
                 disabled={uploadingAvatar || removingAvatar}
-                className="relative w-20 h-20 rounded-full overflow-hidden bg-stone-100 dark:bg-stone-800 group flex-shrink-0 ring-2 ring-stone-200 dark:ring-stone-700"
+                className="relative w-16 h-16 rounded-full overflow-hidden bg-stone-200 dark:bg-stone-700 group flex-shrink-0 ring-3 ring-white dark:ring-stone-900 shadow-lg"
                 aria-label="Change profile picture"
               >
                 {profile.avatar_url ? (
@@ -289,71 +244,114 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <User size={32} className="text-stone-400 dark:text-stone-500" />
+                    <User size={28} className="text-stone-400 dark:text-stone-500" />
                   </div>
                 )}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   {uploadingAvatar ? (
-                    <Loader2 size={24} className="text-white animate-spin" />
+                    <Loader2 size={20} className="text-white animate-spin" />
                   ) : (
-                    <Camera size={24} className="text-white" />
+                    <Camera size={20} className="text-white" />
                   )}
                 </div>
               </button>
-              <div className="flex-1 space-y-2">
-                <button
-                  onClick={handleAvatarClick}
-                  disabled={uploadingAvatar || removingAvatar}
-                  className="w-full py-2.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 font-medium rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {uploadingAvatar ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Camera size={16} />
-                      Upload Photo
-                    </>
-                  )}
-                </button>
-                {profile.avatar_url && (
-                  <button
-                    onClick={handleRemoveAvatar}
-                    disabled={uploadingAvatar || removingAvatar}
-                    className="w-full py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-medium rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {removingAvatar ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" />
-                        Removing...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 size={16} />
-                        Remove Photo
-                      </>
-                    )}
-                  </button>
-                )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
+                  {profile.username || 'Your Name'}
+                </p>
+                <p className="text-sm text-stone-500 dark:text-stone-400 truncate">
+                  {user.email}
+                </p>
               </div>
             </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAvatarClick}
+                disabled={uploadingAvatar || removingAvatar}
+                className="flex-1 py-2.5 bg-white dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
+              >
+                {uploadingAvatar ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Camera size={16} />
+                )}
+                {uploadingAvatar ? 'Uploading...' : 'Change Photo'}
+              </button>
+              {profile.avatar_url && (
+                <button
+                  onClick={handleRemoveAvatar}
+                  disabled={uploadingAvatar || removingAvatar}
+                  className="py-2.5 px-4 bg-white dark:bg-stone-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-stone-500 hover:text-red-600 dark:text-stone-400 dark:hover:text-red-400 text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
+                >
+                  {removingAvatar ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={16} />
+                  )}
+                </button>
+              )}
+            </div>
             {avatarError && (
-              <p className="text-sm text-red-500 mt-2" role="alert">
+              <p className="text-sm text-red-500 mt-3" role="alert">
                 {avatarError}
               </p>
             )}
-            <p className="text-xs text-stone-400 dark:text-stone-500 mt-2">
-              JPG, PNG or GIF. Max 2MB.
-            </p>
           </section>
 
           <section>
-            <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-3">
+            <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">
+              Display Name
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => {
+                  setDisplayName(e.target.value);
+                  setNameError(null);
+                  setNameSuccess(false);
+                }}
+                placeholder="Enter your name"
+                maxLength={MAX_USERNAME_LENGTH}
+                className="w-full px-4 py-3.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all pr-16"
+                aria-describedby={nameError ? 'name-error' : undefined}
+                aria-invalid={!!nameError}
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-stone-400 dark:text-stone-500 tabular-nums">
+                {displayName.length}/{MAX_USERNAME_LENGTH}
+              </span>
+            </div>
+            {nameError && (
+              <p id="name-error" className="text-sm text-red-500 mt-2" role="alert">
+                {nameError}
+              </p>
+            )}
+            <button
+              onClick={handleNameSave}
+              disabled={nameSaving || displayName.trim() === profile.username}
+              className="mt-3 w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-stone-200 dark:disabled:bg-stone-700 disabled:text-stone-400 dark:disabled:text-stone-500 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md disabled:shadow-none"
+            >
+              {nameSaving ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Saving...
+                </>
+              ) : nameSuccess ? (
+                <>
+                  <Check size={18} />
+                  Saved!
+                </>
+              ) : (
+                'Save Name'
+              )}
+            </button>
+          </section>
+
+          <section>
+            <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-3">
               Appearance
-            </h3>
-            <div className="flex gap-2">
+            </label>
+            <div className="grid grid-cols-3 gap-2">
               {themeOptions.map((option) => {
                 const Icon = option.icon;
                 const isActive = preference === option.value;
@@ -361,25 +359,39 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   <button
                     key={option.value}
                     onClick={() => setPreference(option.value)}
-                    className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl transition-all ${
+                    className={`relative flex flex-col items-center gap-2.5 p-4 rounded-xl transition-all ${
                       isActive
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
+                        : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700'
                     }`}
                     aria-pressed={isActive}
                   >
-                    <Icon size={22} />
+                    {isActive && (
+                      <div className="absolute top-2 right-2">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                    <Icon size={24} strokeWidth={1.5} />
                     <span className="text-sm font-medium">{option.label}</span>
                   </button>
                 );
               })}
             </div>
-            <p className="text-xs text-stone-400 dark:text-stone-500 mt-3">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-3 text-center">
               {preference === 'system'
-                ? 'Automatically matches your device settings'
+                ? 'Automatically matches your device'
                 : `Always use ${preference} mode`}
             </p>
           </section>
+        </div>
+
+        <div className="flex-shrink-0 px-5 py-4 border-t border-stone-100 dark:border-stone-800 safe-area-bottom">
+          <button
+            onClick={onClose}
+            className="w-full py-3.5 bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-white text-white dark:text-stone-900 font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
+          >
+            Done
+          </button>
         </div>
       </div>
     </div>
