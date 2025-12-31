@@ -8,7 +8,7 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { GuestHero, GuestBottomCTA } from '../components/GuestHero';
 import { FloatingAuthCard } from '../components/FloatingAuthCard';
 import { FloatingFilterDropdown } from '../components/FloatingFilterDropdown';
-import { useItems, useCategories, useSiteStats } from '../hooks/useItems';
+import { useItems, useCategories, useSiteStats, useAvailableItemCount } from '../hooks/useItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { supabase } from '../lib/supabase';
@@ -135,6 +135,7 @@ export function DiscoverPage() {
   );
   const { categories } = useCategories();
   const { stats } = useSiteStats(!!user);
+  const { totalCount } = useAvailableItemCount(filters);
 
   const handleRefresh = async () => {
     refresh();
@@ -412,6 +413,11 @@ export function DiscoverPage() {
                   />
                 ))}
               </div>
+              {items.length > 0 && totalCount > items.length && (
+                <div className="text-center py-3 text-sm text-stone-500 dark:text-stone-400">
+                  <span className="font-medium text-stone-600 dark:text-stone-300">{totalCount - items.length}</span> more {totalCount - items.length === 1 ? 'item' : 'items'} available
+                </div>
+              )}
               {guestLimitReached && <GuestBottomCTA />}
               {hasMore && !guestLimitReached && (
                 <button

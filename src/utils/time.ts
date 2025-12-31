@@ -73,3 +73,23 @@ export function getDaysRemaining(createdAt: string, lastConfirmedAt?: string | n
   const remaining = expiryDate.getTime() - now.getTime();
   return Math.max(Math.ceil(remaining / (24 * 60 * 60 * 1000)), 0);
 }
+
+export function calculateRingDecay(createdAt: string, lastConfirmedAt?: string | null): number {
+  const referenceDate = lastConfirmedAt ? new Date(lastConfirmedAt) : new Date(createdAt);
+  const now = new Date();
+  const elapsed = now.getTime() - referenceDate.getTime();
+  const decayRatio = Math.min(elapsed / SEVEN_DAYS_MS, 1);
+  return Math.max(1 - decayRatio, 0);
+}
+
+export function getRingColor(decayPercent: number): string {
+  if (decayPercent > 0.7) return '#ffffff';
+  if (decayPercent > 0.4) return 'rgba(255, 255, 255, 0.85)';
+  return 'rgba(255, 255, 255, 0.6)';
+}
+
+export function getRingStrokeWidth(decayPercent: number): number {
+  if (decayPercent > 0.7) return 3;
+  if (decayPercent > 0.4) return 2.5;
+  return 2;
+}

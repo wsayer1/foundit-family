@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
-import { formatTimeAgo, calculateFreshness, getFreshnessOpacity } from '../utils/time';
+import { formatTimeAgo, calculateFreshness, getFreshnessOpacity, calculateRingDecay, getRingColor, getRingStrokeWidth } from '../utils/time';
 import { getPreviewUrl } from '../utils/image';
 import { useTheme } from '../contexts/ThemeContext';
 import { FloatingAuthCard } from './FloatingAuthCard';
@@ -28,9 +28,36 @@ function getClaimerFirstName(item: ItemWithProfile): string {
   return firstName.charAt(0).toUpperCase() + firstName.slice(1);
 }
 
+function createRingSvg(size: number, decayPercent: number, strokeWidth: number, color: string): string {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - decayPercent);
+  const center = size / 2;
+
+  return `
+    <svg width="${size}" height="${size}" style="position: absolute; top: 0; left: 0; transform: rotate(-90deg); pointer-events: none;">
+      <circle
+        cx="${center}"
+        cy="${center}"
+        r="${radius}"
+        fill="none"
+        stroke="${color}"
+        stroke-width="${strokeWidth}"
+        stroke-dasharray="${circumference}"
+        stroke-dashoffset="${offset}"
+        stroke-linecap="round"
+        style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));"
+      />
+    </svg>
+  `;
+}
+
 function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string {
   const isClaimed = item.status === 'claimed';
   const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
+  const decayPercent = calculateRingDecay(item.created_at, item.last_confirmed_at);
+  const ringColor = getRingColor(decayPercent);
+  const ringStroke = getRingStrokeWidth(decayPercent);
   const pinColor = isClaimed ? '#78716c' : freshness > 0.7 ? '#10b981' : freshness > 0.4 ? '#f59e0b' : '#78716c';
 
   if (isClaimed) {
@@ -62,9 +89,12 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
   }
 
   if (isSelected) {
+    const selectedSize = 64;
+    const ringSvg = createRingSvg(selectedSize, decayPercent, 4, ringColor);
     return `
-      <div class="relative">
-        <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 3px solid ${pinColor}; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(16, 185, 129, 0.2);">
+      <div class="relative" style="width: ${selectedSize}px; height: ${selectedSize}px;">
+        ${ringSvg}
+        <div style="position: absolute; top: 2px; left: 2px; width: ${selectedSize - 4}px; height: ${selectedSize - 4}px; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
           <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
         <div style="position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 9px solid ${pinColor};"></div>
@@ -72,9 +102,17 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
     `;
   }
 
+  const markerSize = 48;
+  const ringSvg = createRingSvg(markerSize, decayPercent, ringStroke, ringColor);
+  const imageInset = 3;
+  const imageSize = markerSize - (imageInset * 2);
+
   return `
-    <div style="width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.35); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
-      <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
+    <div style="width: ${markerSize}px; height: ${markerSize}px; position: relative; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
+      ${ringSvg}
+      <div style="position: absolute; top: ${imageInset}px; left: ${imageInset}px; width: ${imageSize}px; height: ${imageSize}px; border-radius: 50%; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.35);">
+        <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
+      </div>
     </div>
   `;
 }
@@ -176,15 +214,19 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
 
     if (userLocation) {
       const userEl = document.createElement('div');
-      userEl.style.cssText = 'width: 28px; height: 28px; position: relative; z-index: 9999; display: flex; align-items: center; justify-content: center;';
+      userEl.style.cssText = 'width: 56px; height: 56px; position: relative; z-index: 9999;';
 
-      const pulse = document.createElement('div');
-      pulse.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 48px; height: 48px; background: #3b82f6; border-radius: 50%; opacity: 0.3; animation: pulse 2s infinite; z-index: 1;';
+      const pulseOuter = document.createElement('div');
+      pulseOuter.style.cssText = 'position: absolute; top: 50%; left: 50%; width: 56px; height: 56px; margin-left: -28px; margin-top: -28px; background: rgba(59, 130, 246, 0.15); border-radius: 50%; animation: pulseOuter 2s ease-out infinite;';
+
+      const pulseInner = document.createElement('div');
+      pulseInner.style.cssText = 'position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; margin-left: -20px; margin-top: -20px; background: rgba(59, 130, 246, 0.25); border-radius: 50%; animation: pulseInner 2s ease-out infinite;';
 
       const dot = document.createElement('div');
-      dot.style.cssText = 'width: 28px; height: 28px; background: #3b82f6; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 12px rgba(59, 130, 246, 0.5), 0 2px 8px rgba(0,0,0,0.3); position: relative; z-index: 2;';
+      dot.style.cssText = 'position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; margin-left: -10px; margin-top: -10px; background: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5), 0 1px 4px rgba(0,0,0,0.2); z-index: 2;';
 
-      userEl.appendChild(pulse);
+      userEl.appendChild(pulseOuter);
+      userEl.appendChild(pulseInner);
       userEl.appendChild(dot);
 
       userMarkerRef.current = new mapboxgl.Marker({ element: userEl, anchor: 'center' })

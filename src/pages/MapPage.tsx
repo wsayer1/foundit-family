@@ -3,7 +3,7 @@ import { MapPin, Clock, Tag } from 'lucide-react';
 import { DiscoverMapView } from '../components/DiscoverMapView';
 import { BottomNav } from '../components/BottomNav';
 import { FloatingFilterDropdown } from '../components/FloatingFilterDropdown';
-import { useItems, useCategories } from '../hooks/useItems';
+import { useMapItems, useCategories } from '../hooks/useItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters } from '../contexts/FilterContext';
@@ -28,7 +28,7 @@ export function MapPage() {
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { filters, setFilters } = useFilters();
   const mapFilters = useMemo(() => ({ ...filters, distance: 'any' as const }), [filters]);
-  const { items } = useItems(locationEnabled ? userCoords : null, mapFilters, !!user, authLoading);
+  const { items } = useMapItems(locationEnabled ? userCoords : null, mapFilters, !!user, authLoading);
   const { categories } = useCategories();
 
   const categoryOptions: { value: string; label: string }[] = [
