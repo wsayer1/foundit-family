@@ -176,13 +176,13 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
 
     if (userLocation) {
       const userEl = document.createElement('div');
-      userEl.style.cssText = 'width: 16px; height: 16px; position: relative;';
+      userEl.style.cssText = 'width: 20px; height: 20px; position: relative; z-index: 9999;';
 
       const dot = document.createElement('div');
-      dot.style.cssText = 'width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
+      dot.style.cssText = 'width: 20px; height: 20px; background: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 12px rgba(59, 130, 246, 0.5), 0 2px 8px rgba(0,0,0,0.3); position: relative; z-index: 2;';
 
       const pulse = document.createElement('div');
-      pulse.style.cssText = 'position: absolute; top: 0; left: 0; width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; opacity: 0.4; animation: pulse 2s infinite;';
+      pulse.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; background: #3b82f6; border-radius: 50%; opacity: 0.3; animation: pulse 2s infinite; z-index: 1;';
 
       userEl.appendChild(pulse);
       userEl.appendChild(dot);
@@ -190,6 +190,9 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
       userMarkerRef.current = new mapboxgl.Marker({ element: userEl, anchor: 'center' })
         .setLngLat([userLocation.lng, userLocation.lat])
         .addTo(map.current);
+
+      const markerElement = userMarkerRef.current.getElement();
+      markerElement.style.zIndex = '9999';
 
       if (!initialFlyDoneRef.current) {
         initialFlyDoneRef.current = true;

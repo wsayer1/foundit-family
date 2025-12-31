@@ -229,8 +229,8 @@ export function DiscoverPage() {
     <Layout>
       <div className="absolute top-0 left-0 right-0 z-40 safe-area-top">
         <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-          <div className="flex-shrink-0 bg-emerald-500 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-emerald-500/30 flex items-center gap-2">
-            <MapPin size={20} className="text-white" />
+          <div className="flex-shrink-0 bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center gap-2 border border-stone-700">
+            <MapPin size={24} className="text-emerald-500" strokeWidth={2.5} />
             <span className="hidden md:inline font-semibold text-white text-sm">Foundit.Family</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-1 justify-end">
