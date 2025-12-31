@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Loader2, Sparkles, Send, Tag, X, ChevronDown, Check } from 'lucide-react';
 import { StepIndicator } from './LocationPermissionScreen';
+import { triggerConfettiFromElement } from '../utils/confetti';
 
 interface DescriptionEditorProps {
   imageData: string;
@@ -95,7 +96,7 @@ function TagSelector({ tag, onTagChange, disabled }: TagSelectorProps) {
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 rounded-full text-sm font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-200 rounded-full text-sm font-semibold hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
         >
           <Tag size={14} />
           <span>Add tag</span>
@@ -255,6 +256,14 @@ export function DescriptionEditor({
   onPost,
   onBack
 }: DescriptionEditorProps) {
+  const postButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handlePost = () => {
+    if (postButtonRef.current) {
+      triggerConfettiFromElement(postButtonRef.current);
+    }
+    onPost();
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex flex-col">
       <div
@@ -325,7 +334,8 @@ export function DescriptionEditor({
       >
         <div className="max-w-lg mx-auto">
           <button
-            onClick={onPost}
+            ref={postButtonRef}
+            onClick={handlePost}
             disabled={loading || posting || !description.trim()}
             className="w-full bg-white text-emerald-600 py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
           >

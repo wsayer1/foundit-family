@@ -312,6 +312,16 @@ export function LocationPicker({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
+            background: 'rgba(0, 0, 0, 0.1)',
+            maskImage: `radial-gradient(circle ${radiusPixels}px at center, transparent 0%, transparent 100%)`,
+            WebkitMaskImage: `radial-gradient(circle ${radiusPixels}px at center, transparent 0%, transparent 100%)`,
+            zIndex: 5,
+          }}
+        />
+
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
             backdropFilter: 'blur(3px)',
             WebkitBackdropFilter: 'blur(3px)',
             maskImage: `radial-gradient(circle ${radiusPixels}px at center, transparent 0%, transparent 95%, black 100%)`,
@@ -328,7 +338,6 @@ export function LocationPicker({
             border: '2px solid rgba(255,255,255,0.5)',
             boxShadow: '0 0 0 1px rgba(0,0,0,0.1), inset 0 0 20px rgba(59, 130, 246, 0.1)',
             zIndex: 10,
-            transition: 'width 150ms ease-out, height 150ms ease-out',
           }}
         />
 
@@ -367,7 +376,7 @@ export function LocationPicker({
           className="absolute right-3 z-30"
           style={{
             ...getControlsStyles(),
-            bottom: '200px',
+            bottom: '220px',
           }}
         >
           <MapZoomControls
