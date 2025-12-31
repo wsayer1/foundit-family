@@ -32,13 +32,13 @@ export function ProfilePage() {
       <Layout>
         <div className="absolute top-0 left-0 right-0 z-10 safe-area-top">
           <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-            <div className="flex-shrink-0 bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center gap-2 border border-stone-700">
+            <div className="flex-shrink-0 bg-white dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700">
               <MapPin size={20} className="text-emerald-500 sm:w-6 sm:h-6" strokeWidth={2.5} />
-              <span className="font-semibold text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
+              <span className="font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
             </div>
           </div>
         </div>
-        <div className="max-w-lg mx-auto px-4 pt-24 pb-16 text-center">
+        <div className="max-w-lg mx-auto px-4 pt-20 pb-16 text-center">
           <div className="bg-stone-100 dark:bg-stone-800 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <User className="text-stone-400 dark:text-stone-500" size={32} />
           </div>
@@ -63,13 +63,13 @@ export function ProfilePage() {
     <Layout>
       <div className="absolute top-0 left-0 right-0 z-10 safe-area-top">
         <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-          <div className="flex-shrink-0 bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center gap-2 border border-stone-700">
+          <div className="flex-shrink-0 bg-white dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700">
             <MapPin size={20} className="text-emerald-500 sm:w-6 sm:h-6" strokeWidth={2.5} />
-            <span className="font-semibold text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
+            <span className="font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
           </div>
           <button
             onClick={handleSignOut}
-            className="bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center justify-center border border-stone-700 text-stone-300 hover:text-white transition-colors"
+            className="bg-white dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center justify-center border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-colors"
             aria-label="Sign out"
           >
             <LogOut size={20} />
@@ -77,7 +77,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto pt-20">
+      <div className="flex-1 overflow-auto pt-16">
       <div className="max-w-lg mx-auto px-4 py-6">
         <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 mb-6">
           <div className="flex items-center gap-4 mb-6">

@@ -149,13 +149,13 @@ export function LeaderboardPage() {
     <Layout>
       <div className="absolute top-0 left-0 right-0 z-40 safe-area-top">
         <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-          <div className="flex-shrink-0 bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center gap-2 border border-stone-700">
+          <div className="flex-shrink-0 bg-white dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700">
             <MapPin size={20} className="text-emerald-500 sm:w-6 sm:h-6" strokeWidth={2.5} />
-            <span className="font-semibold text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
+            <span className="font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
           </div>
         </div>
       </div>
-      <PullToRefresh onRefresh={handleRefresh} className="flex-1 pt-20">
+      <PullToRefresh onRefresh={handleRefresh} className="flex-1 pt-16">
         <div className="max-w-lg mx-auto px-4 py-6">
           {currentUserRank ? (
             <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 mb-6">
