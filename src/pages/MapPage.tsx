@@ -66,8 +66,8 @@ export function MapPage() {
         <div className="absolute top-0 left-0 right-0 z-20 safe-area-top">
           <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
             <div className="flex-shrink-0 bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center gap-2 border border-stone-700">
-              <MapPin size={24} className="text-emerald-500" strokeWidth={2.5} />
-              <span className="hidden md:inline font-semibold text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
+              <MapPin size={20} className="text-emerald-500 sm:w-6 sm:h-6" strokeWidth={2.5} />
+              <span className="font-semibold text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
             </div>
             <div className="flex items-center gap-2">
               <FloatingFilterDropdown

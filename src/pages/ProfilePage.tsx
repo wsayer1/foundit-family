@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Award, Package, ShoppingBag, User, Settings, MessageSquare, Bug } from 'lucide-react';
-import { Layout, Header } from '../components/Layout';
+import { LogOut, Award, Package, ShoppingBag, User, Settings, MessageSquare, Bug, MapPin } from 'lucide-react';
+import { Layout } from '../components/Layout';
 import { ItemCard } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
 import { SettingsModal } from '../components/SettingsModal';
@@ -30,8 +30,15 @@ export function ProfilePage() {
   if (!user || !profile) {
     return (
       <Layout>
-        <Header />
-        <div className="max-w-lg mx-auto px-4 py-16 text-center">
+        <div className="absolute top-0 left-0 right-0 z-10 safe-area-top">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
+            <div className="flex-shrink-0 bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center gap-2 border border-stone-700">
+              <MapPin size={20} className="text-emerald-500 sm:w-6 sm:h-6" strokeWidth={2.5} />
+              <span className="font-semibold text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-lg mx-auto px-4 pt-24 pb-16 text-center">
           <div className="bg-stone-100 dark:bg-stone-800 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <User className="text-stone-400 dark:text-stone-500" size={32} />
           </div>
@@ -54,18 +61,23 @@ export function ProfilePage() {
 
   return (
     <Layout>
-      <Header
-        rightAction={
+      <div className="absolute top-0 left-0 right-0 z-10 safe-area-top">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
+          <div className="flex-shrink-0 bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center gap-2 border border-stone-700">
+            <MapPin size={20} className="text-emerald-500 sm:w-6 sm:h-6" strokeWidth={2.5} />
+            <span className="font-semibold text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
+          </div>
           <button
             onClick={handleSignOut}
-            className="p-2 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100"
+            className="bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center justify-center border border-stone-700 text-stone-300 hover:text-white transition-colors"
+            aria-label="Sign out"
           >
             <LogOut size={20} />
           </button>
-        }
-      />
+        </div>
+      </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto pt-20">
       <div className="max-w-lg mx-auto px-4 py-6">
         <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 mb-6">
           <div className="flex items-center gap-4 mb-6">
