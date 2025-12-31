@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Navigation, Plus, Minus, Compass, Hand } from 'lucide-react';
+import { X, Hand } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
@@ -9,6 +9,8 @@ import { formatTimeAgo, calculateFreshness, getFreshnessOpacity, calculateRingDe
 import { getPreviewUrl } from '../utils/image';
 import { useTheme } from '../contexts/ThemeContext';
 import { FloatingAuthCard } from './FloatingAuthCard';
+import { MapZoomControls } from './MapZoomControls';
+import { createUserLocationElement } from './UserLocationMarker';
 
 interface DiscoverMapViewProps {
   items: ItemWithProfile[];
@@ -213,21 +215,7 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
     }
 
     if (userLocation) {
-      const userEl = document.createElement('div');
-      userEl.style.cssText = 'width: 56px; height: 56px; position: relative; z-index: 9999;';
-
-      const pulseOuter = document.createElement('div');
-      pulseOuter.style.cssText = 'position: absolute; top: 50%; left: 50%; width: 56px; height: 56px; margin-left: -28px; margin-top: -28px; background: rgba(59, 130, 246, 0.15); border-radius: 50%; animation: pulseOuter 2s ease-out infinite;';
-
-      const pulseInner = document.createElement('div');
-      pulseInner.style.cssText = 'position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; margin-left: -20px; margin-top: -20px; background: rgba(59, 130, 246, 0.25); border-radius: 50%; animation: pulseInner 2s ease-out infinite;';
-
-      const dot = document.createElement('div');
-      dot.style.cssText = 'position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; margin-left: -10px; margin-top: -10px; background: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5), 0 1px 4px rgba(0,0,0,0.2); z-index: 2;';
-
-      userEl.appendChild(pulseOuter);
-      userEl.appendChild(pulseInner);
-      userEl.appendChild(dot);
+      const userEl = createUserLocationElement();
 
       userMarkerRef.current = new mapboxgl.Marker({ element: userEl, anchor: 'center' })
         .setLngLat([userLocation.lng, userLocation.lat])
@@ -351,42 +339,15 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
       )}
 
       {mapLoaded && (
-        <div className="absolute bottom-[100px] right-3 z-10 flex flex-col gap-2">
-          {userLocation && (
-            <button
-              onClick={handleFlyToUser}
-              className="bg-white/95 dark:bg-stone-800/95 backdrop-blur-sm w-11 h-11 rounded-xl shadow-lg flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
-              aria-label="Go to my location"
-            >
-              <Navigation size={18} className="text-stone-600 dark:text-stone-300" />
-            </button>
-          )}
-          <div className="bg-white/95 dark:bg-stone-800/95 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden">
-            <button
-              onClick={handleZoomIn}
-              className="w-11 h-11 flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
-              aria-label="Zoom in"
-            >
-              <Plus size={18} className="text-stone-600 dark:text-stone-300" />
-            </button>
-            <div className="h-px bg-stone-200 dark:bg-stone-700" />
-            <button
-              onClick={handleZoomOut}
-              className="w-11 h-11 flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
-              aria-label="Zoom out"
-            >
-              <Minus size={18} className="text-stone-600 dark:text-stone-300" />
-            </button>
-            <div className="h-px bg-stone-200 dark:bg-stone-700" />
-            <button
-              onClick={handleResetNorth}
-              className="w-11 h-11 flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
-              aria-label="Reset north"
-            >
-              <Compass size={18} className="text-stone-600 dark:text-stone-300" />
-            </button>
-          </div>
-        </div>
+        <MapZoomControls
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onResetNorth={handleResetNorth}
+          onFlyToUser={handleFlyToUser}
+          showCompass={true}
+          showUserLocation={!!userLocation}
+          className="absolute bottom-[100px] right-3 z-10"
+        />
       )}
 
       {selectedItem && (

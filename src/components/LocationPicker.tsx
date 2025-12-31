@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, X, MapPin } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { StepIndicator } from './LocationPermissionScreen';
+import { MapZoomControls } from './MapZoomControls';
+import { createUserLocationElement } from './UserLocationMarker';
+import { metersToPixels, constrainToRadius, pixelOffsetToCoords } from '../utils/map';
 
 interface LocationPickerProps {
   imageData: string;
@@ -14,6 +17,9 @@ interface LocationPickerProps {
 
 const MAX_DISTANCE_METERS = 100;
 const ANIMATION_DURATION = 1200;
+const MIN_ZOOM = 14;
+const MAX_ZOOM = 20;
+const DEFAULT_ZOOM = 17;
 
 type AnimationPhase = 'full' | 'shrinking' | 'complete';
 
@@ -25,60 +31,32 @@ export function LocationPicker({
   onBack
 }: LocationPickerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const interactiveAreaRef = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [pinLocation, setPinLocation] = useState(initialLocation);
   const [pinOffset, setPinOffset] = useState({ x: 0, y: 0 });
   const [mapboxToken] = useState(() => import.meta.env.VITE_MAPBOX_TOKEN || '');
   const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('full');
   const [mapReady, setMapReady] = useState(false);
-  const [circleRadius, setCircleRadius] = useState(150);
+  const [currentZoom, setCurrentZoom] = useState(DEFAULT_ZOOM);
+  const [radiusPixels, setRadiusPixels] = useState(0);
 
-  useEffect(() => {
-    const updateCircleSize = () => {
-      const minDimension = Math.min(window.innerWidth, window.innerHeight);
-      setCircleRadius(Math.floor(minDimension * 0.46));
-    };
-
-    updateCircleSize();
-    window.addEventListener('resize', updateCircleSize);
-    return () => window.removeEventListener('resize', updateCircleSize);
+  const updateRadiusPixels = useCallback(() => {
+    if (!map.current) return;
+    const zoom = map.current.getZoom();
+    const center = map.current.getCenter();
+    const pixels = metersToPixels(MAX_DISTANCE_METERS, center.lat, zoom);
+    setRadiusPixels(Math.min(pixels, Math.min(window.innerWidth, window.innerHeight) * 0.45));
+    setCurrentZoom(zoom);
   }, []);
 
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371e3;
-    const phi1 = (lat1 * Math.PI) / 180;
-    const phi2 = (lat2 * Math.PI) / 180;
-    const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
-    const deltaLambda = ((lng2 - lng1) * Math.PI) / 180;
-    const a = Math.sin(deltaPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  };
-
-  const constrainToRadius = useCallback((lat: number, lng: number): { lat: number; lng: number } => {
-    const distance = calculateDistance(userLocation.lat, userLocation.lng, lat, lng);
-    if (distance <= MAX_DISTANCE_METERS) {
-      return { lat, lng };
-    }
-
-    const bearing = Math.atan2(
-      lng - userLocation.lng,
-      lat - userLocation.lat
-    );
-    const metersPerDegreeLat = 111320;
-    const metersPerDegreeLng = 111320 * Math.cos((userLocation.lat * Math.PI) / 180);
-
-    return {
-      lat: userLocation.lat + (MAX_DISTANCE_METERS * Math.cos(bearing)) / metersPerDegreeLat,
-      lng: userLocation.lng + (MAX_DISTANCE_METERS * Math.sin(bearing)) / metersPerDegreeLng
-    };
-  }, [userLocation.lat, userLocation.lng]);
-
   const handleInteraction = useCallback((clientX: number, clientY: number) => {
-    if (animationPhase !== 'complete' || !map.current || !interactiveAreaRef.current) return;
+    if (animationPhase !== 'complete' || !map.current) return;
 
-    const rect = interactiveAreaRef.current.getBoundingClientRect();
+    const container = mapContainer.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
@@ -86,9 +64,10 @@ export function LocationPicker({
     let offsetY = clientY - centerY;
 
     const distanceFromCenter = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+    const maxOffset = radiusPixels - 20;
 
-    if (distanceFromCenter > circleRadius - 40) {
-      const scale = (circleRadius - 40) / distanceFromCenter;
+    if (distanceFromCenter > maxOffset) {
+      const scale = maxOffset / distanceFromCenter;
       offsetX *= scale;
       offsetY *= scale;
     }
@@ -99,16 +78,10 @@ export function LocationPicker({
     const center = mapInstance.getCenter();
     const zoom = mapInstance.getZoom();
 
-    const metersPerPixel = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
-    const deltaLat = -(offsetY * metersPerPixel) / 111320;
-    const deltaLng = (offsetX * metersPerPixel) / (111320 * Math.cos(center.lat * Math.PI / 180));
-
-    const newLat = center.lat + deltaLat;
-    const newLng = center.lng + deltaLng;
-
-    const constrained = constrainToRadius(newLat, newLng);
+    const newCoords = pixelOffsetToCoords(offsetX, offsetY, center.lat, center.lng, zoom);
+    const constrained = constrainToRadius(newCoords.lat, newCoords.lng, userLocation.lat, userLocation.lng, MAX_DISTANCE_METERS);
     setPinLocation(constrained);
-  }, [animationPhase, circleRadius, constrainToRadius]);
+  }, [animationPhase, radiusPixels, userLocation.lat, userLocation.lng]);
 
   const handleCircleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     handleInteraction(e.clientX, e.clientY);
@@ -128,6 +101,24 @@ export function LocationPicker({
     }
   }, [handleInteraction]);
 
+  const handleZoomIn = useCallback(() => {
+    if (map.current && currentZoom < MAX_ZOOM) {
+      map.current.zoomIn();
+    }
+  }, [currentZoom]);
+
+  const handleZoomOut = useCallback(() => {
+    if (map.current && currentZoom > MIN_ZOOM) {
+      map.current.zoomOut();
+    }
+  }, [currentZoom]);
+
+  const handleResetNorth = useCallback(() => {
+    if (map.current) {
+      map.current.resetNorth();
+    }
+  }, []);
+
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
 
@@ -137,32 +128,48 @@ export function LocationPicker({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [initialLocation.lng, initialLocation.lat],
-      zoom: 17,
+      zoom: DEFAULT_ZOOM,
+      minZoom: MIN_ZOOM,
+      maxZoom: MAX_ZOOM,
       attributionControl: false,
-      interactive: false
+      interactive: true,
+      dragPan: false,
+      dragRotate: false,
+      scrollZoom: false,
+      touchZoomRotate: false,
+      doubleClickZoom: false,
+      keyboard: false,
     });
 
     map.current = mapInstance;
 
     mapInstance.on('load', () => {
-      const userMarkerEl = document.createElement('div');
-      userMarkerEl.innerHTML = `
-        <div style="position: relative; width: 24px; height: 24px;">
-          <div style="position: absolute; inset: 0; background: rgba(59, 130, 246, 0.2); border-radius: 50%; animation: pulse 2s infinite;"></div>
-          <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; background: #3B82F6; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>
-        </div>
-      `;
-      new mapboxgl.Marker({ element: userMarkerEl })
+      const userEl = createUserLocationElement();
+      userMarkerRef.current = new mapboxgl.Marker({ element: userEl, anchor: 'center' })
         .setLngLat([userLocation.lng, userLocation.lat])
         .addTo(mapInstance);
 
+      const markerElement = userMarkerRef.current.getElement();
+      markerElement.style.zIndex = '5';
+
+      updateRadiusPixels();
       setMapReady(true);
     });
 
+    mapInstance.on('zoom', updateRadiusPixels);
+    mapInstance.on('move', updateRadiusPixels);
+
+    const resizeObserver = new ResizeObserver(() => {
+      mapInstance.resize();
+      updateRadiusPixels();
+    });
+    resizeObserver.observe(mapContainer.current);
+
     return () => {
+      resizeObserver.disconnect();
       mapInstance.remove();
     };
-  }, [mapboxToken, initialLocation.lat, initialLocation.lng, userLocation.lat, userLocation.lng, constrainToRadius]);
+  }, [mapboxToken, initialLocation.lat, initialLocation.lng, userLocation.lat, userLocation.lng, updateRadiusPixels]);
 
   useEffect(() => {
     if (!mapReady) return;
@@ -189,7 +196,7 @@ export function LocationPicker({
       <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col">
         <div className="sticky top-0 z-40 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 h-14 flex items-center gap-4">
           <button onClick={onBack} className="p-2 -ml-2 text-stone-600 dark:text-stone-400">
-            <ArrowLeft size={24} />
+            <X size={24} />
           </button>
           <h1 className="font-semibold text-stone-900 dark:text-stone-100">Confirm location</h1>
         </div>
@@ -279,6 +286,15 @@ export function LocationPicker({
     };
   };
 
+  const getControlsStyles = (): React.CSSProperties => {
+    return {
+      opacity: animationPhase === 'complete' ? 1 : 0,
+      transform: animationPhase === 'complete' ? 'translateX(0)' : 'translateX(20px)',
+      transition: `opacity 400ms ease-out 200ms, transform 400ms ease-out 200ms`,
+      pointerEvents: animationPhase === 'complete' ? 'auto' : 'none',
+    };
+  };
+
   return (
     <div className="fixed inset-0 bg-stone-950 flex flex-col overflow-hidden">
       <div
@@ -300,13 +316,12 @@ export function LocationPicker({
         />
 
         <div
-          ref={overlayRef}
           className="absolute inset-0 pointer-events-none"
           style={{
             backdropFilter: 'blur(3px)',
             WebkitBackdropFilter: 'blur(3px)',
-            maskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 95%, black 100%)`,
-            WebkitMaskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 95%, black 100%)`,
+            maskImage: `radial-gradient(circle ${radiusPixels}px at center, transparent 0%, transparent 95%, black 100%)`,
+            WebkitMaskImage: `radial-gradient(circle ${radiusPixels}px at center, transparent 0%, transparent 95%, black 100%)`,
             zIndex: 6,
           }}
         />
@@ -314,25 +329,61 @@ export function LocationPicker({
         <div
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
           style={{
-            width: circleRadius * 2,
-            height: circleRadius * 2,
+            width: radiusPixels * 2,
+            height: radiusPixels * 2,
             border: '2px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 0 0 1px rgba(0,0,0,0.1), inset 0 0 20px rgba(59, 130, 246, 0.1)',
             zIndex: 10,
+            transition: 'width 150ms ease-out, height 150ms ease-out',
           }}
         />
 
         <div
-          ref={interactiveAreaRef}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none flex items-center justify-center"
+          style={{
+            width: radiusPixels * 2,
+            height: radiusPixels * 2,
+            zIndex: 7,
+          }}
+        >
+          <span
+            className="text-white/40 text-xs font-medium px-2 py-1 bg-black/30 rounded-full backdrop-blur-sm"
+            style={{
+              position: 'absolute',
+              bottom: '8px',
+            }}
+          >
+            {MAX_DISTANCE_METERS}m radius
+          </span>
+        </div>
+
+        <div
           onClick={handleCircleClick}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer touch-none"
           style={{
-            width: circleRadius * 2,
-            height: circleRadius * 2,
+            width: radiusPixels * 2,
+            height: radiusPixels * 2,
             zIndex: 20,
           }}
         />
+
+        <div
+          className="absolute right-3 z-30"
+          style={{
+            ...getControlsStyles(),
+            top: 'calc(max(16px, env(safe-area-inset-top)) + 60px)',
+          }}
+        >
+          <MapZoomControls
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onResetNorth={handleResetNorth}
+            showCompass={true}
+            showUserLocation={false}
+          />
+        </div>
       </div>
 
       <div
