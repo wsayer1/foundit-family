@@ -16,10 +16,7 @@ export function AuthPage() {
   return (
     <div className="min-h-screen overflow-hidden relative">
       <AuthBackgroundGrid />
-
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-8">
-        <FloatingAuthCard onSuccess={handleSuccess} onClose={handleClose} />
-      </div>
+      <FloatingAuthCard onSuccess={handleSuccess} onClose={handleClose} />
     </div>
   );
 }

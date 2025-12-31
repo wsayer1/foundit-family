@@ -37,21 +37,21 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
     if (isSelected) {
       return `
         <div class="relative">
-          <div style="width: 52px; height: 52px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 3px solid #57534e; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(120, 113, 108, 0.2);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <div style="width: 60px; height: 60px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 3px solid #57534e; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(120, 113, 108, 0.2);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
               <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
               <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
               <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
             </svg>
           </div>
-          <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #57534e;"></div>
+          <div style="position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 9px solid #57534e;"></div>
         </div>
       `;
     }
     return `
-      <div style="width: 36px; height: 36px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 2px solid #57534e; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div style="width: 44px; height: 44px; border-radius: 50%; background: #78716c; display: flex; align-items: center; justify-content: center; border: 2px solid #57534e; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
           <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
           <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
@@ -64,16 +64,16 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
   if (isSelected) {
     return `
       <div class="relative">
-        <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 3px solid ${pinColor}; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(16, 185, 129, 0.2);">
+        <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 3px solid ${pinColor}; box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(16, 185, 129, 0.2);">
           <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
-        <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid ${pinColor};"></div>
+        <div style="position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 9px solid ${pinColor};"></div>
       </div>
     `;
   }
 
   return `
-    <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
+    <div style="width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.35); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
       <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
     </div>
   `;
@@ -176,13 +176,13 @@ export function DiscoverMapView({ items, userLocation, isGuest = false }: Discov
 
     if (userLocation) {
       const userEl = document.createElement('div');
-      userEl.style.cssText = 'width: 20px; height: 20px; position: relative; z-index: 9999;';
-
-      const dot = document.createElement('div');
-      dot.style.cssText = 'width: 20px; height: 20px; background: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 12px rgba(59, 130, 246, 0.5), 0 2px 8px rgba(0,0,0,0.3); position: relative; z-index: 2;';
+      userEl.style.cssText = 'width: 28px; height: 28px; position: relative; z-index: 9999; display: flex; align-items: center; justify-content: center;';
 
       const pulse = document.createElement('div');
-      pulse.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; background: #3b82f6; border-radius: 50%; opacity: 0.3; animation: pulse 2s infinite; z-index: 1;';
+      pulse.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 48px; height: 48px; background: #3b82f6; border-radius: 50%; opacity: 0.3; animation: pulse 2s infinite; z-index: 1;';
+
+      const dot = document.createElement('div');
+      dot.style.cssText = 'width: 28px; height: 28px; background: #3b82f6; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 12px rgba(59, 130, 246, 0.5), 0 2px 8px rgba(0,0,0,0.3); position: relative; z-index: 2;';
 
       userEl.appendChild(pulse);
       userEl.appendChild(dot);
