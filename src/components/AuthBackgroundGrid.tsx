@@ -2,24 +2,43 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { ItemWithProfile } from '../types/database';
 import { getThumbnailUrl } from '../utils/image';
+import { Clock, CheckCircle } from 'lucide-react';
 
 const CARDS_PER_ROW = 6;
-const ROW_COUNT = 2;
-const TOTAL_CARDS = CARDS_PER_ROW * ROW_COUNT;
+const MOBILE_ROW_COUNT = 2;
+const DESKTOP_ROW_COUNT = 5;
 
 const PLACEHOLDERS = [
-  { title: 'Vintage Armchair', category: 'Furniture', image: 'https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Mid-Century Coffee Table', category: 'Furniture', image: 'https://images.pexels.com/photos/2451264/pexels-photo-2451264.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Standing Lamp', category: 'Lighting', image: 'https://images.pexels.com/photos/1112598/pexels-photo-1112598.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Bookshelf Unit', category: 'Storage', image: 'https://images.pexels.com/photos/2177482/pexels-photo-2177482.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Wooden Desk', category: 'Furniture', image: 'https://images.pexels.com/photos/667838/pexels-photo-667838.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Leather Sofa', category: 'Furniture', image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Dining Chairs Set', category: 'Furniture', image: 'https://images.pexels.com/photos/1395967/pexels-photo-1395967.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Floor Mirror', category: 'Decor', image: 'https://images.pexels.com/photos/2062431/pexels-photo-2062431.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Potted Plants', category: 'Garden', image: 'https://images.pexels.com/photos/1084188/pexels-photo-1084188.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Vintage Dresser', category: 'Furniture', image: 'https://images.pexels.com/photos/2079249/pexels-photo-2079249.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Kitchen Table', category: 'Furniture', image: 'https://images.pexels.com/photos/1080696/pexels-photo-1080696.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { title: 'Office Chair', category: 'Furniture', image: 'https://images.pexels.com/photos/1957477/pexels-photo-1957477.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Vintage Armchair', category: 'Furniture', image: 'https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Mid-Century Coffee Table', category: 'Furniture', image: 'https://images.pexels.com/photos/2451264/pexels-photo-2451264.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Standing Lamp', category: 'Lighting', image: 'https://images.pexels.com/photos/1112598/pexels-photo-1112598.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Bookshelf Unit', category: 'Storage', image: 'https://images.pexels.com/photos/2177482/pexels-photo-2177482.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Wooden Desk', category: 'Furniture', image: 'https://images.pexels.com/photos/667838/pexels-photo-667838.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Leather Sofa', category: 'Furniture', image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Dining Chairs Set', category: 'Furniture', image: 'https://images.pexels.com/photos/1395967/pexels-photo-1395967.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Floor Mirror', category: 'Decor', image: 'https://images.pexels.com/photos/2062431/pexels-photo-2062431.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Potted Plants', category: 'Garden', image: 'https://images.pexels.com/photos/1084188/pexels-photo-1084188.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Vintage Dresser', category: 'Furniture', image: 'https://images.pexels.com/photos/2079249/pexels-photo-2079249.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Kitchen Table', category: 'Furniture', image: 'https://images.pexels.com/photos/1080696/pexels-photo-1080696.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Office Chair', category: 'Furniture', image: 'https://images.pexels.com/photos/1957477/pexels-photo-1957477.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Bedside Table', category: 'Furniture', image: 'https://images.pexels.com/photos/2082087/pexels-photo-2082087.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Storage Baskets', category: 'Storage', image: 'https://images.pexels.com/photos/4207892/pexels-photo-4207892.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Wall Art', category: 'Decor', image: 'https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Rattan Chair', category: 'Furniture', image: 'https://images.pexels.com/photos/2762247/pexels-photo-2762247.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Table Lamp', category: 'Lighting', image: 'https://images.pexels.com/photos/1123262/pexels-photo-1123262.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Ceramic Vases', category: 'Decor', image: 'https://images.pexels.com/photos/1879061/pexels-photo-1879061.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Woven Rug', category: 'Decor', image: 'https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Console Table', category: 'Furniture', image: 'https://images.pexels.com/photos/1648776/pexels-photo-1648776.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Accent Chair', category: 'Furniture', image: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Side Table', category: 'Furniture', image: 'https://images.pexels.com/photos/2079246/pexels-photo-2079246.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Desk Lamp', category: 'Lighting', image: 'https://images.pexels.com/photos/1112598/pexels-photo-1112598.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Plant Stand', category: 'Garden', image: 'https://images.pexels.com/photos/1084188/pexels-photo-1084188.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'TV Stand', category: 'Furniture', image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Bar Stools', category: 'Furniture', image: 'https://images.pexels.com/photos/1395967/pexels-photo-1395967.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Outdoor Table', category: 'Garden', image: 'https://images.pexels.com/photos/2451264/pexels-photo-2451264.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Filing Cabinet', category: 'Storage', image: 'https://images.pexels.com/photos/2177482/pexels-photo-2177482.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
+  { title: 'Window Blinds', category: 'Decor', image: 'https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'claimed' },
+  { title: 'Picture Frames', category: 'Decor', image: 'https://images.pexels.com/photos/2062431/pexels-photo-2062431.jpeg?auto=compress&cs=tinysrgb&w=400', status: 'expired' },
 ];
 
 interface CardData {
@@ -27,6 +46,7 @@ interface CardData {
   title: string;
   category: string;
   id: string;
+  status: 'available' | 'claimed' | 'expired';
 }
 
 interface ItemCardProps {
@@ -36,6 +56,10 @@ interface ItemCardProps {
 }
 
 function ItemCard({ data, isExpanded, onTap }: ItemCardProps) {
+  const isClaimed = data.status === 'claimed';
+  const isExpired = data.status === 'expired';
+  const isUnavailable = isClaimed || isExpired;
+
   return (
     <div
       className={`flex-shrink-0 p-1.5 transition-all duration-300 ease-out cursor-pointer ${
@@ -43,22 +67,47 @@ function ItemCard({ data, isExpanded, onTap }: ItemCardProps) {
       }`}
       onClick={onTap}
     >
-      <div className={`relative w-full h-full overflow-hidden rounded-2xl bg-slate-800 shadow-lg transition-shadow duration-300 ${
-        isExpanded ? 'shadow-2xl ring-2 ring-amber-400/50' : 'shadow-md'
+      <div className={`relative w-full h-full overflow-hidden rounded-2xl bg-stone-800 shadow-lg transition-shadow duration-300 ${
+        isExpanded ? 'shadow-2xl ring-2 ring-emerald-500/50' : 'shadow-md'
       }`}>
         <img
           src={data.image}
           alt={data.title}
           loading="lazy"
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-all duration-300 ${
+            isUnavailable ? 'grayscale opacity-70' : ''
+          }`}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/20 to-transparent" />
+
+        {isUnavailable && (
+          <div className="absolute top-2 right-2">
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${
+              isClaimed
+                ? 'bg-emerald-500/80 text-white'
+                : 'bg-stone-600/80 text-stone-200'
+            }`}>
+              {isClaimed ? (
+                <>
+                  <CheckCircle size={12} />
+                  <span>Claimed</span>
+                </>
+              ) : (
+                <>
+                  <Clock size={12} />
+                  <span>Expired</span>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="absolute bottom-0 left-0 right-0 p-3">
           <p className="text-white font-medium text-sm line-clamp-2 leading-snug mb-1">
             {data.title}
           </p>
           {data.category && (
-            <span className="inline-block px-2 py-0.5 bg-amber-400/20 backdrop-blur-sm rounded-full text-xs text-amber-200 font-medium">
+            <span className="inline-block px-2 py-0.5 bg-emerald-500/20 backdrop-blur-sm rounded-full text-xs text-emerald-300 font-medium">
               {data.category}
             </span>
           )}
@@ -103,28 +152,46 @@ function ScrollingRow({ cards, direction, duration, rowIndex, pausedCardId, onCa
   );
 }
 
+function useResponsiveRowCount() {
+  const [rowCount, setRowCount] = useState(MOBILE_ROW_COUNT);
+
+  useEffect(() => {
+    const checkWidth = () => {
+      setRowCount(window.innerWidth >= 768 ? DESKTOP_ROW_COUNT : MOBILE_ROW_COUNT);
+    };
+
+    checkWidth();
+    window.addEventListener('resize', checkWidth);
+    return () => window.removeEventListener('resize', checkWidth);
+  }, []);
+
+  return rowCount;
+}
+
 export function AuthBackgroundGrid() {
   const [items, setItems] = useState<ItemWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [pausedCard, setPausedCard] = useState<{ id: string; row: number } | null>(null);
+  const rowCount = useResponsiveRowCount();
+  const totalCards = CARDS_PER_ROW * rowCount;
 
   useEffect(() => {
     async function fetchItems() {
       const { data } = await supabase
         .from('items')
         .select(`*, profiles!items_user_id_fkey (username, avatar_url)`)
-        .eq('status', 'available')
+        .in('status', ['claimed', 'expired'])
         .not('image_url', 'is', null)
         .neq('image_url', '')
         .order('created_at', { ascending: false })
-        .limit(TOTAL_CARDS);
+        .limit(totalCards);
 
       setItems((data as ItemWithProfile[]) || []);
       setLoading(false);
     }
 
     fetchItems();
-  }, []);
+  }, [totalCards]);
 
   const handleCardTap = useCallback((cardId: string, rowIndex: number) => {
     setPausedCard(prev => {
@@ -136,7 +203,7 @@ export function AuthBackgroundGrid() {
   }, []);
 
   const rows = useMemo(() => {
-    const allCards: CardData[] = Array.from({ length: TOTAL_CARDS }, (_, i) => {
+    const allCards: CardData[] = Array.from({ length: totalCards }, (_, i) => {
       const item = items[i];
       if (item) {
         return {
@@ -144,6 +211,7 @@ export function AuthBackgroundGrid() {
           image: getThumbnailUrl(item.image_url),
           title: item.description,
           category: item.category || '',
+          status: item.status as 'available' | 'claimed' | 'expired',
         };
       }
       const placeholder = PLACEHOLDERS[i % PLACEHOLDERS.length];
@@ -152,26 +220,27 @@ export function AuthBackgroundGrid() {
         image: placeholder.image,
         title: placeholder.title,
         category: placeholder.category,
+        status: placeholder.status as 'claimed' | 'expired',
       };
     });
 
     const rowsData = [];
-    for (let i = 0; i < ROW_COUNT; i++) {
+    for (let i = 0; i < rowCount; i++) {
       rowsData.push(allCards.slice(i * CARDS_PER_ROW, (i + 1) * CARDS_PER_ROW));
     }
     return rowsData;
-  }, [items]);
+  }, [items, rowCount, totalCards]);
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-slate-950 dark:bg-slate-950">
+      <div className="fixed inset-0 bg-stone-950">
         <div className="absolute top-0 left-0 right-0 flex flex-col gap-2 pt-2">
-          {Array.from({ length: ROW_COUNT }).map((_, row) => (
+          {Array.from({ length: rowCount }).map((_, row) => (
             <div key={row} className="flex gap-3 overflow-hidden items-center h-[156px] px-1.5">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 w-48 h-36 rounded-2xl bg-slate-800/50 animate-pulse"
+                  className="flex-shrink-0 w-48 h-36 rounded-2xl bg-stone-800/50 animate-pulse"
                 />
               ))}
             </div>
@@ -182,7 +251,7 @@ export function AuthBackgroundGrid() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-slate-950 dark:bg-slate-950">
+    <div className="fixed inset-0 overflow-hidden bg-stone-950">
       <style>{`
         @keyframes scroll-right {
           0% { transform: translateX(-50%); }
@@ -194,7 +263,7 @@ export function AuthBackgroundGrid() {
         }
       `}</style>
 
-      <div className="absolute top-0 left-0 right-0 flex flex-col gap-2 pt-2">
+      <div className="absolute top-0 left-0 right-0 md:top-1/2 md:-translate-y-1/2 flex flex-col gap-2 pt-2 md:pt-0">
         {rows.map((rowCards, index) => (
           <ScrollingRow
             key={index}
@@ -208,7 +277,7 @@ export function AuthBackgroundGrid() {
         ))}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-stone-950 via-stone-950/80 to-transparent pointer-events-none md:hidden" />
     </div>
   );
 }
