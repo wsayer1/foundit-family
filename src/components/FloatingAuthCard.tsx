@@ -96,37 +96,35 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
           fontFamily: "'Archivo', system-ui, sans-serif"
         }}
       >
-        {!hideHeader && (
-          <>
-            <div className="flex items-center justify-between px-5 pt-4 pb-2">
-              <div className="flex items-center gap-2.5">
-                <div className="bg-emerald-500 p-1.5 rounded-lg">
-                  <MapPin size={18} className="text-white" strokeWidth={2.5} />
-                </div>
-                <span className="font-semibold text-lg text-white tracking-tight" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
+        <div className={hideHeader ? 'hidden md:block' : ''}>
+          <div className="flex items-center justify-between px-5 pt-4 pb-2">
+            <div className="flex items-center gap-2.5">
+              <div className="bg-emerald-500 p-1.5 rounded-lg">
+                <MapPin size={18} className="text-white" strokeWidth={2.5} />
               </div>
-              {onClose && (
-                <button
-                  onClick={onClose}
-                  className="p-2 -mr-2 rounded-full hover:bg-stone-800 transition-colors text-stone-400 hover:text-white"
-                  aria-label="Close"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6L6 18M6 6l12 12"/>
-                  </svg>
-                </button>
-              )}
+              <span className="font-semibold text-lg text-white tracking-tight" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
             </div>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="p-2 -mr-2 rounded-full hover:bg-stone-800 transition-colors text-stone-400 hover:text-white"
+                aria-label="Close"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            )}
+          </div>
 
-            <div className="px-5 pb-3">
-              <h2 className="text-2xl font-semibold text-white leading-tight" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>
-                Find and post free stuff near you
-              </h2>
-            </div>
-          </>
-        )}
+          <div className="px-5 pb-3">
+            <h2 className="text-2xl font-semibold text-white leading-tight" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>
+              Find and post free stuff near you
+            </h2>
+          </div>
+        </div>
 
-        <div className={`px-5 pb-5 ${hideHeader ? 'pt-5' : ''}`}>
+        <div className={`px-5 pb-5 ${hideHeader ? 'pt-5 md:pt-0' : ''}`}>
           <div className="bg-stone-900 rounded-2xl p-1.5 mb-4">
             <div className="relative flex">
               <div
