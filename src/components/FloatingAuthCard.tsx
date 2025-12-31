@@ -7,58 +7,9 @@ interface FloatingAuthCardProps {
   onClose?: () => void;
 }
 
-function AuthTabs({
-  isSignUp,
-  onTabChange
-}: {
-  isSignUp: boolean;
-  onTabChange: (signUp: boolean) => void;
-}) {
-  return (
-    <div
-      className="relative flex p-1 bg-stone-100 dark:bg-stone-800 rounded-xl"
-      role="tablist"
-      aria-label="Authentication options"
-    >
-      <div
-        className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-stone-700 rounded-lg shadow-sm transition-transform duration-300 ease-out"
-        style={{
-          transform: `translateX(${isSignUp ? 'calc(100% + 4px)' : '0'})`
-        }}
-      />
-      <button
-        role="tab"
-        aria-selected={!isSignUp}
-        aria-controls="auth-panel"
-        onClick={() => onTabChange(false)}
-        className={`relative z-10 flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-colors duration-200 ${
-          !isSignUp
-            ? 'text-stone-900 dark:text-stone-100'
-            : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
-        }`}
-      >
-        Sign In
-      </button>
-      <button
-        role="tab"
-        aria-selected={isSignUp}
-        aria-controls="auth-panel"
-        onClick={() => onTabChange(true)}
-        className={`relative z-10 flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-colors duration-200 ${
-          isSignUp
-            ? 'text-stone-900 dark:text-stone-100'
-            : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
-        }`}
-      >
-        Sign Up
-      </button>
-    </div>
-  );
-}
-
 export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) {
   const { signIn, signUp, signInWithGoogle } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -102,11 +53,6 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
     }
   };
 
-  const handleTabChange = (signUp: boolean) => {
-    setIsSignUp(signUp);
-    setError('');
-  };
-
   const handleShowEmailForm = () => {
     setShowEmailForm(true);
     setTimeout(() => {
@@ -121,16 +67,16 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
 
   return (
     <div className="fixed inset-x-0 bottom-0 md:inset-y-0 md:right-auto md:w-[420px] z-40">
-      <div className="h-full flex flex-col bg-white dark:bg-stone-900 md:border-r border-stone-200 dark:border-stone-800">
-        <div className="bg-stone-800 dark:bg-stone-950 px-4 py-3 flex items-center gap-3 safe-area-top">
-          <div className="p-2 rounded-xl bg-stone-700 dark:bg-stone-800 border-2 border-emerald-500">
-            <MapPin size={20} className="text-white" strokeWidth={2.5} />
+      <div className="h-full flex flex-col bg-stone-900">
+        <div className="px-4 py-3 flex items-center gap-3 safe-area-top border-b border-stone-800">
+          <div className="bg-stone-800 p-2.5 rounded-xl shadow-lg flex items-center gap-2 border border-stone-700">
+            <MapPin size={22} className="text-emerald-500" strokeWidth={2.5} />
           </div>
-          <span className="font-bold text-white text-lg">foundit.family</span>
+          <span className="font-semibold text-white text-base">foundit.family</span>
           {onClose && (
             <button
               onClick={onClose}
-              className="ml-auto p-2 rounded-full hover:bg-stone-700 transition-colors"
+              className="ml-auto p-2 rounded-full hover:bg-stone-800 transition-colors"
               aria-label="Close"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -145,23 +91,21 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
             className="absolute inset-0 flex transition-transform duration-300 ease-out"
             style={{ transform: showEmailForm ? 'translateX(-100%)' : 'translateX(0)' }}
           >
-            <div className="w-full flex-shrink-0 p-5 overflow-y-auto">
+            <div className="w-full flex-shrink-0 p-5 overflow-y-auto flex flex-col">
               <div className="mb-5">
-                <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">
-                  {isSignUp ? 'Create your account' : 'Welcome back'}
+                <h2 className="text-xl font-bold text-white mb-1">
+                  {isSignUp ? 'Join the community' : 'Welcome back'}
                 </h2>
-                <p className="text-stone-500 dark:text-stone-400 text-sm">
-                  {isSignUp ? 'Join the community' : 'Sign in to continue'}
+                <p className="text-stone-400 text-sm">
+                  Discover curbside treasures in your neighborhood
                 </p>
               </div>
 
-              <AuthTabs isSignUp={isSignUp} onTabChange={handleTabChange} />
-
-              <div className="mt-5 space-y-3">
+              <div className="space-y-3 flex-1">
                 <button
                   onClick={handleGoogleSignIn}
                   disabled={googleLoading}
-                  className="w-full flex items-center justify-between bg-white dark:bg-stone-800 border-2 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-200 py-3.5 px-4 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-stone-750 hover:border-stone-300 dark:hover:border-stone-600 focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  className="w-full flex items-center justify-between bg-stone-800 border border-stone-700 text-white py-3.5 px-4 rounded-xl font-medium hover:bg-stone-750 hover:border-stone-600 focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   <div className="flex items-center gap-3">
                     {googleLoading ? (
@@ -176,22 +120,22 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                     )}
                     <span>Continue with Google</span>
                   </div>
-                  <ChevronRight size={18} className="text-stone-400" />
+                  <ChevronRight size={18} className="text-stone-500" />
                 </button>
 
                 <button
                   onClick={handleShowEmailForm}
-                  className="w-full flex items-center justify-between bg-white dark:bg-stone-800 border-2 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-200 py-3.5 px-4 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-stone-750 hover:border-stone-300 dark:hover:border-stone-600 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-200"
+                  className="w-full flex items-center justify-between bg-stone-800 border border-stone-700 text-white py-3.5 px-4 rounded-xl font-medium hover:bg-stone-750 hover:border-stone-600 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-200"
                 >
                   <div className="flex items-center gap-3">
                     <Mail size={20} />
                     <span>Continue with Email</span>
                   </div>
-                  <ChevronRight size={18} className="text-stone-400" />
+                  <ChevronRight size={18} className="text-stone-500" />
                 </button>
               </div>
 
-              <p className="mt-6 text-xs text-center text-stone-400 dark:text-stone-500">
+              <p className="mt-6 text-xs text-center text-stone-500">
                 By continuing, you agree to our Terms of Service and Privacy Policy
               </p>
             </div>
@@ -199,17 +143,17 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
             <div className="w-full flex-shrink-0 p-5 overflow-y-auto">
               <button
                 onClick={handleBackToOptions}
-                className="flex items-center gap-2 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 mb-4 -ml-1 py-1 transition-colors"
+                className="flex items-center gap-2 text-stone-400 hover:text-white mb-4 -ml-1 py-1 transition-colors"
               >
                 <ArrowLeft size={18} />
                 <span className="text-sm font-medium">Back</span>
               </button>
 
               <div className="mb-5">
-                <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">
+                <h2 className="text-xl font-bold text-white mb-1">
                   {isSignUp ? 'Sign up with email' : 'Sign in with email'}
                 </h2>
-                <p className="text-stone-500 dark:text-stone-400 text-sm">
+                <p className="text-stone-400 text-sm">
                   {isSignUp ? 'Create your account' : 'Enter your credentials'}
                 </p>
               </div>
@@ -217,14 +161,14 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {isSignUp && (
                   <div>
-                    <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
+                    <label className="block text-sm font-medium text-stone-300 mb-1.5">
                       Username
                     </label>
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                      className="w-full px-4 py-3 bg-stone-800 border border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-white placeholder:text-stone-500"
                       placeholder="Choose a username"
                       required={isSignUp}
                     />
@@ -232,7 +176,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
+                  <label className="block text-sm font-medium text-stone-300 mb-1.5">
                     Email
                   </label>
                   <input
@@ -240,14 +184,14 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                    className="w-full px-4 py-3 bg-stone-800 border border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-white placeholder:text-stone-500"
                     placeholder="you@example.com"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
+                  <label className="block text-sm font-medium text-stone-300 mb-1.5">
                     Password
                   </label>
                   <div className="relative">
@@ -255,7 +199,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 pr-12 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                      className="w-full px-4 py-3 pr-12 bg-stone-800 border border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-white placeholder:text-stone-500"
                       placeholder="Enter your password"
                       required
                       minLength={6}
@@ -263,7 +207,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition-colors duration-200"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300 transition-colors duration-200"
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -271,7 +215,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
+                  <div className="bg-red-900/30 text-red-400 px-4 py-3 rounded-xl text-sm border border-red-800/50">
                     {error}
                   </div>
                 )}
@@ -286,6 +230,37 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                 </button>
               </form>
             </div>
+          </div>
+        </div>
+
+        <div className="border-t border-stone-800 p-4 safe-area-bottom">
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setIsSignUp(false);
+                setError('');
+              }}
+              className={`flex-1 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                !isSignUp
+                  ? 'bg-white text-stone-900'
+                  : 'bg-stone-800 text-stone-300 hover:bg-stone-750 border border-stone-700'
+              }`}
+            >
+              Log In
+            </button>
+            <button
+              onClick={() => {
+                setIsSignUp(true);
+                setError('');
+              }}
+              className={`flex-1 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                isSignUp
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-stone-800 text-stone-300 hover:bg-stone-750 border border-stone-700'
+              }`}
+            >
+              Sign Up
+            </button>
           </div>
         </div>
       </div>

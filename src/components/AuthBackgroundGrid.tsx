@@ -4,7 +4,8 @@ import type { ItemWithProfile } from '../types/database';
 import { getThumbnailUrl } from '../utils/image';
 
 const CARDS_PER_ROW = 8;
-const TOTAL_CARDS = CARDS_PER_ROW * 2;
+const ROW_COUNT = 5;
+const TOTAL_CARDS = CARDS_PER_ROW * ROW_COUNT;
 
 const PLACEHOLDERS = [
   { title: 'Vintage Armchair', category: 'Furniture', image: 'https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=400' },
@@ -23,6 +24,30 @@ const PLACEHOLDERS = [
   { title: 'Storage Baskets', category: 'Storage', image: 'https://images.pexels.com/photos/4207892/pexels-photo-4207892.jpeg?auto=compress&cs=tinysrgb&w=400' },
   { title: 'Wall Art', category: 'Decor', image: 'https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg?auto=compress&cs=tinysrgb&w=400' },
   { title: 'Rattan Chair', category: 'Furniture', image: 'https://images.pexels.com/photos/2762247/pexels-photo-2762247.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Table Lamp', category: 'Lighting', image: 'https://images.pexels.com/photos/1123262/pexels-photo-1123262.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Ceramic Vases', category: 'Decor', image: 'https://images.pexels.com/photos/1879061/pexels-photo-1879061.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Woven Rug', category: 'Decor', image: 'https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Console Table', category: 'Furniture', image: 'https://images.pexels.com/photos/1648776/pexels-photo-1648776.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Accent Chair', category: 'Furniture', image: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Side Table', category: 'Furniture', image: 'https://images.pexels.com/photos/2079246/pexels-photo-2079246.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Desk Lamp', category: 'Lighting', image: 'https://images.pexels.com/photos/1112598/pexels-photo-1112598.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Plant Stand', category: 'Garden', image: 'https://images.pexels.com/photos/1084188/pexels-photo-1084188.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'TV Stand', category: 'Furniture', image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Bar Stools', category: 'Furniture', image: 'https://images.pexels.com/photos/1395967/pexels-photo-1395967.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Outdoor Table', category: 'Garden', image: 'https://images.pexels.com/photos/2451264/pexels-photo-2451264.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Filing Cabinet', category: 'Storage', image: 'https://images.pexels.com/photos/2177482/pexels-photo-2177482.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Window Blinds', category: 'Decor', image: 'https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Picture Frames', category: 'Decor', image: 'https://images.pexels.com/photos/2062431/pexels-photo-2062431.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Shoe Rack', category: 'Storage', image: 'https://images.pexels.com/photos/4207892/pexels-photo-4207892.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Coat Hanger', category: 'Storage', image: 'https://images.pexels.com/photos/667838/pexels-photo-667838.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Garden Chair', category: 'Garden', image: 'https://images.pexels.com/photos/2762247/pexels-photo-2762247.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Kitchen Cart', category: 'Furniture', image: 'https://images.pexels.com/photos/1080696/pexels-photo-1080696.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Room Divider', category: 'Decor', image: 'https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Ottoman', category: 'Furniture', image: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Bean Bag', category: 'Furniture', image: 'https://images.pexels.com/photos/1957477/pexels-photo-1957477.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Curtain Rod', category: 'Decor', image: 'https://images.pexels.com/photos/1879061/pexels-photo-1879061.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Towel Rack', category: 'Storage', image: 'https://images.pexels.com/photos/2082087/pexels-photo-2082087.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { title: 'Umbrella Stand', category: 'Storage', image: 'https://images.pexels.com/photos/1648776/pexels-photo-1648776.jpeg?auto=compress&cs=tinysrgb&w=400' },
 ];
 
 interface CardData {
@@ -41,13 +66,13 @@ interface ItemCardProps {
 function ItemCard({ data, isExpanded, onTap }: ItemCardProps) {
   return (
     <div
-      className={`flex-shrink-0 p-1.5 transition-all duration-300 ease-out cursor-pointer ${
-        isExpanded ? 'w-72 h-56 sm:w-80 sm:h-60 scale-105 z-10' : 'w-56 h-44 sm:w-64 sm:h-48'
+      className={`flex-shrink-0 p-1 transition-all duration-300 ease-out cursor-pointer ${
+        isExpanded ? 'w-52 h-40 sm:w-56 sm:h-44 scale-105 z-10' : 'w-44 h-32 sm:w-48 sm:h-36'
       }`}
       onClick={onTap}
     >
-      <div className={`relative w-full h-full overflow-hidden rounded-2xl bg-stone-200 dark:bg-stone-800 shadow-lg transition-shadow duration-300 ${
-        isExpanded ? 'shadow-2xl ring-2 ring-emerald-500/50' : ''
+      <div className={`relative w-full h-full overflow-hidden rounded-xl bg-stone-200 dark:bg-stone-800 shadow-md transition-shadow duration-300 ${
+        isExpanded ? 'shadow-xl ring-2 ring-emerald-500/50' : ''
       }`}>
         <img
           src={data.image}
@@ -56,12 +81,12 @@ function ItemCard({ data, isExpanded, onTap }: ItemCardProps) {
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <p className="text-white font-medium text-sm line-clamp-2 leading-snug mb-1">
+        <div className="absolute bottom-0 left-0 right-0 p-2">
+          <p className="text-white font-medium text-xs line-clamp-2 leading-snug mb-0.5">
             {data.title}
           </p>
           {data.category && (
-            <span className="inline-block px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white/90">
+            <span className="inline-block px-1.5 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-[10px] text-white/90">
               {data.category}
             </span>
           )}
@@ -85,7 +110,7 @@ function ScrollingRow({ cards, direction, duration, rowIndex, pausedCardId, onCa
   const isPaused = pausedCardId !== null && cards.some(c => c.id === pausedCardId);
 
   return (
-    <div className="relative overflow-hidden flex-1 flex items-center">
+    <div className="relative overflow-hidden flex items-center h-[140px] sm:h-[152px]">
       <div
         className="flex items-center"
         style={{
@@ -158,22 +183,23 @@ export function AuthBackgroundGrid() {
       };
     });
 
-    return [
-      allCards.slice(0, CARDS_PER_ROW),
-      allCards.slice(CARDS_PER_ROW, CARDS_PER_ROW * 2),
-    ];
+    const rowsData = [];
+    for (let i = 0; i < ROW_COUNT; i++) {
+      rowsData.push(allCards.slice(i * CARDS_PER_ROW, (i + 1) * CARDS_PER_ROW));
+    }
+    return rowsData;
   }, [items]);
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-stone-100 dark:bg-stone-900">
-        <div className="flex flex-col h-full gap-4 p-4 justify-center">
-          {[0, 1].map((row) => (
-            <div key={row} className="flex-1 flex gap-3 overflow-hidden items-center max-h-60">
-              {Array.from({ length: 6 }).map((_, i) => (
+      <div className="fixed inset-0 bg-stone-950">
+        <div className="flex flex-col h-full justify-center gap-1 py-2">
+          {Array.from({ length: ROW_COUNT }).map((_, row) => (
+            <div key={row} className="flex gap-2 overflow-hidden items-center h-[140px] sm:h-[152px] px-1">
+              {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 w-56 h-44 sm:w-64 sm:h-48 rounded-2xl bg-stone-200 dark:bg-stone-800 animate-pulse"
+                  className="flex-shrink-0 w-44 h-32 sm:w-48 sm:h-36 rounded-xl bg-stone-800 animate-pulse"
                 />
               ))}
             </div>
@@ -184,7 +210,7 @@ export function AuthBackgroundGrid() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-stone-100 dark:bg-stone-900">
+    <div className="fixed inset-0 overflow-hidden bg-stone-950">
       <style>{`
         @keyframes scroll-right {
           0% { transform: translateX(-50%); }
@@ -196,23 +222,18 @@ export function AuthBackgroundGrid() {
         }
       `}</style>
 
-      <div className="flex flex-col h-full py-4 justify-center gap-2">
-        <ScrollingRow
-          cards={rows[0]}
-          direction="right"
-          duration={50}
-          rowIndex={0}
-          pausedCardId={pausedCard?.row === 0 ? pausedCard.id : null}
-          onCardTap={handleCardTap}
-        />
-        <ScrollingRow
-          cards={rows[1]}
-          direction="left"
-          duration={45}
-          rowIndex={1}
-          pausedCardId={pausedCard?.row === 1 ? pausedCard.id : null}
-          onCardTap={handleCardTap}
-        />
+      <div className="flex flex-col h-full justify-center gap-1 py-2">
+        {rows.map((rowCards, index) => (
+          <ScrollingRow
+            key={index}
+            cards={rowCards}
+            direction={index % 2 === 0 ? 'right' : 'left'}
+            duration={40 + index * 5}
+            rowIndex={index}
+            pausedCardId={pausedCard?.row === index ? pausedCard.id : null}
+            onCardTap={handleCardTap}
+          />
+        ))}
       </div>
     </div>
   );
