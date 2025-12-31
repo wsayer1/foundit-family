@@ -367,7 +367,7 @@ export function LocationPicker({
           }}
         >
           <span
-            className="text-white/40 text-xs font-medium px-2 py-1 bg-black/30 rounded-full backdrop-blur-sm"
+            className="text-white text-xs font-medium px-3 py-1.5 bg-black/60 rounded-full backdrop-blur-sm shadow-sm"
             style={{
               position: 'absolute',
               bottom: '8px',
@@ -393,7 +393,7 @@ export function LocationPicker({
           className="absolute right-3 z-30"
           style={{
             ...getControlsStyles(),
-            bottom: '220px',
+            bottom: '170px',
           }}
         >
           <MapZoomControls

@@ -96,11 +96,11 @@ function TagSelector({ tag, onTagChange, disabled }: TagSelectorProps) {
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-200 rounded-full text-sm font-semibold hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-200 rounded-full text-sm font-semibold hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
         >
-          <Tag size={14} />
+          <Tag size={16} />
           <span>Add tag</span>
-          <ChevronDown size={12} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
@@ -166,16 +166,16 @@ function TagSelector({ tag, onTagChange, disabled }: TagSelectorProps) {
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className="group flex items-center gap-1.5 pl-3 pr-1.5 py-1 bg-stone-200 dark:bg-stone-700 text-stone-800 dark:text-stone-100 rounded-full text-sm font-medium hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="group flex items-center gap-2 pl-4 pr-2 py-2.5 min-h-[44px] bg-stone-200 dark:bg-stone-700 text-stone-800 dark:text-stone-100 rounded-full text-sm font-medium hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <Tag size={14} />
+        <Tag size={16} />
         <span>{formatTag(tag)}</span>
-        <ChevronDown size={12} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         <span
           onClick={handleRemoveTag}
-          className="ml-0.5 p-1 rounded-full hover:bg-stone-300 dark:hover:bg-stone-500 transition-colors"
+          className="ml-2 p-1.5 rounded-full hover:bg-stone-400/50 dark:hover:bg-stone-500 transition-colors"
         >
-          <X size={12} />
+          <X size={14} />
         </span>
       </button>
 
