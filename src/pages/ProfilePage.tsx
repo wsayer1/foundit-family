@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Award, Package, ShoppingBag, User, Settings } from 'lucide-react';
+import { LogOut, Award, Package, ShoppingBag, User, Settings, MessageSquare, Bug } from 'lucide-react';
 import { Layout, Header } from '../components/Layout';
 import { ItemCard } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
 import { SettingsModal } from '../components/SettingsModal';
+import { FeedbackModal } from '../components/FeedbackModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserItems } from '../hooks/useItems';
 import { useLocation } from '../contexts/LocationContext';
@@ -19,6 +20,7 @@ export function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'posted' | 'claimed'>('posted');
   const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<'feedback' | 'bug' | null>(null);
 
   const handleSignOut = async () => {
     await signOut();
@@ -126,6 +128,26 @@ export function ProfilePage() {
           </div>
         </div>
 
+        <div className="bg-white dark:bg-stone-900 rounded-2xl p-4 shadow-sm mb-6">
+          <p className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-3">Help us improve</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setFeedbackType('feedback')}
+              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-400 font-medium hover:from-emerald-100 hover:to-teal-100 dark:hover:from-emerald-900/50 dark:hover:to-teal-900/50 transition-all"
+            >
+              <MessageSquare size={18} />
+              <span>Feedback</span>
+            </button>
+            <button
+              onClick={() => setFeedbackType('bug')}
+              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-700 dark:text-amber-400 font-medium hover:from-amber-100 hover:to-orange-100 dark:hover:from-amber-900/50 dark:hover:to-orange-900/50 transition-all"
+            >
+              <Bug size={18} />
+              <span>Report Bug</span>
+            </button>
+          </div>
+        </div>
+
         <div className="mb-4">
           <div className="flex gap-2 p-1 bg-stone-100 dark:bg-stone-800 rounded-xl">
             <button
@@ -205,6 +227,13 @@ export function ProfilePage() {
 
       {settingsOpen && (
         <SettingsModal onClose={() => setSettingsOpen(false)} />
+      )}
+
+      {feedbackType && (
+        <FeedbackModal
+          type={feedbackType}
+          onClose={() => setFeedbackType(null)}
+        />
       )}
     </Layout>
   );
