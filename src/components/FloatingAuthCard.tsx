@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import { MapPin, Eye, EyeOff, Loader2, Mail, ChevronDown, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -71,6 +71,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const targetPosition = useRef({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
+  const emailFormRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
   const prefersReducedMotion = useRef(false);
   const isTouchDevice = useRef(false);
@@ -79,6 +80,19 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
     prefersReducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     isTouchDevice.current = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   }, []);
+
+  useLayoutEffect(() => {
+    if (showEmailForm && emailFormRef.current) {
+      const scrollTimeout = setTimeout(() => {
+        emailFormRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'end',
+          inline: 'nearest'
+        });
+      }, 350);
+      return () => clearTimeout(scrollTimeout);
+    }
+  }, [showEmailForm]);
 
   const animate = useCallback(() => {
     if (isInteracting || prefersReducedMotion.current || isTouchDevice.current) {
@@ -268,6 +282,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
           )}
 
           <div
+            ref={emailFormRef}
             className={`overflow-hidden transition-all duration-300 ease-out ${
               showEmailForm ? 'max-h-[400px] opacity-100 mt-4' : 'max-h-0 opacity-0'
             }`}
