@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2, X, Camera, Pencil, Car, Footprints, MapPinOff, Info } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, User, ThumbsUp, Check, Navigation, Share2, Loader2, X, Camera, Pencil, Car, Footprints, MapPinOff, Info, RefreshCw } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '../lib/supabase';
@@ -74,7 +74,9 @@ export function ItemDetailPage() {
   const [travelTimes, setTravelTimes] = useState<TravelTimes>({ driving: null, walking: null });
   const [mapReady, setMapReady] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState(false);
   const [showProximityTooltip, setShowProximityTooltip] = useState(false);
+  const mapInitializedRef = useRef(false);
   const [isUserNearby, setIsUserNearby] = useState(false);
   const itemCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
 
@@ -171,19 +173,23 @@ export function ItemDetailPage() {
     }
   }, []);
 
-  useEffect(() => {
+  const initializeMap = useCallback(() => {
     if (!mapContainer.current || !MAPBOX_TOKEN) {
       if (!MAPBOX_TOKEN) {
         console.warn('Mapbox token not configured');
       }
-      return;
+      return null;
     }
 
-    let isCleanedUp = false;
+    if (mapInitializedRef.current && map.current) {
+      return null;
+    }
+
+    mapInitializedRef.current = true;
+    setMapError(false);
+
     const containerRef = mapContainer.current;
-
     mapboxgl.accessToken = MAPBOX_TOKEN;
-
     const defaultCenter: [number, number] = [-122.4194, 37.7749];
 
     try {
@@ -197,50 +203,106 @@ export function ItemDetailPage() {
       });
 
       map.current = mapInstance;
+      return mapInstance;
+    } catch (err) {
+      console.error('Failed to initialize map:', err);
+      setMapError(true);
+      mapInitializedRef.current = false;
+      return null;
+    }
+  }, []);
 
+  const handleRetryMap = useCallback(() => {
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
+    mapInitializedRef.current = false;
+    setMapLoaded(false);
+    setMapReady(false);
+    setMapError(false);
+    itemMarkerRef.current = null;
+    userMarkerRef.current = null;
+
+    const mapInstance = initializeMap();
+    if (mapInstance) {
       const handleLoad = () => {
-        if (isCleanedUp) return;
         setMapLoaded(true);
         setTimeout(() => mapInstance.resize(), 0);
       };
 
       mapInstance.on('load', handleLoad);
-
       mapInstance.on('error', (e) => {
         console.error('Map error:', e.error);
-        if (!isCleanedUp) {
-          setMapLoaded(true);
-        }
+        setMapError(true);
+        setMapLoaded(true);
       });
 
       if (mapInstance.loaded()) {
         handleLoad();
       }
-
-      const resizeObserver = new ResizeObserver(() => {
-        if (!isCleanedUp && mapInstance) {
-          mapInstance.resize();
-        }
-      });
-      resizeObserver.observe(containerRef);
-
-      return () => {
-        isCleanedUp = true;
-        resizeObserver.disconnect();
-        if (map.current) {
-          map.current.remove();
-          map.current = null;
-          setMapLoaded(false);
-          setMapReady(false);
-        }
-        itemMarkerRef.current = null;
-        userMarkerRef.current = null;
-      };
-    } catch (err) {
-      console.error('Failed to initialize map:', err);
-      setMapLoaded(true);
     }
-  }, []);
+  }, [initializeMap]);
+
+  useEffect(() => {
+    if (loading || mapInitializedRef.current) return;
+    if (!mapContainer.current || !MAPBOX_TOKEN) return;
+
+    let isCleanedUp = false;
+
+    const mapInstance = initializeMap();
+    if (!mapInstance) return;
+
+    const handleLoad = () => {
+      if (isCleanedUp) return;
+      setMapLoaded(true);
+      setTimeout(() => mapInstance.resize(), 0);
+    };
+
+    mapInstance.on('load', handleLoad);
+
+    mapInstance.on('error', (e) => {
+      console.error('Map error:', e.error);
+      if (!isCleanedUp) {
+        setMapError(true);
+        setMapLoaded(true);
+      }
+    });
+
+    if (mapInstance.loaded()) {
+      handleLoad();
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (!isCleanedUp && mapInstance) {
+        mapInstance.resize();
+      }
+    });
+    resizeObserver.observe(mapContainer.current);
+
+    const timeoutId = setTimeout(() => {
+      if (!isCleanedUp && !mapLoaded) {
+        console.warn('Map load timeout - forcing loaded state');
+        setMapError(true);
+        setMapLoaded(true);
+      }
+    }, 10000);
+
+    return () => {
+      isCleanedUp = true;
+      clearTimeout(timeoutId);
+      resizeObserver.disconnect();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+        setMapLoaded(false);
+        setMapReady(false);
+      }
+      mapInitializedRef.current = false;
+      itemMarkerRef.current = null;
+      userMarkerRef.current = null;
+    };
+  }, [loading, initializeMap, mapLoaded]);
 
   useEffect(() => {
     if (!map.current || !mapLoaded || !item) return;
@@ -603,6 +665,22 @@ export function ItemDetailPage() {
                     <p className="text-xs text-stone-500 dark:text-stone-400">Map unavailable</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {mapLoaded && mapError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-stone-100 dark:bg-stone-800">
+                <div className="text-center px-4">
+                  <MapPinOff size={24} className="text-stone-400 mx-auto mb-2" />
+                  <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">Failed to load map</p>
+                  <button
+                    onClick={handleRetryMap}
+                    className="bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-medium hover:bg-emerald-600 transition-colors flex items-center gap-2 mx-auto"
+                  >
+                    <RefreshCw size={14} />
+                    Retry
+                  </button>
+                </div>
               </div>
             )}
 
