@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
-import { formatTimeAgo, calculateFreshness, getFreshnessOpacity, calculateRingDecay, getRingColor, getRingStrokeWidth } from '../utils/time';
+import { formatTimeAgo, calculateFreshness, getFreshnessOpacity, calculateRingDecay, getRingColor } from '../utils/time';
 import { getPreviewUrl } from '../utils/image';
 import { useTheme } from '../contexts/ThemeContext';
 import { FloatingAuthCard } from './FloatingAuthCard';
@@ -69,7 +69,6 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
   const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
   const decayPercent = calculateRingDecay(item.created_at, item.last_confirmed_at);
   const ringColor = getRingColor(decayPercent);
-  const ringStroke = getRingStrokeWidth(decayPercent);
   const pinColor = isClaimed ? '#78716c' : freshness > 0.7 ? '#10b981' : freshness > 0.4 ? '#f59e0b' : '#78716c';
 
   if (isClaimed) {
@@ -102,13 +101,14 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
 
   if (isSelected) {
     const selectedSize = 64;
-    const ringSvg = createRingSvg(selectedSize, decayPercent, 4, ringColor);
-    const imageInset = 4;
+    const ringStrokeSelected = 5;
+    const ringSvg = createRingSvg(selectedSize, decayPercent, ringStrokeSelected, ringColor);
+    const imageInset = ringStrokeSelected;
     const imageContainerSize = selectedSize - (imageInset * 2);
     return `
       <div class="relative" style="width: ${selectedSize}px; height: ${selectedSize}px;">
         ${ringSvg}
-        <div style="position: absolute; top: ${imageInset}px; left: ${imageInset}px; width: ${imageContainerSize}px; height: ${imageContainerSize}px; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: 2px solid white;">
+        <div style="position: absolute; top: ${imageInset}px; left: ${imageInset}px; width: ${imageContainerSize}px; height: ${imageContainerSize}px; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
           <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
         <div style="position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 9px solid ${pinColor};"></div>
@@ -117,14 +117,15 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
   }
 
   const markerSize = 48;
-  const ringSvg = createRingSvg(markerSize, decayPercent, ringStroke, ringColor);
-  const imageInset = 4;
+  const ringStrokeNormal = 4;
+  const ringSvg = createRingSvg(markerSize, decayPercent, ringStrokeNormal, ringColor);
+  const imageInset = ringStrokeNormal;
   const imageContainerSize = markerSize - (imageInset * 2);
 
   return `
     <div class="item-pin-marker" style="width: ${markerSize}px; height: ${markerSize}px; position: relative; cursor: pointer; border-radius: 50%; transition: transform 0.2s ease; transform-origin: center bottom;">
       ${ringSvg}
-      <div style="position: absolute; top: ${imageInset}px; left: ${imageInset}px; width: ${imageContainerSize}px; height: ${imageContainerSize}px; border-radius: 50%; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.35); border: 2px solid white;">
+      <div style="position: absolute; top: ${imageInset}px; left: ${imageInset}px; width: ${imageContainerSize}px; height: ${imageContainerSize}px; border-radius: 50%; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.35);">
         <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
       </div>
     </div>
