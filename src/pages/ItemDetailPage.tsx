@@ -249,12 +249,14 @@ export function ItemDetailPage() {
     if (!mapContainer.current || !MAPBOX_TOKEN) return;
 
     let isCleanedUp = false;
+    let mapLoadedLocal = false;
 
     const mapInstance = initializeMap();
     if (!mapInstance) return;
 
     const handleLoad = () => {
       if (isCleanedUp) return;
+      mapLoadedLocal = true;
       setMapLoaded(true);
       setTimeout(() => mapInstance.resize(), 0);
     };
@@ -273,15 +275,16 @@ export function ItemDetailPage() {
       handleLoad();
     }
 
+    const containerEl = mapContainer.current;
     const resizeObserver = new ResizeObserver(() => {
       if (!isCleanedUp && mapInstance) {
         mapInstance.resize();
       }
     });
-    resizeObserver.observe(mapContainer.current);
+    resizeObserver.observe(containerEl);
 
     const timeoutId = setTimeout(() => {
-      if (!isCleanedUp && !mapLoaded) {
+      if (!isCleanedUp && !mapLoadedLocal) {
         console.warn('Map load timeout - forcing loaded state');
         setMapError(true);
         setMapLoaded(true);
@@ -292,17 +295,20 @@ export function ItemDetailPage() {
       isCleanedUp = true;
       clearTimeout(timeoutId);
       resizeObserver.disconnect();
+    };
+  }, [loading, initializeMap]);
+
+  useEffect(() => {
+    return () => {
       if (map.current) {
         map.current.remove();
         map.current = null;
-        setMapLoaded(false);
-        setMapReady(false);
       }
       mapInitializedRef.current = false;
       itemMarkerRef.current = null;
       userMarkerRef.current = null;
     };
-  }, [loading, initializeMap, mapLoaded]);
+  }, []);
 
   useEffect(() => {
     if (!map.current || !mapLoaded || !item) return;
