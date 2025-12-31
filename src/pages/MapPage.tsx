@@ -64,7 +64,7 @@ export function MapPage() {
         <DiscoverMapView items={items} userLocation={userCoords} isGuest={!user} />
 
         <div className="absolute top-0 left-0 right-0 z-20 safe-area-top">
-          <div className="flex items-center justify-between gap-2 px-4 pt-4">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
             <div className="flex-shrink-0 bg-emerald-500 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-emerald-500/30 flex items-center gap-2">
               <MapPin size={20} className="text-white" />
               <span className="hidden md:inline font-semibold text-white text-sm">Foundit.Family</span>
