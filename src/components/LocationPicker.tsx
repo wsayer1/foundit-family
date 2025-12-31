@@ -38,7 +38,7 @@ export function LocationPicker({
   useEffect(() => {
     const updateCircleSize = () => {
       const minDimension = Math.min(window.innerWidth, window.innerHeight);
-      setCircleRadius(Math.floor(minDimension * 0.38));
+      setCircleRadius(Math.floor(minDimension * 0.46));
     };
 
     updateCircleSize();
@@ -303,8 +303,8 @@ export function LocationPicker({
           ref={overlayRef}
           className="absolute inset-0 pointer-events-none"
           style={{
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
             maskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 95%, black 100%)`,
             WebkitMaskImage: `radial-gradient(circle ${circleRadius}px at center, transparent 0%, transparent 95%, black 100%)`,
             zIndex: 6,
@@ -317,7 +317,6 @@ export function LocationPicker({
             width: circleRadius * 2,
             height: circleRadius * 2,
             border: '2px solid rgba(255,255,255,0.5)',
-            boxShadow: '0 0 20px rgba(0,0,0,0.3)',
             zIndex: 10,
           }}
         />
