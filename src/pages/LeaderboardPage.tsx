@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Award, Package, ShoppingBag, User, Sparkles } from 'lucide-react';
-import { Layout, Header } from '../components/Layout';
+import { Trophy, Award, Package, ShoppingBag, MapPin, Sparkles, User } from 'lucide-react';
+import { Layout } from '../components/Layout';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { useAuth } from '../contexts/AuthContext';
 import { useLeaderboard, LeaderboardEntry } from '../hooks/useLeaderboard';
@@ -50,12 +50,35 @@ function LeaderboardEntrySkeleton() {
   );
 }
 
+function ProfileAvatar({ avatarUrl, username, size = 'md' }: { avatarUrl: string | null; username: string | null; size?: 'sm' | 'md' }) {
+  const sizeClasses = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10';
+
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={username || 'User'}
+        className={`${sizeClasses} rounded-full object-cover bg-stone-200 dark:bg-stone-700`}
+        loading="lazy"
+      />
+    );
+  }
+
+  return (
+    <div className={`${sizeClasses} rounded-full bg-stone-200 dark:bg-stone-700 flex items-center justify-center`}>
+      <User size={size === 'sm' ? 14 : 18} className="text-stone-400 dark:text-stone-500" />
+    </div>
+  );
+}
+
 function LeaderboardRow({
   entry,
   isCurrentUser,
+  showAvatar,
 }: {
   entry: LeaderboardEntry;
   isCurrentUser: boolean;
+  showAvatar: boolean;
 }) {
   const rankStyle = getRankStyle(entry.rank);
 
@@ -69,10 +92,14 @@ function LeaderboardRow({
     >
       <div className="flex items-center gap-3">
         <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-2 ${rankStyle.bg} ${rankStyle.text} ${rankStyle.border}`}
+          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-2 flex-shrink-0 ${rankStyle.bg} ${rankStyle.text} ${rankStyle.border}`}
         >
           {entry.rank}
         </div>
+
+        {showAvatar && (
+          <ProfileAvatar avatarUrl={entry.avatar_url} username={entry.username} />
+        )}
 
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
@@ -95,7 +122,7 @@ function LeaderboardRow({
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full">
+        <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full flex-shrink-0">
           <Award size={16} className="text-amber-500 dark:text-amber-400" />
           <span className="font-bold text-emerald-700 dark:text-emerald-400">
             {entry.points.toLocaleString()}
@@ -120,8 +147,15 @@ export function LeaderboardPage() {
 
   return (
     <Layout>
-      <Header />
-      <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+      <div className="absolute top-0 left-0 right-0 z-40 safe-area-top">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
+          <div className="flex-shrink-0 bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center gap-2 border border-stone-700">
+            <MapPin size={24} className="text-emerald-500" strokeWidth={2.5} />
+            <span className="hidden md:inline font-semibold text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
+          </div>
+        </div>
+      </div>
+      <PullToRefresh onRefresh={handleRefresh} className="flex-1 pt-20">
         <div className="max-w-lg mx-auto px-4 py-6">
           {currentUserRank ? (
             <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 mb-6">
@@ -218,6 +252,7 @@ export function LeaderboardPage() {
                   key={entry.id}
                   entry={entry}
                   isCurrentUser={entry.id === user?.id}
+                  showAvatar={entry.rank <= 5}
                 />
               ))}
 
@@ -230,7 +265,7 @@ export function LeaderboardPage() {
                     </span>
                     <div className="flex-1 border-t border-dashed border-stone-300 dark:border-stone-700" />
                   </div>
-                  <LeaderboardRow entry={currentUserRank} isCurrentUser />
+                  <LeaderboardRow entry={currentUserRank} isCurrentUser showAvatar={false} />
                 </>
               )}
             </div>

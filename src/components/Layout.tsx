@@ -161,7 +161,7 @@ export function Header({ title, showBack, rightAction, filters, onFiltersChange,
             <div className="bg-emerald-500 p-1.5 rounded-lg">
               <MapPin size={18} className="text-white" />
             </div>
-            <span className="font-semibold text-stone-900 dark:text-stone-100">Foundit.Family</span>
+            <span className="font-semibold text-stone-900 dark:text-stone-100" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
           </div>
         )}
 

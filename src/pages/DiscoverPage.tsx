@@ -231,7 +231,7 @@ export function DiscoverPage() {
         <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
           <div className="flex-shrink-0 bg-stone-800 dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/20 flex items-center gap-2 border border-stone-700">
             <MapPin size={24} className="text-emerald-500" strokeWidth={2.5} />
-            <span className="hidden md:inline font-semibold text-white text-sm">Foundit.Family</span>
+            <span className="hidden md:inline font-semibold text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-1 justify-end">
             <FloatingFilterDropdown
@@ -451,7 +451,7 @@ export function DiscoverPage() {
       )}
 
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <FloatingAuthCard
             onSuccess={() => setShowAuthModal(false)}
             onClose={() => setShowAuthModal(false)}
