@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MapPin, Eye, EyeOff, Loader2, Mail, ChevronUp } from 'lucide-react';
+import { MapPin, Eye, EyeOff, Loader2, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface FloatingAuthCardProps {
@@ -67,9 +67,11 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
     }
   };
 
-  const handleToggleEmailForm = () => {
-    setShowEmailForm(!showEmailForm);
-    setError('');
+  const handleShowEmailForm = () => {
+    if (!showEmailForm) {
+      setShowEmailForm(true);
+      setError('');
+    }
   };
 
   const handleTabChange = (signup: boolean) => {
@@ -87,9 +89,10 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
   return (
     <div className="fixed inset-x-0 bottom-0 md:inset-0 z-40 md:flex md:items-center md:justify-center pointer-events-none">
       <div
-        className="pointer-events-auto w-full md:w-[420px] flex flex-col bg-stone-950 rounded-t-3xl md:rounded-2xl shadow-2xl transition-all duration-300 ease-out"
+        className="pointer-events-auto w-full md:w-[420px] flex flex-col bg-stone-950 rounded-t-3xl md:rounded-2xl shadow-2xl transition-all duration-300 ease-out font-heading"
         style={{
-          maxHeight: showEmailForm ? '90vh' : 'auto'
+          maxHeight: showEmailForm ? '90vh' : 'auto',
+          fontFamily: "'DM Sans', system-ui, sans-serif"
         }}
       >
         <div className="flex items-center justify-between px-5 pt-4 pb-2">
@@ -170,26 +173,18 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
               <span>Continue with Google</span>
             </button>
 
-            <button
-              onClick={handleToggleEmailForm}
-              className={`w-full flex items-center justify-center gap-2.5 bg-transparent border border-stone-700 text-stone-300 py-3 px-4 rounded-xl font-medium hover:bg-stone-800 hover:border-stone-600 hover:text-white focus:ring-2 focus:ring-emerald-500/30 transition-all duration-200 ${
-                showEmailForm ? 'border-emerald-500/50 bg-stone-800/50' : ''
-              }`}
-            >
-              {showEmailForm ? (
-                <>
-                  <ChevronUp size={18} className="transition-transform duration-200" />
-                  <span>Hide email form</span>
-                </>
-              ) : (
-                <>
-                  <Mail size={18} />
-                  <span>Continue with email</span>
-                </>
-              )}
-            </button>
+            {!showEmailForm && (
+              <button
+                onClick={handleShowEmailForm}
+                className="w-full flex items-center justify-center gap-2.5 bg-transparent border border-stone-700 text-stone-300 py-3 px-4 rounded-xl font-medium hover:bg-stone-800 hover:border-stone-600 hover:text-white focus:ring-2 focus:ring-emerald-500/30 transition-all duration-200"
+              >
+                <Mail size={18} />
+                <span>Continue with email</span>
+              </button>
+            )}
           </div>
 
+          {/* Email form with smooth vertical reveal animation */}
           <div
             className="overflow-hidden transition-all duration-300 ease-out"
             style={{
@@ -211,6 +206,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                       className="w-full px-3.5 py-2.5 bg-stone-800 border border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all duration-200 text-white text-sm placeholder:text-stone-500"
                       placeholder="Choose a username"
                       required={isSignUp}
+                      style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
                     />
                   </div>
                 )}
@@ -227,6 +223,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                     className="w-full px-3.5 py-2.5 bg-stone-800 border border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all duration-200 text-white text-sm placeholder:text-stone-500"
                     placeholder="you@example.com"
                     required
+                    style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
                   />
                 </div>
 
@@ -243,6 +240,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                       placeholder="Enter your password"
                       required
                       minLength={6}
+                      style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
                     />
                     <button
                       type="button"
