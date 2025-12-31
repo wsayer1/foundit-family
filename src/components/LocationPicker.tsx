@@ -19,7 +19,7 @@ const MAX_DISTANCE_METERS = 100;
 const ANIMATION_DURATION = 1200;
 const MIN_ZOOM = 14;
 const MAX_ZOOM = 20;
-const DEFAULT_ZOOM = 17;
+const DEFAULT_ZOOM = 18;
 
 type AnimationPhase = 'full' | 'shrinking' | 'complete';
 
@@ -46,7 +46,7 @@ export function LocationPicker({
     const zoom = map.current.getZoom();
     const center = map.current.getCenter();
     const pixels = metersToPixels(MAX_DISTANCE_METERS, center.lat, zoom);
-    setRadiusPixels(Math.min(pixels, Math.min(window.innerWidth, window.innerHeight) * 0.45));
+    setRadiusPixels(pixels);
     setCurrentZoom(zoom);
   }, []);
 
@@ -112,12 +112,6 @@ export function LocationPicker({
       map.current.zoomOut();
     }
   }, [currentZoom]);
-
-  const handleResetNorth = useCallback(() => {
-    if (map.current) {
-      map.current.resetNorth();
-    }
-  }, []);
 
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
@@ -289,7 +283,7 @@ export function LocationPicker({
   const getControlsStyles = (): React.CSSProperties => {
     return {
       opacity: animationPhase === 'complete' ? 1 : 0,
-      transform: animationPhase === 'complete' ? 'translateX(0)' : 'translateX(20px)',
+      transform: animationPhase === 'complete' ? 'translateY(0)' : 'translateY(20px)',
       transition: `opacity 400ms ease-out 200ms, transform 400ms ease-out 200ms`,
       pointerEvents: animationPhase === 'complete' ? 'auto' : 'none',
     };
@@ -373,14 +367,13 @@ export function LocationPicker({
           className="absolute right-3 z-30"
           style={{
             ...getControlsStyles(),
-            top: 'calc(max(16px, env(safe-area-inset-top)) + 60px)',
+            bottom: '200px',
           }}
         >
           <MapZoomControls
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
-            onResetNorth={handleResetNorth}
-            showCompass={true}
+            showCompass={false}
             showUserLocation={false}
           />
         </div>
