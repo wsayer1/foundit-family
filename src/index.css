@@ -16,6 +16,7 @@
     font-family: 'Archivo', system-ui, sans-serif;
     font-feature-settings: "ss01", "ss02";
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    overscroll-behavior-y: contain;
   }
 
   h1, h2 {

@@ -10,6 +10,7 @@ interface PullToRefreshProps {
 const THRESHOLD = 80;
 const MAX_PULL = 120;
 const RESISTANCE = 2.5;
+const MIN_PULL_TIME_MS = 100;
 
 export function PullToRefresh({ onRefresh, children, className = '' }: PullToRefreshProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,37 +20,53 @@ export function PullToRefresh({ onRefresh, children, className = '' }: PullToRef
   const [isPulling, setIsPulling] = useState(false);
   const startY = useRef(0);
   const currentY = useRef(0);
+  const pullStartTime = useRef(0);
+  const wasAtTopOnStart = useRef(false);
 
-  const canPull = useCallback(() => {
+  const isAtTop = useCallback(() => {
     if (!containerRef.current) return false;
     return containerRef.current.scrollTop <= 0;
   }, []);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (!canPull() || isRefreshing) return;
+    if (isRefreshing) return;
+
+    const atTop = isAtTop();
+    wasAtTopOnStart.current = atTop;
+
+    if (!atTop) return;
+
     startY.current = e.touches[0].clientY;
     currentY.current = e.touches[0].clientY;
+    pullStartTime.current = Date.now();
     setIsPulling(true);
-  }, [canPull, isRefreshing]);
+  }, [isAtTop, isRefreshing]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (!isPulling || isRefreshing) return;
+    if (!isPulling || isRefreshing || !wasAtTopOnStart.current) return;
 
     currentY.current = e.touches[0].clientY;
     const diff = currentY.current - startY.current;
 
-    if (diff > 0 && canPull()) {
+    if (diff > 0 && isAtTop()) {
       e.preventDefault();
       const dampedDistance = Math.min(diff / RESISTANCE, MAX_PULL);
       setPullDistance(dampedDistance);
+    } else if (diff <= 0) {
+      setPullDistance(0);
     }
-  }, [isPulling, isRefreshing, canPull]);
+  }, [isPulling, isRefreshing, isAtTop]);
 
   const handleTouchEnd = useCallback(async () => {
     if (!isPulling) return;
     setIsPulling(false);
 
-    if (pullDistance >= THRESHOLD && !isRefreshing) {
+    const pullDuration = Date.now() - pullStartTime.current;
+    const validPull = wasAtTopOnStart.current &&
+                      pullDuration >= MIN_PULL_TIME_MS &&
+                      isAtTop();
+
+    if (pullDistance >= THRESHOLD && !isRefreshing && validPull) {
       setIsRefreshing(true);
       setPullDistance(60);
 
@@ -63,7 +80,9 @@ export function PullToRefresh({ onRefresh, children, className = '' }: PullToRef
     } else {
       setPullDistance(0);
     }
-  }, [isPulling, pullDistance, isRefreshing, onRefresh]);
+
+    wasAtTopOnStart.current = false;
+  }, [isPulling, pullDistance, isRefreshing, onRefresh, isAtTop]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -89,7 +108,10 @@ export function PullToRefresh({ onRefresh, children, className = '' }: PullToRef
     <div
       ref={containerRef}
       className={`overflow-auto relative ${className}`}
-      style={{ WebkitOverflowScrolling: 'touch' }}
+      style={{
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain',
+      }}
     >
       <div
         className="absolute left-0 right-0 flex justify-center pointer-events-none z-10"

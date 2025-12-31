@@ -86,8 +86,12 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const pendingRequestRef = useRef<Promise<GeolocationCoordinates | null> | null>(null);
 
   useEffect(() => {
-    if (profile) {
+    if (profile && typeof profile.location_enabled === 'boolean') {
       setLocationEnabledState(profile.location_enabled);
+      try {
+        localStorage.setItem(LOCATION_ENABLED_KEY, String(profile.location_enabled));
+      } catch {
+      }
     }
   }, [profile]);
 
@@ -97,6 +101,17 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         const result = await navigator.permissions.query({ name: 'geolocation' });
         setPermissionStatus(result.state);
         result.onchange = () => setPermissionStatus(result.state);
+
+        if (result.state === 'granted' && locationEnabled && !location) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setLocation(position.coords);
+              setCachedLocation(position.coords);
+            },
+            () => {},
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: COORDINATE_CACHE_TTL }
+          );
+        }
       } catch {
         setPermissionStatus('prompt');
       }
@@ -160,10 +175,18 @@ export function LocationProvider({ children }: { children: ReactNode }) {
           setLocation(position.coords);
           setCachedLocation(position.coords);
           setPermissionStatus('granted');
+          setLocationEnabledState(true);
           try {
             localStorage.setItem(LOCATION_ENABLED_KEY, 'true');
           } catch {
-            // localStorage unavailable
+          }
+          if (profile) {
+            (async () => {
+              await supabase
+                .from('profiles')
+                .update({ location_enabled: true })
+                .eq('id', profile.id);
+            })();
           }
           setLoading(false);
           pendingRequestRef.current = null;
@@ -186,7 +209,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
     pendingRequestRef.current = request;
     return request;
-  }, [location]);
+  }, [location, profile]);
 
   return (
     <LocationContext.Provider value={{ location, error, permissionStatus, loading, locationEnabled, requestLocation, checkPermission, setLocationEnabled }}>
