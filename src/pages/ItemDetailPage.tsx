@@ -416,7 +416,7 @@ export function ItemDetailPage() {
           </div>
 
           <div className="relative h-48 rounded-2xl overflow-hidden shadow-sm bg-stone-200 dark:bg-stone-800">
-            <div ref={mapContainer} className="w-full h-full" />
+            <div ref={mapContainer} className="absolute inset-0" />
 
             {!location && permissionStatus !== 'granted' && mapReady && (
               <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/60 to-transparent flex flex-col items-center justify-end p-4">
@@ -502,7 +502,7 @@ export function ItemDetailPage() {
               <button
                 onClick={() => setShowPhotoCapture(true)}
                 disabled={confirming}
-                className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 disabled:opacity-50 transition-colors"
+                className="flex-1 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 transition-colors"
               >
                 {confirming ? (
                   <Loader2 size={20} className="animate-spin" />
@@ -515,7 +515,7 @@ export function ItemDetailPage() {
             <button
               onClick={handleClaim}
               disabled={claiming}
-              className={`${hasConfirmed ? 'w-full' : 'flex-1'} ${hasConfirmed ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700'} ${hasConfirmed ? 'text-white' : 'text-stone-700 dark:text-stone-300'} py-4 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors`}
+              className={`${hasConfirmed ? 'w-full' : 'flex-1'} bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors`}
             >
               {claiming ? (
                 <Loader2 size={20} className="animate-spin" />
