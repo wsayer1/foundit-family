@@ -367,10 +367,13 @@ export function DiscoverMapView({ items, userLocation, isGuest = false, onEnable
 
       {selectedItem && (
         <>
-          <div className="hidden md:block absolute top-4 left-3 z-20 w-64">
-            <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
+          <div className="hidden md:block absolute top-20 left-3 z-20 w-64">
+            <div className="relative bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200/50 dark:border-stone-700/50">
               <button
-                onClick={() => setSelectedItem(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedItem(null);
+                }}
                 className="absolute top-2 right-2 z-10 bg-black/40 backdrop-blur-sm text-white p-1.5 rounded-full hover:bg-black/60 transition-colors"
               >
                 <X size={14} />
