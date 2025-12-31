@@ -784,13 +784,28 @@ export function ItemDetailPage() {
       {item.status === 'available' && !isOwner && !isNearby && (
         <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 safe-area-bottom">
           <div className="max-w-lg mx-auto">
-            <button
-              disabled
-              className="w-full bg-stone-200 dark:bg-stone-700 text-stone-500 dark:text-stone-400 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-not-allowed"
-            >
-              <MapPin size={20} />
-              Get closer to verify or claim
-            </button>
+            {!location && permissionStatus !== 'granted' ? (
+              <button
+                onClick={() => requestLocation(true)}
+                disabled={locationLoading}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {locationLoading ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <MapPin size={20} />
+                )}
+                Enable location to claim
+              </button>
+            ) : (
+              <button
+                disabled
+                className="w-full bg-stone-200 dark:bg-stone-700 text-stone-500 dark:text-stone-400 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-not-allowed"
+              >
+                <MapPin size={20} />
+                Get closer to verify or claim
+              </button>
+            )}
           </div>
         </div>
       )}

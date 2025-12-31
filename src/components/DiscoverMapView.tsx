@@ -45,12 +45,20 @@ function createRingSvg(size: number, decayPercent: number, strokeWidth: number, 
         cy="${center}"
         r="${radius}"
         fill="none"
+        stroke="white"
+        stroke-width="${strokeWidth}"
+        style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));"
+      />
+      <circle
+        cx="${center}"
+        cy="${center}"
+        r="${radius}"
+        fill="none"
         stroke="${color}"
         stroke-width="${strokeWidth}"
         stroke-dasharray="${circumference}"
         stroke-dashoffset="${offset}"
         stroke-linecap="round"
-        style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));"
       />
     </svg>
   `;
@@ -95,10 +103,12 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
   if (isSelected) {
     const selectedSize = 64;
     const ringSvg = createRingSvg(selectedSize, decayPercent, 4, ringColor);
+    const imageInset = 4;
+    const imageContainerSize = selectedSize - (imageInset * 2);
     return `
       <div class="relative" style="width: ${selectedSize}px; height: ${selectedSize}px;">
         ${ringSvg}
-        <div style="position: absolute; top: 2px; left: 2px; width: ${selectedSize - 4}px; height: ${selectedSize - 4}px; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+        <div style="position: absolute; top: ${imageInset}px; left: ${imageInset}px; width: ${imageContainerSize}px; height: ${imageContainerSize}px; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: 2px solid white;">
           <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
         <div style="position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 9px solid ${pinColor};"></div>
@@ -108,13 +118,13 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
 
   const markerSize = 48;
   const ringSvg = createRingSvg(markerSize, decayPercent, ringStroke, ringColor);
-  const imageInset = 3;
-  const imageSize = markerSize - (imageInset * 2);
+  const imageInset = 4;
+  const imageContainerSize = markerSize - (imageInset * 2);
 
   return `
-    <div style="width: ${markerSize}px; height: ${markerSize}px; position: relative; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; transform-origin: center bottom;">
+    <div class="item-pin-marker" style="width: ${markerSize}px; height: ${markerSize}px; position: relative; cursor: pointer; border-radius: 50%; transition: transform 0.2s ease; transform-origin: center bottom;">
       ${ringSvg}
-      <div style="position: absolute; top: ${imageInset}px; left: ${imageInset}px; width: ${imageSize}px; height: ${imageSize}px; border-radius: 50%; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.35);">
+      <div style="position: absolute; top: ${imageInset}px; left: ${imageInset}px; width: ${imageContainerSize}px; height: ${imageContainerSize}px; border-radius: 50%; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.35); border: 2px solid white;">
         <img src="${getPreviewUrl(item.image_url)}" style="width: 100%; height: 100%; object-fit: cover;" />
       </div>
     </div>
@@ -128,11 +138,11 @@ function setupHoverEffects(el: HTMLElement, isSelected: boolean) {
 
   const handleEnter = () => {
     innerEl.style.transform = 'scale(1.1)';
-    innerEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+    innerEl.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.35))';
   };
   const handleLeave = () => {
     innerEl.style.transform = 'scale(1)';
-    innerEl.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+    innerEl.style.filter = '';
   };
   el.addEventListener('mouseenter', handleEnter);
   el.addEventListener('mouseleave', handleLeave);
