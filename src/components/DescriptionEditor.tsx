@@ -166,14 +166,14 @@ function TagSelector({ tag, onTagChange, disabled }: TagSelectorProps) {
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className="group flex items-center gap-1.5 pl-3 pr-1.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="group flex items-center gap-1.5 pl-3 pr-1.5 py-1 bg-stone-200 dark:bg-stone-700 text-stone-800 dark:text-stone-100 rounded-full text-sm font-medium hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Tag size={14} />
         <span>{formatTag(tag)}</span>
         <ChevronDown size={12} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         <span
           onClick={handleRemoveTag}
-          className="ml-0.5 p-1 rounded-full hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors"
+          className="ml-0.5 p-1 rounded-full hover:bg-stone-300 dark:hover:bg-stone-500 transition-colors"
         >
           <X size={12} />
         </span>
@@ -224,7 +224,7 @@ function TagSelector({ tag, onTagChange, disabled }: TagSelectorProps) {
                     onClick={() => handleSelectCategory(category)}
                     className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center justify-between ${
                       isSelected
-                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 font-medium'
+                        ? 'bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-stone-100 font-medium'
                         : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
                     }`}
                   >

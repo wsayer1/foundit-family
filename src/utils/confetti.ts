@@ -10,7 +10,7 @@ interface ConfettiParticle {
   opacity: number;
 }
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4'];
+const COLORS = ['#10b981', '#059669', '#047857', '#34d399', '#6ee7b7', '#a7f3d0', '#065f46', '#14532d'];
 
 export function triggerConfetti(originX: number, originY: number): void {
   const canvas = document.createElement('canvas');
@@ -43,7 +43,7 @@ export function triggerConfetti(originX: number, originY: number): void {
       vx: Math.cos(angle) * velocity * (0.5 + Math.random() * 0.5),
       vy: Math.sin(angle) * velocity * (0.5 + Math.random() * 0.5) - 4,
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      size: 6 + Math.random() * 6,
+      size: 8 + Math.random() * 7,
       rotation: Math.random() * 360,
       rotationSpeed: (Math.random() - 0.5) * 15,
       opacity: 1,
@@ -54,7 +54,7 @@ export function triggerConfetti(originX: number, originY: number): void {
   const friction = 0.98;
   let animationFrame: number;
   const startTime = Date.now();
-  const duration = 2000;
+  const duration = 3500;
 
   function animate() {
     const elapsed = Date.now() - startTime;

@@ -41,6 +41,9 @@ export function LocationPicker({
   const [currentZoom, setCurrentZoom] = useState(DEFAULT_ZOOM);
   const [radiusPixels, setRadiusPixels] = useState(0);
 
+  const pinLocationRef = useRef(pinLocation);
+  pinLocationRef.current = pinLocation;
+
   const updateRadiusPixels = useCallback(() => {
     if (!map.current) return;
     const zoom = map.current.getZoom();
@@ -54,15 +57,15 @@ export function LocationPicker({
         return currentOffset;
       }
       const newOffset = coordsToPixelOffset(
-        pinLocation.lat,
-        pinLocation.lng,
+        pinLocationRef.current.lat,
+        pinLocationRef.current.lng,
         center.lat,
         center.lng,
         zoom
       );
       return newOffset;
     });
-  }, [pinLocation.lat, pinLocation.lng]);
+  }, []);
 
   const handleInteraction = useCallback((clientX: number, clientY: number) => {
     if (animationPhase !== 'complete' || !map.current) return;
