@@ -13,27 +13,29 @@
 
   body {
     @apply antialiased bg-white text-stone-900 dark:bg-stone-950 dark:text-stone-100;
-    font-family: 'Spectral', Georgia, serif;
+    font-family: 'Archivo', system-ui, sans-serif;
     font-feature-settings: "ss01", "ss02";
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'DM Sans', system-ui, sans-serif;
-    font-weight: 700;
+  h1, h2 {
+    font-family: 'Clash Display', system-ui, sans-serif;
+    font-weight: 600;
   }
 
-  h1 { font-weight: 800; }
-  h2 { font-weight: 700; }
-  h3 { font-weight: 600; }
-  h4, h5, h6 { font-weight: 500; }
+  h1 { font-weight: 700; }
 
-  .font-heading {
-    font-family: 'DM Sans', system-ui, sans-serif;
+  h3, h4, h5, h6 {
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-weight: 600;
+  }
+
+  .font-display {
+    font-family: 'Clash Display', system-ui, sans-serif;
   }
 
   .font-body {
-    font-family: 'Spectral', Georgia, serif;
+    font-family: 'Archivo', system-ui, sans-serif;
   }
 
   *:not(.mapboxgl-map):not(.mapboxgl-map *) {

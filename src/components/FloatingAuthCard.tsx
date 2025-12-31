@@ -89,10 +89,10 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
   return (
     <div className="fixed inset-x-0 bottom-0 md:inset-0 z-40 md:flex md:items-center md:justify-center pointer-events-none">
       <div
-        className="pointer-events-auto w-full md:w-[420px] flex flex-col bg-stone-950 rounded-t-3xl md:rounded-2xl shadow-2xl transition-all duration-300 ease-out font-heading"
+        className="pointer-events-auto w-full md:w-[420px] flex flex-col bg-stone-950 rounded-t-3xl md:rounded-2xl shadow-2xl transition-all duration-300 ease-out"
         style={{
           maxHeight: showEmailForm ? '90vh' : 'auto',
-          fontFamily: "'DM Sans', system-ui, sans-serif"
+          fontFamily: "'Archivo', system-ui, sans-serif"
         }}
       >
         <div className="flex items-center justify-between px-5 pt-4 pb-2">
@@ -100,7 +100,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
             <div className="bg-emerald-500 p-1.5 rounded-lg">
               <MapPin size={18} className="text-white" strokeWidth={2.5} />
             </div>
-            <span className="font-semibold text-lg text-white tracking-tight">foundit.family</span>
+            <span className="font-semibold text-lg text-white tracking-tight" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
           </div>
           {onClose && (
             <button
@@ -116,7 +116,7 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
         </div>
 
         <div className="px-5 pb-3">
-          <h2 className="text-2xl font-bold text-white leading-tight">
+          <h2 className="text-2xl font-semibold text-white leading-tight" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>
             Find and post free stuff near you
           </h2>
         </div>
@@ -206,7 +206,6 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                       className="w-full px-3.5 py-2.5 bg-stone-800 border border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all duration-200 text-white text-sm placeholder:text-stone-500"
                       placeholder="Choose a username"
                       required={isSignUp}
-                      style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
                     />
                   </div>
                 )}
@@ -223,7 +222,6 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                     className="w-full px-3.5 py-2.5 bg-stone-800 border border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all duration-200 text-white text-sm placeholder:text-stone-500"
                     placeholder="you@example.com"
                     required
-                    style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
                   />
                 </div>
 
@@ -240,7 +238,6 @@ export function FloatingAuthCard({ onSuccess, onClose }: FloatingAuthCardProps) 
                       placeholder="Enter your password"
                       required
                       minLength={6}
-                      style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
                     />
                     <button
                       type="button"
