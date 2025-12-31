@@ -128,7 +128,6 @@ interface ScrollingRowProps {
 
 function ScrollingRow({ cards, direction, duration, rowIndex, pausedCardId, onCardTap }: ScrollingRowProps) {
   const duplicatedCards = [...cards, ...cards, ...cards];
-  const isPaused = pausedCardId !== null && cards.some(c => c.id === pausedCardId);
 
   return (
     <div
@@ -138,7 +137,8 @@ function ScrollingRow({ cards, direction, duration, rowIndex, pausedCardId, onCa
       <div
         className="flex items-center"
         style={{
-          animation: isPaused ? 'none' : `scroll-${direction} ${duration}s linear infinite`,
+          animation: `scroll-${direction} ${duration}s linear infinite`,
+          animationPlayState: pausedCardId !== null ? 'paused' : 'running',
           width: 'max-content',
         }}
       >
@@ -241,8 +241,8 @@ export function AuthBackgroundGrid() {
         <div
           className="absolute left-0 right-0 flex flex-col pt-2"
           style={{
-            top: 0,
-            height: `calc(100vh - 280px)`
+            top: '160px',
+            bottom: 'calc(280px + env(safe-area-inset-bottom, 0px))'
           }}
         >
           {Array.from({ length: rowCount }).map((_, row) => (
@@ -279,9 +279,9 @@ export function AuthBackgroundGrid() {
       `}</style>
 
       <div
-        className="absolute left-0 right-0 flex flex-col justify-end md:justify-center"
+        className="absolute left-0 right-0 flex flex-col justify-start md:justify-center"
         style={{
-          top: 0,
+          top: '160px',
           bottom: 'calc(280px + env(safe-area-inset-bottom, 0px))',
           paddingTop: '8px'
         }}

@@ -35,11 +35,11 @@ export function AuthPage() {
           </button>
         </div>
 
-        <div className="px-3 pt-6">
+        <div className="px-3 pt-2">
           <h1 className="text-3xl font-bold text-emerald-400 leading-tight" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>
             Find and Post
           </h1>
-          <h2 className="text-2xl font-semibold text-white leading-tight mt-1" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>
+          <h2 className="text-2xl font-semibold text-white leading-tight mt-0.5" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>
             Free Stuff Near You
           </h2>
         </div>
