@@ -12,9 +12,35 @@ import { formatTimeAgo } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
 import { getAvatarUrl, dataURLtoBlob } from '../utils/image';
 
+const PROXIMITY_RADIUS_METERS = 100;
+const CIRCLE_SEGMENTS = 64;
+
 interface TravelTimes {
   driving: string | null;
   walking: string | null;
+}
+
+function createGeoJSONCircle(center: [number, number], radiusMeters: number): GeoJSON.Feature<GeoJSON.Polygon> {
+  const coords: [number, number][] = [];
+  const distanceX = radiusMeters / (111320 * Math.cos((center[1] * Math.PI) / 180));
+  const distanceY = radiusMeters / 110540;
+
+  for (let i = 0; i < CIRCLE_SEGMENTS; i++) {
+    const theta = (i / CIRCLE_SEGMENTS) * (2 * Math.PI);
+    const x = distanceX * Math.cos(theta);
+    const y = distanceY * Math.sin(theta);
+    coords.push([center[0] + x, center[1] + y]);
+  }
+  coords.push(coords[0]);
+
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'Polygon',
+      coordinates: [coords]
+    }
+  };
 }
 
 function formatDuration(seconds: number): string {
@@ -49,62 +75,94 @@ export function ItemDetailPage() {
   const [mapboxToken] = useState(() => import.meta.env.VITE_MAPBOX_TOKEN || '');
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchItem = async () => {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
 
-      const { data } = await supabase
-        .from('items')
-        .select(`*, profiles!items_user_id_fkey (username, avatar_url)`)
-        .eq('id', id)
-        .maybeSingle();
+      try {
+        const { data, error } = await supabase
+          .from('items')
+          .select(`*, profiles!items_user_id_fkey (username, avatar_url)`)
+          .eq('id', id)
+          .maybeSingle();
 
-      if (data) {
-        setItem(data as ItemWithProfile);
+        if (cancelled) return;
 
-        if (user) {
-          const { data: confirmationData } = await supabase
-            .from('confirmations')
-            .select('id')
-            .eq('item_id', id)
-            .eq('user_id', user.id)
-            .maybeSingle();
+        if (error) {
+          console.error('Error fetching item:', error);
+          setLoading(false);
+          return;
+        }
 
-          setHasConfirmed(!!confirmationData);
+        if (data) {
+          setItem(data as ItemWithProfile);
+
+          if (user) {
+            const { data: confirmationData } = await supabase
+              .from('confirmations')
+              .select('id')
+              .eq('item_id', id)
+              .eq('user_id', user.id)
+              .maybeSingle();
+
+            if (!cancelled) {
+              setHasConfirmed(!!confirmationData);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching item:', err);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
         }
       }
-      setLoading(false);
     };
 
     fetchItem();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id, user]);
 
   const fetchTravelTimes = useCallback(async (
     userLat: number,
     userLng: number,
     itemLat: number,
-    itemLng: number
+    itemLng: number,
+    abortSignal?: AbortSignal
   ) => {
-    const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (!mapboxToken) return;
+    const token = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (!token) return;
 
     const coordinates = `${userLng},${userLat};${itemLng},${itemLat}`;
 
     try {
       const [drivingRes, walkingRes] = await Promise.all([
-        fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?access_token=${mapboxToken}`),
-        fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?access_token=${mapboxToken}`)
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?access_token=${token}`, { signal: abortSignal }),
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?access_token=${token}`, { signal: abortSignal })
       ]);
+
+      if (abortSignal?.aborted) return;
 
       const [drivingData, walkingData] = await Promise.all([
         drivingRes.json(),
         walkingRes.json()
       ]);
 
+      if (abortSignal?.aborted) return;
+
       setTravelTimes({
         driving: drivingData.routes?.[0]?.duration ? formatDuration(drivingData.routes[0].duration) : null,
         walking: walkingData.routes?.[0]?.duration ? formatDuration(walkingData.routes[0].duration) : null
       });
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setTravelTimes({ driving: null, walking: null });
     }
   }, []);
@@ -112,15 +170,18 @@ export function ItemDetailPage() {
   useEffect(() => {
     if (!mapContainer.current || !item || !mapboxToken) return;
 
+    let isCleanedUp = false;
+    const containerRef = mapContainer.current;
+
     mapboxgl.accessToken = mapboxToken;
 
     const itemCoords: [number, number] = [item.longitude, item.latitude];
 
     const mapInstance = new mapboxgl.Map({
-      container: mapContainer.current,
+      container: containerRef,
       style: 'mapbox://styles/mapbox/streets-v12',
       center: itemCoords,
-      zoom: 15,
+      zoom: 16,
       attributionControl: false,
       interactive: true
     });
@@ -128,6 +189,37 @@ export function ItemDetailPage() {
     map.current = mapInstance;
 
     mapInstance.on('load', () => {
+      if (isCleanedUp) return;
+
+      const circleGeoJSON = createGeoJSONCircle(itemCoords, PROXIMITY_RADIUS_METERS);
+
+      mapInstance.addSource('proximity-circle', {
+        type: 'geojson',
+        data: circleGeoJSON
+      });
+
+      mapInstance.addLayer({
+        id: 'proximity-circle-fill',
+        type: 'fill',
+        source: 'proximity-circle',
+        paint: {
+          'fill-color': '#10b981',
+          'fill-opacity': 0.1
+        }
+      });
+
+      mapInstance.addLayer({
+        id: 'proximity-circle-stroke',
+        type: 'line',
+        source: 'proximity-circle',
+        paint: {
+          'line-color': '#10b981',
+          'line-width': 2,
+          'line-dasharray': [2, 2],
+          'line-opacity': 0.6
+        }
+      });
+
       setMapReady(true);
       mapInstance.resize();
     });
@@ -147,13 +239,14 @@ export function ItemDetailPage() {
       .addTo(mapInstance);
 
     const resizeObserver = new ResizeObserver(() => {
-      if (mapInstance) {
+      if (!isCleanedUp && mapInstance) {
         mapInstance.resize();
       }
     });
-    resizeObserver.observe(mapContainer.current);
+    resizeObserver.observe(containerRef);
 
     return () => {
+      isCleanedUp = true;
       resizeObserver.disconnect();
       if (map.current) {
         map.current.remove();
@@ -167,6 +260,8 @@ export function ItemDetailPage() {
 
   useEffect(() => {
     if (!map.current || !mapReady || !item) return;
+
+    const abortController = new AbortController();
 
     if (userMarkerRef.current) {
       userMarkerRef.current.remove();
@@ -205,8 +300,12 @@ export function ItemDetailPage() {
         duration: 500
       });
 
-      fetchTravelTimes(location.latitude, location.longitude, item.latitude, item.longitude);
+      fetchTravelTimes(location.latitude, location.longitude, item.latitude, item.longitude, abortController.signal);
     }
+
+    return () => {
+      abortController.abort();
+    };
   }, [location, mapReady, item, fetchTravelTimes]);
 
   const handleClaim = async () => {
