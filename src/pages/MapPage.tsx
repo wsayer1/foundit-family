@@ -65,11 +65,9 @@ export function MapPage() {
 
         <div className="absolute top-0 left-0 right-0 z-20 safe-area-top">
           <div className="flex items-center justify-between gap-2 px-4 pt-4">
-            <div className="flex items-center gap-2 bg-white/95 dark:bg-stone-800/95 backdrop-blur-md px-3 py-2.5 rounded-xl shadow-lg shadow-black/15">
-              <div className="bg-emerald-500 p-1.5 rounded-lg">
-                <MapPin size={16} className="text-white" />
-              </div>
-              <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm">Foundit.Family</span>
+            <div className="flex-shrink-0 bg-emerald-500 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-emerald-500/30 flex items-center gap-2">
+              <MapPin size={20} className="text-white" />
+              <span className="hidden md:inline font-semibold text-white text-sm">Foundit.Family</span>
             </div>
             <div className="flex items-center gap-2">
               <FloatingFilterDropdown
