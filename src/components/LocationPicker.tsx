@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { StepIndicator } from './LocationPermissionScreen';
@@ -334,23 +334,23 @@ export function LocationPicker({
             zIndex: 20,
           }}
         />
+      </div>
 
-        <div
-          className="overflow-hidden"
-          style={{
-            ...getPhotoStyles(),
-            ...(animationPhase === 'complete' && {
-              left: `calc(50% + ${pinOffset.x}px)`,
-              top: `calc(50% + ${pinOffset.y}px)`,
-            }),
-          }}
-        >
-          <img
-            src={imageData}
-            alt="Captured item"
-            className="w-full h-full object-cover"
-          />
-        </div>
+      <div
+        className="overflow-hidden pointer-events-none"
+        style={{
+          ...getPhotoStyles(),
+          ...(animationPhase === 'complete' && {
+            left: `calc(50% + ${pinOffset.x}px)`,
+            top: `calc(50% + ${pinOffset.y}px)`,
+          }),
+        }}
+      >
+        <img
+          src={imageData}
+          alt="Captured item"
+          className="w-full h-full object-cover"
+        />
       </div>
 
       <div
