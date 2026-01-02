@@ -8,20 +8,34 @@ interface CameraCaptureProps {
   onCancel: () => void;
 }
 
+interface ZoomCapabilities {
+  min: number;
+  max: number;
+  current: number;
+}
+
 export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [compressing, setCompressing] = useState(false);
+  const [zoomCapabilities, setZoomCapabilities] = useState<ZoomCapabilities | null>(null);
+  const [currentZoom, setCurrentZoom] = useState(1);
+  const initialPinchDistanceRef = useRef<number | null>(null);
+  const initialZoomRef = useRef<number>(1);
 
   const stopStream = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    videoTrackRef.current = null;
+    setZoomCapabilities(null);
+    setCurrentZoom(1);
   }, []);
 
   const startCamera = useCallback(async () => {
@@ -40,15 +54,91 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
       }
+
+      const videoTrack = newStream.getVideoTracks()[0];
+      videoTrackRef.current = videoTrack;
+
+      if (videoTrack) {
+        const capabilities = videoTrack.getCapabilities() as MediaTrackCapabilities & { zoom?: { min: number; max: number } };
+        if (capabilities.zoom) {
+          const settings = videoTrack.getSettings() as MediaTrackSettings & { zoom?: number };
+          setZoomCapabilities({
+            min: capabilities.zoom.min,
+            max: capabilities.zoom.max,
+            current: settings.zoom || capabilities.zoom.min
+          });
+          setCurrentZoom(settings.zoom || capabilities.zoom.min);
+        }
+      }
+
       setCameraError(null);
     } catch {
       setCameraError('Unable to access camera. Please use the gallery option.');
     }
   }, [stopStream]);
 
+  const applyZoom = useCallback(async (zoom: number) => {
+    if (!videoTrackRef.current || !zoomCapabilities) return;
+
+    const clampedZoom = Math.min(Math.max(zoom, zoomCapabilities.min), zoomCapabilities.max);
+    try {
+      await videoTrackRef.current.applyConstraints({
+        advanced: [{ zoom: clampedZoom } as MediaTrackConstraintSet]
+      });
+      setCurrentZoom(clampedZoom);
+    } catch {
+    }
+  }, [zoomCapabilities]);
+
+  const getDistance = (touches: TouchList) => {
+    const [t1, t2] = [touches[0], touches[1]];
+    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+  };
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && zoomCapabilities) {
+      e.preventDefault();
+      initialPinchDistanceRef.current = getDistance(e.touches);
+      initialZoomRef.current = currentZoom;
+    }
+  }, [zoomCapabilities, currentZoom]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && initialPinchDistanceRef.current && zoomCapabilities) {
+      e.preventDefault();
+      const currentDistance = getDistance(e.touches);
+      const scale = currentDistance / initialPinchDistanceRef.current;
+      const zoomRange = zoomCapabilities.max - zoomCapabilities.min;
+      const newZoom = initialZoomRef.current + (scale - 1) * (zoomRange * 0.5);
+      applyZoom(newZoom);
+    }
+  }, [zoomCapabilities, applyZoom]);
+
+  const handleTouchEnd = useCallback(() => {
+    initialPinchDistanceRef.current = null;
+  }, []);
+
   useEffect(() => {
     startCamera();
     return stopStream;
+  }, []);
+
+  useEffect(() => {
+    const preventZoom = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('touchmove', preventZoom, { passive: false });
+
+    if (window.visualViewport && window.visualViewport.scale !== 1) {
+      window.scrollTo(0, 0);
+    }
+
+    return () => {
+      document.removeEventListener('touchmove', preventZoom);
+    };
   }, []);
 
   const takePhoto = () => {
@@ -100,12 +190,12 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col">
+    <div className="fixed inset-0 bg-black flex flex-col" style={{ touchAction: 'none' }}>
       <canvas ref={canvasRef} className="hidden" />
 
       <div
-        className="absolute top-0 left-0 right-0 z-10 flex items-center justify-center px-4 bg-gradient-to-b from-black/70 to-transparent"
-        style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: '16px' }}
+        className="fixed top-0 left-0 right-0 z-20 flex items-center justify-center px-4 bg-gradient-to-b from-black/70 to-transparent"
+        style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: '16px', touchAction: 'manipulation' }}
       >
         <StepIndicator currentStep={1} />
       </div>
@@ -129,17 +219,36 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
             </button>
           </div>
         ) : (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-          />
+          <div
+            className="w-full h-full relative"
+            style={{ touchAction: 'none' }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+              style={{ touchAction: 'none' }}
+            />
+            {zoomCapabilities && currentZoom > zoomCapabilities.min && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                <span className="text-white text-sm font-medium">
+                  {currentZoom.toFixed(1)}x
+                </span>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-6 pb-10 bg-gradient-to-t from-black/80 to-transparent">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-20 p-6 bg-gradient-to-t from-black/80 to-transparent"
+        style={{ paddingBottom: 'max(40px, env(safe-area-inset-bottom))', touchAction: 'manipulation' }}
+      >
         {capturedImage ? (
           <div className="flex items-center justify-center gap-6">
             <button
