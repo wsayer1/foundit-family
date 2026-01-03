@@ -234,13 +234,6 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
               className="w-full h-full object-cover"
               style={{ touchAction: 'none' }}
             />
-            {zoomCapabilities && currentZoom > zoomCapabilities.min && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                <span className="text-white text-sm font-medium">
-                  {currentZoom.toFixed(1)}x
-                </span>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -272,26 +265,35 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-center gap-6">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
-            >
-              <ImagePlus size={24} />
-            </button>
-            <button
-              onClick={takePhoto}
-              className="p-2 bg-white rounded-full hover:scale-105 transition-transform"
-              disabled={!!cameraError}
-            >
-              <div className="w-16 h-16 border-4 border-stone-300 rounded-full" />
-            </button>
-            <button
-              onClick={onCancel}
-              className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
-            >
-              <X size={24} />
-            </button>
+          <div className="flex flex-col items-center gap-4">
+            {currentZoom > 1 && (
+              <div className="bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                <span className="text-white text-sm font-medium">
+                  {currentZoom.toFixed(1)}x
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-center gap-6">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
+              >
+                <ImagePlus size={24} />
+              </button>
+              <button
+                onClick={takePhoto}
+                className="p-2 bg-white rounded-full hover:scale-105 transition-transform"
+                disabled={!!cameraError}
+              >
+                <div className="w-16 h-16 border-4 border-stone-300 rounded-full" />
+              </button>
+              <button
+                onClick={onCancel}
+                className="p-4 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
           </div>
         )}
       </div>
