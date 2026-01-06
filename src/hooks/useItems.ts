@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import type { ItemWithProfile } from '../types/database';
 import type { FilterState, DistanceFilter, TimeFilter, SortOption } from '../components/FilterBar';
-import { calculateRingDecay } from '../utils/time';
 
 const ITEMS_PER_PAGE = 15;
 const GUEST_ITEMS_LIMIT = 3;
@@ -112,11 +111,6 @@ export function useItems(
   const applyClientFilters = useCallback(
     (data: ItemWithProfile[]): ItemWithProfile[] => {
       let filtered = [...data];
-
-      filtered = filtered.filter((item) => {
-        const decay = calculateRingDecay(item.created_at, item.last_confirmed_at);
-        return decay > 0;
-      });
 
       const distanceLimit = getDistanceLimit(filters.distance);
       if (distanceLimit && userLocation) {
@@ -512,12 +506,7 @@ export function useMapItems(
 
       if (fetchError) throw fetchError;
 
-      const allItems = (data as ItemWithProfile[]) || [];
-      const activeItems = allItems.filter((item) => {
-        const decay = calculateRingDecay(item.created_at, item.last_confirmed_at);
-        return decay > 0;
-      });
-      setItems(activeItems);
+      setItems((data as ItemWithProfile[]) || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch items');
     } finally {

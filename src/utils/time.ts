@@ -53,13 +53,9 @@ export function getFreshnessOpacity(freshness: number): number {
 }
 
 export function getFreshnessColor(freshness: number): string {
-  if (freshness > 0.857) return 'bg-green-500';
-  if (freshness > 0.714) return 'bg-green-400';
-  if (freshness > 0.571) return 'bg-lime-500';
-  if (freshness > 0.429) return 'bg-yellow-500';
-  if (freshness > 0.286) return 'bg-orange-500';
-  if (freshness > 0.143) return 'bg-rose-500';
-  return 'bg-red-500';
+  if (freshness > 0.7) return 'bg-emerald-500';
+  if (freshness > 0.4) return 'bg-amber-500';
+  return 'bg-stone-400';
 }
 
 export function getFreshnessLabel(freshness: number): string {
@@ -87,13 +83,9 @@ export function calculateRingDecay(createdAt: string, lastConfirmedAt?: string |
 }
 
 export function getRingColor(decayPercent: number): string {
-  if (decayPercent > 0.857) return '#22c55e';
-  if (decayPercent > 0.714) return '#4ade80';
-  if (decayPercent > 0.571) return '#84cc16';
-  if (decayPercent > 0.429) return '#eab308';
-  if (decayPercent > 0.286) return '#f97316';
-  if (decayPercent > 0.143) return '#f43f5e';
-  return '#ef4444';
+  if (decayPercent > 0.7) return '#10b981';
+  if (decayPercent > 0.4) return '#f59e0b';
+  return '#a8a29e';
 }
 
 export function getRingStrokeWidth(decayPercent: number): number {
