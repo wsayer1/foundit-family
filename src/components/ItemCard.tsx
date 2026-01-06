@@ -1,6 +1,6 @@
 import { MapPin, Clock, ThumbsUp, Pencil, User, Hand } from 'lucide-react';
 import type { ItemWithProfile } from '../types/database';
-import { formatTimeAgo, calculateFreshness, getFreshnessColor } from '../utils/time';
+import { formatTimeAgo, calculateRingDecay, getFreshnessColor } from '../utils/time';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
 import { getThumbnailUrl, getAvatarUrl } from '../utils/image';
 
@@ -24,7 +24,7 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
   const distance = userLocation
     ? calculateDistance(userLocation.lat, userLocation.lng, item.latitude, item.longitude)
     : null;
-  const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
+  const freshness = calculateRingDecay(item.created_at, item.last_confirmed_at);
   const freshnessColor = getFreshnessColor(freshness);
   const isClaimed = item.status === 'claimed';
 
@@ -106,14 +106,13 @@ export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }:
         </div>
 
         {item.status === 'available' && (
-          <div className="mt-2 flex items-center gap-2">
-            <div className="flex-1 h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+          <div className="mt-2">
+            <div className="h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
               <div
                 className={`h-full ${freshnessColor} rounded-full transition-all duration-300`}
                 style={{ width: `${freshness * 100}%` }}
               />
             </div>
-            <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-shrink-0">{Math.round(freshness * 100)}%</span>
           </div>
         )}
       </div>
@@ -138,9 +137,8 @@ export function ItemCardSkeleton() {
           <div className="w-1 h-1 rounded-full bg-stone-200 dark:bg-stone-700" />
           <div className="h-3.5 bg-stone-200 dark:bg-stone-700 rounded animate-pulse w-10" />
         </div>
-        <div className="mt-2 flex items-center gap-2">
-          <div className="flex-1 h-1 bg-stone-200 dark:bg-stone-700 rounded-full animate-pulse" />
-          <div className="h-3 bg-stone-200 dark:bg-stone-700 rounded animate-pulse w-8" />
+        <div className="mt-2">
+          <div className="h-1 bg-stone-200 dark:bg-stone-700 rounded-full animate-pulse" />
         </div>
       </div>
     </div>

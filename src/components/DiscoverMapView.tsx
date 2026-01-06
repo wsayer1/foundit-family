@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
 import { formatDistance, calculateDistance } from '../hooks/useItems';
-import { formatTimeAgo, calculateFreshness, getFreshnessOpacity, calculateRingDecay, getRingColor } from '../utils/time';
+import { formatTimeAgo, getFreshnessOpacity, calculateRingDecay, getRingColor, getFreshnessColor } from '../utils/time';
 import { getPreviewUrl } from '../utils/image';
 import { useTheme } from '../contexts/ThemeContext';
 import { FloatingAuthCard } from './FloatingAuthCard';
@@ -45,9 +45,9 @@ function createRingSvg(size: number, decayPercent: number, strokeWidth: number, 
         cy="${center}"
         r="${radius}"
         fill="none"
-        stroke="white"
+        stroke="#1c1917"
         stroke-width="${strokeWidth}"
-        style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));"
+        style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));"
       />
       <circle
         cx="${center}"
@@ -66,9 +66,8 @@ function createRingSvg(size: number, decayPercent: number, strokeWidth: number, 
 
 function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string {
   const isClaimed = item.status === 'claimed';
-  const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
-  const decayPercent = calculateRingDecay(item.created_at, item.last_confirmed_at);
-  const ringColor = getRingColor(decayPercent);
+  const freshness = calculateRingDecay(item.created_at, item.last_confirmed_at);
+  const ringColor = getRingColor(freshness);
   const pinColor = isClaimed ? '#78716c' : freshness > 0.7 ? '#10b981' : freshness > 0.4 ? '#f59e0b' : '#78716c';
 
   if (isClaimed) {
@@ -102,7 +101,7 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
   if (isSelected) {
     const selectedSize = 64;
     const ringStrokeSelected = 5;
-    const ringSvg = createRingSvg(selectedSize, decayPercent, ringStrokeSelected, ringColor);
+    const ringSvg = createRingSvg(selectedSize, freshness, ringStrokeSelected, ringColor);
     const imageInset = ringStrokeSelected;
     const imageContainerSize = selectedSize - (imageInset * 2);
     return `
@@ -118,7 +117,7 @@ function createMarkerContent(item: ItemWithProfile, isSelected: boolean): string
 
   const markerSize = 48;
   const ringStrokeNormal = 4;
-  const ringSvg = createRingSvg(markerSize, decayPercent, ringStrokeNormal, ringColor);
+  const ringSvg = createRingSvg(markerSize, freshness, ringStrokeNormal, ringColor);
   const imageInset = ringStrokeNormal;
   const imageContainerSize = markerSize - (imageInset * 2);
 
@@ -267,8 +266,8 @@ export function DiscoverMapView({ items, userLocation, isGuest = false, onEnable
       if (markersMapRef.current.has(item.id)) return;
 
       const isClaimed = item.status === 'claimed';
-      const freshness = calculateFreshness(item.created_at, item.last_confirmed_at);
-      const opacity = isClaimed ? 0.7 : getFreshnessOpacity(freshness);
+      const itemFreshness = calculateRingDecay(item.created_at, item.last_confirmed_at);
+      const opacity = isClaimed ? 0.7 : getFreshnessOpacity(itemFreshness);
 
       const el = document.createElement('div');
       el.className = 'item-marker';
@@ -422,17 +421,16 @@ export function DiscoverMapView({ items, userLocation, isGuest = false, onEnable
                     {selectedItem.description}
                   </p>
                   {selectedItem.status === 'available' && (() => {
-                    const itemFreshness = calculateFreshness(selectedItem.created_at, selectedItem.last_confirmed_at);
-                    const freshnessColor = itemFreshness > 0.7 ? 'bg-emerald-500' : itemFreshness > 0.4 ? 'bg-amber-500' : 'bg-stone-400';
+                    const itemFreshness = calculateRingDecay(selectedItem.created_at, selectedItem.last_confirmed_at);
+                    const freshnessColor = getFreshnessColor(itemFreshness);
                     return (
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                      <div className="mt-2">
+                        <div className="h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
                           <div
                             className={`h-full ${freshnessColor} rounded-full transition-all duration-300`}
                             style={{ width: `${itemFreshness * 100}%` }}
                           />
                         </div>
-                        <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-shrink-0">{Math.round(itemFreshness * 100)}%</span>
                       </div>
                     );
                   })()}
@@ -504,17 +502,16 @@ export function DiscoverMapView({ items, userLocation, isGuest = false, onEnable
                       {selectedItem.description}
                     </p>
                     {selectedItem.status === 'available' && (() => {
-                      const itemFreshness = calculateFreshness(selectedItem.created_at, selectedItem.last_confirmed_at);
-                      const freshnessColor = itemFreshness > 0.7 ? 'bg-emerald-500' : itemFreshness > 0.4 ? 'bg-amber-500' : 'bg-stone-400';
+                      const itemFreshness = calculateRingDecay(selectedItem.created_at, selectedItem.last_confirmed_at);
+                      const freshnessColor = getFreshnessColor(itemFreshness);
                       return (
-                        <div className="mt-2 flex items-center gap-2 pr-8">
-                          <div className="flex-1 h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                        <div className="mt-2 pr-8">
+                          <div className="h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
                             <div
                               className={`h-full ${freshnessColor} rounded-full transition-all duration-300`}
                               style={{ width: `${itemFreshness * 100}%` }}
                             />
                           </div>
-                          <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-shrink-0">{Math.round(itemFreshness * 100)}%</span>
                         </div>
                       );
                     })()}

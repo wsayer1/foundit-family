@@ -84,8 +84,8 @@ export function calculateRingDecay(createdAt: string, lastConfirmedAt?: string |
 
 export function getRingColor(decayPercent: number): string {
   if (decayPercent > 0.7) return '#10b981';
-  if (decayPercent > 0.4) return '#34d399';
-  return '#6ee7b7';
+  if (decayPercent > 0.4) return '#f59e0b';
+  return '#a8a29e';
 }
 
 export function getRingStrokeWidth(decayPercent: number): number {
