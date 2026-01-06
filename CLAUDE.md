@@ -1,4 +1,4 @@
-# Sidewalk - Project Guidelines
+# Foundit.Family - Project Guidelines
 
 ## Documentation Requirements
 
