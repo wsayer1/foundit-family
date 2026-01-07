@@ -1,4 +1,4 @@
-export function metersPerPixelAtZoom(latitude: number, zoom: number): number {
+function metersPerPixelAtZoom(latitude: number, zoom: number): number {
   return 156543.03392 * Math.cos(latitude * Math.PI / 180) / Math.pow(2, zoom);
 }
 
@@ -7,12 +7,7 @@ export function metersToPixels(meters: number, latitude: number, zoom: number): 
   return meters / mpp;
 }
 
-export function pixelsToMeters(pixels: number, latitude: number, zoom: number): number {
-  const mpp = metersPerPixelAtZoom(latitude, zoom);
-  return pixels * mpp;
-}
-
-export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371e3;
   const phi1 = (lat1 * Math.PI) / 180;
   const phi2 = (lat2 * Math.PI) / 180;

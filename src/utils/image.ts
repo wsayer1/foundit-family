@@ -3,43 +3,6 @@ const JPEG_QUALITY = 0.8;
 const AVATAR_SIZE = 200;
 const AVATAR_QUALITY = 0.85;
 
-export async function compressImage(file: File, maxWidth = MAX_IMAGE_WIDTH): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-
-    img.onload = () => {
-      let { width, height } = img;
-
-      if (width > maxWidth) {
-        height = (height * maxWidth) / width;
-        width = maxWidth;
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      ctx?.drawImage(img, 0, 0, width, height);
-
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to compress image'));
-          }
-        },
-        'image/jpeg',
-        JPEG_QUALITY
-      );
-    };
-
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = URL.createObjectURL(file);
-  });
-}
-
 export async function compressDataURL(dataURL: string, maxWidth = MAX_IMAGE_WIDTH): Promise<string> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
@@ -66,7 +29,7 @@ export async function compressDataURL(dataURL: string, maxWidth = MAX_IMAGE_WIDT
   });
 }
 
-export function getOptimizedImageUrl(
+function getOptimizedImageUrl(
   url: string,
   options: { width?: number; quality?: number } = {}
 ): string {

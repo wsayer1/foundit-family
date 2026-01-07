@@ -110,8 +110,8 @@ export interface Database {
 }
 
 export type Profile = Database['public']['Tables']['profiles']['Row'];
-export type Item = Database['public']['Tables']['items']['Row'];
-export type Confirmation = Database['public']['Tables']['confirmations']['Row'];
+
+type Item = Database['public']['Tables']['items']['Row'];
 
 export interface ItemWithProfile extends Item {
   profiles: Pick<Profile, 'username' | 'avatar_url'> | null;

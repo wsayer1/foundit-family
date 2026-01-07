@@ -62,7 +62,7 @@ export function createUserLocationElement(): HTMLElement {
   return userEl;
 }
 
-export function useUserLocationMarker({ map, location }: UserLocationMarkerProps) {
+function useUserLocationMarker({ map, location }: UserLocationMarkerProps) {
   const markerRef = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {

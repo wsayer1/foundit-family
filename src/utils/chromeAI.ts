@@ -52,7 +52,7 @@ async function getLanguageModel(): Promise<LanguageModelAPI | null> {
   return null;
 }
 
-export async function checkChromeAIAvailability(): Promise<boolean> {
+async function checkChromeAIAvailability(): Promise<boolean> {
   try {
     const api = await getLanguageModel();
     if (!api) return false;
@@ -72,7 +72,7 @@ async function dataURLToBlob(dataURL: string): Promise<Blob> {
   return response.blob();
 }
 
-export async function describeImageWithChromeAI(imageData: string): Promise<string> {
+async function describeImageWithChromeAI(imageData: string): Promise<string> {
   const api = await getLanguageModel();
 
   if (!api) {

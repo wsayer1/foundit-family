@@ -12,7 +12,7 @@ interface ConfettiParticle {
 
 const COLORS = ['#10b981', '#059669', '#047857', '#34d399', '#6ee7b7', '#a7f3d0', '#065f46', '#14532d'];
 
-export function triggerConfetti(originX: number, originY: number): void {
+function triggerConfetti(originX: number, originY: number): void {
   const canvas = document.createElement('canvas');
   canvas.style.position = 'fixed';
   canvas.style.top = '0';
