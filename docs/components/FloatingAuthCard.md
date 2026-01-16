@@ -83,6 +83,7 @@ The component uses Tailwind CSS with:
 - Dark theme (stone-950 background)
 - Emerald accent colors
 - Responsive design with bottom sheet on mobile, centered card on desktop
+- Google Sign-In button uses official Google Material Design styles (`.gsi-material-button` classes in `index.css`)
 
 ### Theme Support
 
@@ -150,5 +151,6 @@ Supabase rate limiting errors are displayed to the user.
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2.0 | 2026-01-16 | Updated Google Sign-In button to use official Google brand guidelines |
 | 1.1.0 | 2026-01-16 | Added forgot password flow with email reset |
 | 1.0.0 | Initial | Initial implementation with login/signup |
