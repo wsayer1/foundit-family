@@ -312,10 +312,16 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
                 {!showEmailForm && (
                   <button
                     onClick={handleShowEmailForm}
-                    className="w-full flex items-center justify-center gap-2.5 bg-transparent border border-stone-700 text-stone-300 py-3 px-4 rounded-xl font-medium hover:bg-stone-800 hover:border-stone-600 hover:text-white focus:ring-2 focus:ring-emerald-500/30 transition-all duration-200"
+                    className="gsi-material-button gsi-material-button--outline"
+                    type="button"
                   >
-                    <Mail size={18} />
-                    <span>Continue with email</span>
+                    <div className="gsi-material-button-state"></div>
+                    <div className="gsi-material-button-content-wrapper">
+                      <div className="gsi-material-button-icon">
+                        <Mail size={20} />
+                      </div>
+                      <span className="gsi-material-button-contents">Sign in with email</span>
+                    </div>
                   </button>
                 )}
               </div>
