@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthBackgroundGrid } from '../components/AuthBackgroundGrid';
+import { supabase } from '../lib/supabase';
 
 export function ResetPasswordPage() {
   const navigate = useNavigate();
-  const { updatePassword, user } = useAuth();
+  const { updatePassword, user, loading: authLoading } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -14,6 +15,34 @@ export function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    const handlePasswordRecovery = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const type = hashParams.get('type');
+
+      if (type === 'recovery' && accessToken) {
+        setIsRecoveryMode(true);
+        try {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: hashParams.get('refresh_token') || '',
+          });
+          if (error) {
+            console.error('Session error:', error);
+          }
+        } catch (err) {
+          console.error('Failed to set session:', err);
+        }
+      }
+      setCheckingSession(false);
+    };
+
+    handlePasswordRecovery();
+  }, []);
 
   useEffect(() => {
     if (success && user) {
@@ -70,7 +99,19 @@ export function ResetPasswordPage() {
           style={{ fontFamily: "'Archivo', system-ui, sans-serif" }}
         >
           <div className="px-5 pt-5 pb-5">
-            {success ? (
+            {(checkingSession || authLoading) ? (
+              <div className="text-center py-6">
+                <div className="flex justify-center mb-4">
+                  <Loader2 size={32} className="text-emerald-500 animate-spin" />
+                </div>
+                <h2 className="text-xl font-semibold text-white mb-2" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>
+                  Verifying reset link...
+                </h2>
+                <p className="text-stone-400 text-sm">
+                  Please wait a moment
+                </p>
+              </div>
+            ) : success ? (
               <div className="text-center py-6">
                 <div className="flex justify-center mb-4">
                   <div className="bg-emerald-500/20 p-3 rounded-full">
