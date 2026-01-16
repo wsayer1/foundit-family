@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
 import { AuthBackgroundGrid } from '../components/AuthBackgroundGrid';
 import { FloatingAuthCard } from '../components/FloatingAuthCard';
 
@@ -20,10 +19,11 @@ export function AuthPage() {
 
       <div className="absolute top-0 left-0 right-0 z-50 safe-area-top md:hidden">
         <div className="flex items-center justify-between gap-1.5 px-3 pt-4">
-          <div className="flex-shrink-0 bg-white dark:bg-stone-900 p-2.5 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700">
-            <MapPin size={20} className="text-emerald-500" strokeWidth={2.5} />
-            <span className="font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>Foundit.Family</span>
-          </div>
+          <img
+            src="/foundit.family_logo_small_light_grey_bg.png"
+            alt="Foundit.Family"
+            className="h-11 w-auto rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20"
+          />
           <button
             onClick={handleClose}
             className="p-2 text-white hover:text-stone-300 transition-colors"

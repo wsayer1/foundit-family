@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MapPin, Eye, EyeOff, Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface FloatingAuthCardProps {
@@ -148,12 +148,11 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
       >
         <div className={hideHeader ? 'hidden md:block' : ''}>
           <div className="flex items-center justify-between px-5 pt-4 pb-2">
-            <div className="flex items-center gap-2.5">
-              <div className="bg-emerald-500 p-1.5 rounded-lg">
-                <MapPin size={18} className="text-white" strokeWidth={2.5} />
-              </div>
-              <span className="font-semibold text-lg text-white tracking-tight" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
-            </div>
+            <img
+              src="/foundit.family_logo_small_light_grey_bg.png"
+              alt="Foundit.Family"
+              className="h-9 w-auto"
+            />
             {onClose && (
               <button
                 onClick={onClose}
