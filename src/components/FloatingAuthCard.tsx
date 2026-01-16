@@ -303,7 +303,7 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
                             <path fill="none" d="M0 0h48v48H0z"></path>
                           </svg>
                         </div>
-                        <span className="gsi-material-button-contents">Sign in with Google</span>
+                        <span className="gsi-material-button-contents">{isSignUp ? 'Sign up with Google' : 'Sign in with Google'}</span>
                       </>
                     )}
                   </div>
@@ -320,7 +320,7 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
                       <div className="gsi-material-button-icon">
                         <Mail size={20} />
                       </div>
-                      <span className="gsi-material-button-contents">Sign in with email</span>
+                      <span className="gsi-material-button-contents">{isSignUp ? 'Sign up with email' : 'Sign in with email'}</span>
                     </div>
                   </button>
                 )}
