@@ -10,6 +10,7 @@ import { PostPage } from './pages/PostPage';
 import { ItemDetailPage } from './pages/ItemDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
               <Route path="/item/:id" element={<ItemDetailPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               </Routes>
             </FilterProvider>
           </LocationProvider>

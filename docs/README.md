@@ -11,6 +11,7 @@ This directory contains documentation for all React components in `src/component
 | CameraCapture | [docs/components/CameraCapture.md](components/CameraCapture.md) | [src/components/CameraCapture.tsx](../src/components/CameraCapture.tsx) |
 | FeedbackModal | [docs/components/FeedbackModal.md](components/FeedbackModal.md) | [src/components/FeedbackModal.tsx](../src/components/FeedbackModal.tsx) |
 | FilterBar | [docs/components/FilterBar.md](components/FilterBar.md) | [src/components/FilterBar.tsx](../src/components/FilterBar.tsx) |
+| FloatingAuthCard | [docs/components/FloatingAuthCard.md](components/FloatingAuthCard.md) | [src/components/FloatingAuthCard.tsx](../src/components/FloatingAuthCard.tsx) |
 | ItemCard | [docs/components/ItemCard.md](components/ItemCard.md) | [src/components/ItemCard.tsx](../src/components/ItemCard.tsx) |
 | PullToRefresh | [docs/components/PullToRefresh.md](components/PullToRefresh.md) | [src/components/PullToRefresh.tsx](../src/components/PullToRefresh.tsx) |
 
@@ -25,7 +26,6 @@ The following components require documentation. Use [COMPONENT_TEMPLATE.md](COMP
 | DescriptionEditor | [src/components/DescriptionEditor.tsx](../src/components/DescriptionEditor.tsx) | Medium |
 | DiscoverMapView | [src/components/DiscoverMapView.tsx](../src/components/DiscoverMapView.tsx) | High |
 | EditItemModal | [src/components/EditItemModal.tsx](../src/components/EditItemModal.tsx) | High |
-| FloatingAuthCard | [src/components/FloatingAuthCard.tsx](../src/components/FloatingAuthCard.tsx) | Low |
 | FloatingFilterDropdown | [src/components/FloatingFilterDropdown.tsx](../src/components/FloatingFilterDropdown.tsx) | Medium |
 | GuestHero | [src/components/GuestHero.tsx](../src/components/GuestHero.tsx) | Low |
 | Layout | [src/components/Layout.tsx](../src/components/Layout.tsx) | Medium |
