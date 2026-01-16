@@ -40,10 +40,11 @@ export function PrivacyPage() {
               </p>
               <ul className="list-disc list-inside text-stone-600 dark:text-stone-400 space-y-2 ml-4">
                 <li>Account information (email address, display name)</li>
-                <li>Profile information (avatar, bio)</li>
+                <li>Profile information (avatar)</li>
                 <li>Content you post (photos, descriptions of items)</li>
                 <li>Location data when you choose to share it</li>
-                <li>Communications with us</li>
+                <li>Feedback and bug reports you submit</li>
+                <li>Usage data (items posted, claimed, and confirmed)</li>
               </ul>
             </section>
 
@@ -57,9 +58,9 @@ export function PrivacyPage() {
               <ul className="list-disc list-inside text-stone-600 dark:text-stone-400 space-y-2 ml-4">
                 <li>Provide, maintain, and improve our services</li>
                 <li>Display items near your location</li>
-                <li>Process and complete transactions</li>
+                <li>Track your contributions and award points</li>
                 <li>Send you technical notices and support messages</li>
-                <li>Respond to your comments and questions</li>
+                <li>Respond to your feedback and bug reports</li>
                 <li>Detect and prevent fraudulent activity</li>
               </ul>
             </section>
@@ -106,9 +107,9 @@ export function PrivacyPage() {
               </p>
               <ul className="list-disc list-inside text-stone-600 dark:text-stone-400 space-y-2 ml-4">
                 <li>Access your personal information</li>
-                <li>Correct inaccurate data</li>
-                <li>Request deletion of your data</li>
-                <li>Opt out of marketing communications</li>
+                <li>Correct inaccurate data (via profile settings)</li>
+                <li>Request deletion of your data by contacting us</li>
+                <li>Delete your own posted items at any time</li>
                 <li>Withdraw consent at any time</li>
               </ul>
             </section>

@@ -128,7 +128,7 @@ export function TermsPage() {
                 9. Termination
               </h2>
               <p className="text-stone-600 dark:text-stone-400 leading-relaxed">
-                We reserve the right to suspend or terminate your account at any time for violations of these terms or for any other reason at our discretion. You may also delete your account at any time through your profile settings.
+                We reserve the right to suspend or terminate your account at any time for violations of these terms or for any other reason at our discretion. You may request account deletion by contacting us through the feedback feature.
               </p>
             </section>
 
