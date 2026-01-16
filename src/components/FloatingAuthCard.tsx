@@ -148,11 +148,14 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
       >
         <div className={hideHeader ? 'hidden md:block' : ''}>
           <div className="flex items-center justify-between px-5 pt-4 pb-2">
-            <img
-              src="/foundit.family_logo_small_light_grey_bg.png"
-              alt="Foundit.Family"
-              className="h-9 w-auto"
-            />
+            <div className="flex items-center gap-2.5">
+              <img
+                src="/foundit.family_logo_small_light_grey_bg.png"
+                alt="Foundit.Family"
+                className="h-9 w-auto rounded-lg"
+              />
+              <span className="font-semibold text-lg text-white tracking-tight" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
+            </div>
             {onClose && (
               <button
                 onClick={onClose}

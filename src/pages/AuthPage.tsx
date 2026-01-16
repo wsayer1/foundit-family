@@ -19,11 +19,14 @@ export function AuthPage() {
 
       <div className="absolute top-0 left-0 right-0 z-50 safe-area-top md:hidden">
         <div className="flex items-center justify-between gap-1.5 px-3 pt-4">
-          <img
-            src="/foundit.family_logo_small_light_grey_bg.png"
-            alt="Foundit.Family"
-            className="h-11 w-auto rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20"
-          />
+          <div className="flex items-center gap-2 bg-white dark:bg-stone-900 p-2 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 border border-stone-200 dark:border-stone-700">
+            <img
+              src="/foundit.family_logo_small_light_grey_bg.png"
+              alt="Foundit.Family"
+              className="h-8 w-auto rounded-lg"
+            />
+            <span className="font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
+          </div>
           <button
             onClick={handleClose}
             className="p-2 text-white hover:text-stone-300 transition-colors"

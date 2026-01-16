@@ -32,11 +32,14 @@ export function ProfilePage() {
       <Layout>
         <div className="absolute top-0 left-0 right-0 z-10 safe-area-top">
           <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-            <img
-              src="/foundit.family_logo_small_light_grey_bg.png"
-              alt="Foundit.Family"
-              className="h-11 sm:h-12 w-auto rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20"
-            />
+            <div className="flex-shrink-0 bg-white dark:bg-stone-900 p-2 sm:p-2.5 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700">
+              <img
+                src="/foundit.family_logo_small_light_grey_bg.png"
+                alt="Foundit.Family"
+                className="h-7 sm:h-8 w-auto rounded-lg"
+              />
+              <span className="font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
+            </div>
           </div>
         </div>
         <div className="max-w-lg mx-auto px-4 pt-20 pb-16 text-center">
