@@ -122,10 +122,16 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
 
     try {
       const { error } = await resetPassword(email);
-      if (error) throw error;
+      if (error) {
+        console.error('Password reset error:', error);
+        throw error;
+      }
+      console.log('Password reset email sent successfully to:', email);
       setResetEmailSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send reset email');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send reset email';
+      console.error('Password reset failed:', errorMessage);
+      setError(errorMessage);
     } finally {
       setResetLoading(false);
     }
