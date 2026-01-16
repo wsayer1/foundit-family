@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
+import { useNavigate, useLocation as useRouterLocation, Link } from 'react-router-dom';
 import { MapPin, Sparkles, Loader2, SlidersHorizontal, Clock, Tag, ArrowUpDown, Check } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
@@ -441,6 +441,27 @@ export function DiscoverPage() {
               )}
             </div>
           )}
+
+          <footer className="mt-12 pt-6 border-t border-stone-200 dark:border-stone-800">
+            <div className="flex items-center justify-center gap-4 text-sm text-stone-500 dark:text-stone-400">
+              <Link
+                to="/privacy"
+                className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              <span className="text-stone-300 dark:text-stone-600">|</span>
+              <Link
+                to="/tos"
+                className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
+              >
+                Terms of Service
+              </Link>
+            </div>
+            <p className="text-center text-xs text-stone-400 dark:text-stone-500 mt-3">
+              Foundit.Family
+            </p>
+          </footer>
         </div>
       </PullToRefresh>
 
