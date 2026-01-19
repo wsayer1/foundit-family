@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LocationProvider } from './contexts/LocationContext';
 import { FilterProvider } from './contexts/FilterContext';
+import { LandingPage } from './pages/LandingPage';
 import { DiscoverPage } from './pages/DiscoverPage';
 import { MapPage } from './pages/MapPage';
 import { AuthPage } from './pages/AuthPage';
@@ -22,7 +23,8 @@ function App() {
           <LocationProvider>
             <FilterProvider>
               <Routes>
-              <Route path="/" element={<DiscoverPage />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/discover" element={<DiscoverPage />} />
               <Route path="/map" element={<MapPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/post" element={<PostPage />} />

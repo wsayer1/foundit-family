@@ -13,12 +13,12 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-4 py-3 safe-area-bottom z-50">
       <div className="max-w-lg mx-auto flex items-center justify-between px-2">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/discover')}
           className={`flex flex-col items-center gap-1 transition-colors ${
-            isActive('/') ? 'text-emerald-600 dark:text-emerald-500' : 'text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'
+            isActive('/discover') ? 'text-emerald-600 dark:text-emerald-500' : 'text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'
           }`}
         >
-          <List size={24} strokeWidth={isActive('/') ? 2.5 : 2} />
+          <List size={24} strokeWidth={isActive('/discover') ? 2.5 : 2} />
           <span className="text-xs font-medium">Discover</span>
         </button>
 

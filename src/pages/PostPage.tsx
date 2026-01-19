@@ -91,7 +91,7 @@ export function PostPage() {
     setPosting(true);
     setError(null);
 
-    navigate('/', {
+    navigate('/discover', {
       replace: true,
       state: {
         pendingPost: {
