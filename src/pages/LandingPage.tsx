@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MapPin, Camera, ThumbsUp, Users, ArrowRight, Sparkles, Heart, Recycle, CheckCircle2 } from 'lucide-react';
+import { MapPin, Camera, ThumbsUp, Users, ArrowRight, Sparkles, Heart, Recycle, CheckCircle2, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSiteStats, useFeaturedItems } from '../hooks/useItems';
 import type { FeaturedItem } from '../hooks/useItems';
+import { formatTimeAgo } from '../utils/time';
 
 interface LocationState {
   fromLogo?: boolean;
@@ -441,6 +442,8 @@ function FeaturedItemCard({
   aspectClass: string;
 }) {
   const isAvailable = item.status === 'available';
+  const username = item.profiles?.username || 'Anonymous';
+  const avatarUrl = item.profiles?.avatar_url;
 
   return (
     <div className="relative group overflow-hidden rounded-2xl">
@@ -449,17 +452,32 @@ function FeaturedItemCard({
         alt={item.description || 'Community find'}
         className={`w-full ${aspectClass} object-cover transition-transform duration-300 group-hover:scale-105`}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-2">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={username}
+              className="w-6 h-6 rounded-full object-cover border border-white/20"
+            />
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-stone-700 flex items-center justify-center border border-white/20">
+              <User size={12} className="text-stone-400" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-xs font-medium truncate">{username}</p>
+            <p className="text-stone-400 text-[10px]">{formatTimeAgo(item.created_at)}</p>
+          </div>
           {isAvailable ? (
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400">
-              <CheckCircle2 size={12} />
-              Available now
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded-full">
+              <CheckCircle2 size={10} />
+              Live
             </span>
           ) : (
-            <span className="text-xs font-medium text-stone-400">
-              Recently claimed
+            <span className="text-[10px] font-medium text-stone-400 bg-stone-700/50 px-1.5 py-0.5 rounded-full">
+              Claimed
             </span>
           )}
         </div>

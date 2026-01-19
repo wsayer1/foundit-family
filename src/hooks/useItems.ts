@@ -477,7 +477,16 @@ export interface FeaturedItem {
   category: string | null;
   status: 'available' | 'claimed' | 'expired';
   created_at: string;
+  profiles: {
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
 }
+
+const FEATURED_SELECT = `
+  id, image_url, description, category, status, created_at,
+  profiles!items_user_id_fkey (username, avatar_url)
+`;
 
 export function useFeaturedItems(count = 4) {
   const [items, setItems] = useState<FeaturedItem[]>([]);
@@ -488,7 +497,7 @@ export function useFeaturedItems(count = 4) {
       try {
         const { data: availableItems } = await supabase
           .from('items')
-          .select('id, image_url, description, category, status, created_at')
+          .select(FEATURED_SELECT)
           .eq('status', 'available')
           .order('created_at', { ascending: false })
           .limit(count);
@@ -505,7 +514,7 @@ export function useFeaturedItems(count = 4) {
         if (remaining > 0) {
           let query = supabase
             .from('items')
-            .select('id, image_url, description, category, status, created_at')
+            .select(FEATURED_SELECT)
             .in('status', ['claimed', 'expired'])
             .order('created_at', { ascending: false })
             .limit(remaining);
