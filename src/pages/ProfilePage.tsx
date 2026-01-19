@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { LogOut, Award, Package, ShoppingBag, User, Settings, MessageSquare, Bug } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { ItemCard } from '../components/ItemCard';
@@ -32,14 +32,14 @@ export function ProfilePage() {
       <Layout>
         <div className="absolute top-0 left-0 right-0 z-10 safe-area-top">
           <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-            <div className="flex-shrink-0 bg-white dark:bg-stone-900 p-2 sm:p-2.5 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700">
+            <Link to="/" className="flex-shrink-0 bg-white dark:bg-stone-900 p-2 sm:p-2.5 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
               <img
                 src="/foundit.family_logo_small_light_grey_bg.png"
                 alt="Foundit.Family"
                 className="h-7 sm:h-8 w-auto rounded-lg"
               />
               <span className="font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
-            </div>
+            </Link>
           </div>
         </div>
         <div className="max-w-lg mx-auto px-4 pt-20 pb-16 text-center">
@@ -67,11 +67,13 @@ export function ProfilePage() {
     <Layout>
       <div className="absolute top-0 left-0 right-0 z-10 safe-area-top">
         <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-          <img
-            src="/foundit.family_logo_small_light_grey_bg.png"
-            alt="Foundit.Family"
-            className="h-11 sm:h-12 w-auto rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20"
-          />
+          <Link to="/" className="block">
+            <img
+              src="/foundit.family_logo_small_light_grey_bg.png"
+              alt="Foundit.Family"
+              className="h-11 sm:h-12 w-auto rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 hover:opacity-90 transition-opacity"
+            />
+          </Link>
           <button
             onClick={handleSignOut}
             className="bg-white dark:bg-stone-900 p-2.5 sm:p-3 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center justify-center border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-colors"
