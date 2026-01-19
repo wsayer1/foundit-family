@@ -174,7 +174,7 @@ export function LandingPage() {
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <div className="hidden md:block absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
           <div className="w-6 h-10 border-2 border-white/30 rounded-full flex items-start justify-center p-2">
             <div className="w-1.5 h-2.5 bg-white/50 rounded-full animate-pulse" />
           </div>
@@ -275,7 +275,7 @@ export function LandingPage() {
                   </div>
                 </div>
               )}
-              <div className="absolute -bottom-4 -left-4 bg-emerald-500 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-500/30">
+              <div className="absolute -bottom-4 left-0 bg-emerald-500 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-500/30">
                 All 100% Free
               </div>
             </div>
@@ -452,8 +452,8 @@ function FeaturedItemCard({
         alt={item.description || 'Community find'}
         className={`w-full ${aspectClass} object-cover transition-transform duration-300 group-hover:scale-105`}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute bottom-0 left-0 right-0 p-3 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-300">
         <div className="flex items-center gap-2 mb-2">
           {avatarUrl ? (
             <img
