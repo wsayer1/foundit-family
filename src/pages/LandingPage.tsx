@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MapPin, Camera, ThumbsUp, Users, ArrowRight, Sparkles, Heart, Recycle } from 'lucide-react';
+import { MapPin, Camera, ThumbsUp, Users, ArrowRight, Sparkles, Heart, Recycle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useSiteStats } from '../hooks/useItems';
+import { useSiteStats, useFeaturedItems } from '../hooks/useItems';
+import type { FeaturedItem } from '../hooks/useItems';
 
 interface LocationState {
   fromLogo?: boolean;
@@ -28,6 +29,7 @@ export function LandingPage() {
   const location = useLocation();
   const { user, loading } = useAuth();
   const { stats } = useSiteStats(false);
+  const { items: featuredItems } = useFeaturedItems(4);
 
   const state = location.state as LocationState | null;
   const fromLogo = state?.fromLogo === true;
@@ -249,32 +251,29 @@ export function LandingPage() {
             </div>
 
             <div className="relative">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <img
-                    src="https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=400"
-                    alt="Vintage furniture"
-                    className="rounded-2xl w-full aspect-[4/5] object-cover"
-                  />
-                  <img
-                    src="https://images.pexels.com/photos/2079249/pexels-photo-2079249.jpeg?auto=compress&cs=tinysrgb&w=400"
-                    alt="Dresser"
-                    className="rounded-2xl w-full aspect-square object-cover"
-                  />
+              {featuredItems.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <FeaturedItemCard item={featuredItems[0]} aspectClass="aspect-[4/5]" />
+                    {featuredItems[1] && <FeaturedItemCard item={featuredItems[1]} aspectClass="aspect-square" />}
+                  </div>
+                  <div className="space-y-4 pt-8">
+                    {featuredItems[2] && <FeaturedItemCard item={featuredItems[2]} aspectClass="aspect-square" />}
+                    {featuredItems[3] && <FeaturedItemCard item={featuredItems[3]} aspectClass="aspect-[4/5]" />}
+                  </div>
                 </div>
-                <div className="space-y-4 pt-8">
-                  <img
-                    src="https://images.pexels.com/photos/1084188/pexels-photo-1084188.jpeg?auto=compress&cs=tinysrgb&w=400"
-                    alt="Plants"
-                    className="rounded-2xl w-full aspect-square object-cover"
-                  />
-                  <img
-                    src="https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=400"
-                    alt="Sofa"
-                    className="rounded-2xl w-full aspect-[4/5] object-cover"
-                  />
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <div className="rounded-2xl w-full aspect-[4/5] bg-stone-800/50 animate-pulse" />
+                    <div className="rounded-2xl w-full aspect-square bg-stone-800/50 animate-pulse" />
+                  </div>
+                  <div className="space-y-4 pt-8">
+                    <div className="rounded-2xl w-full aspect-square bg-stone-800/50 animate-pulse" />
+                    <div className="rounded-2xl w-full aspect-[4/5] bg-stone-800/50 animate-pulse" />
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="absolute -bottom-4 -left-4 bg-emerald-500 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-500/30">
                 All 100% Free
               </div>
@@ -430,6 +429,44 @@ function ValueCard({
         {title}
       </h3>
       <p className="text-stone-400 text-sm leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
+function FeaturedItemCard({
+  item,
+  aspectClass,
+}: {
+  item: FeaturedItem;
+  aspectClass: string;
+}) {
+  const isAvailable = item.status === 'available';
+
+  return (
+    <div className="relative group overflow-hidden rounded-2xl">
+      <img
+        src={item.image_url}
+        alt={item.description || 'Community find'}
+        className={`w-full ${aspectClass} object-cover transition-transform duration-300 group-hover:scale-105`}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+        <div className="flex items-center gap-2 mb-1">
+          {isAvailable ? (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400">
+              <CheckCircle2 size={12} />
+              Available now
+            </span>
+          ) : (
+            <span className="text-xs font-medium text-stone-400">
+              Recently claimed
+            </span>
+          )}
+        </div>
+        <p className="text-white text-sm font-medium line-clamp-2">
+          {item.description || item.category || 'Free find'}
+        </p>
+      </div>
     </div>
   );
 }

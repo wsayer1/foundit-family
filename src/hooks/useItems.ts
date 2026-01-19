@@ -470,6 +470,69 @@ export function useAvailableItemCount(filters: FilterState) {
   return { totalCount, loading };
 }
 
+export interface FeaturedItem {
+  id: string;
+  image_url: string;
+  description: string;
+  category: string | null;
+  status: 'available' | 'claimed' | 'expired';
+  created_at: string;
+}
+
+export function useFeaturedItems(count = 4) {
+  const [items, setItems] = useState<FeaturedItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFeaturedItems() {
+      try {
+        const { data: availableItems } = await supabase
+          .from('items')
+          .select('id, image_url, description, category, status, created_at')
+          .eq('status', 'available')
+          .order('created_at', { ascending: false })
+          .limit(count);
+
+        if (availableItems && availableItems.length >= count) {
+          setItems(availableItems as FeaturedItem[]);
+          setLoading(false);
+          return;
+        }
+
+        const existingIds = (availableItems || []).map(i => i.id);
+        const remaining = count - (availableItems?.length || 0);
+
+        if (remaining > 0) {
+          let query = supabase
+            .from('items')
+            .select('id, image_url, description, category, status, created_at')
+            .in('status', ['claimed', 'expired'])
+            .order('created_at', { ascending: false })
+            .limit(remaining);
+
+          if (existingIds.length > 0) {
+            query = query.not('id', 'in', `(${existingIds.join(',')})`);
+          }
+
+          const { data: olderItems } = await query;
+
+          setItems([...(availableItems || []), ...(olderItems || [])] as FeaturedItem[]);
+        } else {
+          setItems((availableItems || []) as FeaturedItem[]);
+        }
+      } catch {
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchFeaturedItems();
+  }, [count]);
+
+  return { items, loading };
+}
+
 export function useMapItems(
   _userLocation: { lat: number; lng: number } | null,
   filters: FilterState,
