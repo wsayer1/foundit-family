@@ -75,7 +75,7 @@ export function LandingPage() {
               className="h-9 w-auto rounded-lg"
             />
             <span
-              className="font-semibold text-lg text-white tracking-tight hidden sm:inline"
+              className="font-semibold text-lg text-white tracking-tight"
               style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}
             >
               foundit.family
