@@ -1,8 +1,12 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Camera, ThumbsUp, Users, ArrowRight, Sparkles, Heart, Recycle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSiteStats } from '../hooks/useItems';
+
+interface LocationState {
+  fromLogo?: boolean;
+}
 
 const SF_NEIGHBORHOODS = [
   'Mission District',
@@ -21,17 +25,23 @@ const LANDING_VISITED_KEY = 'foundit_landing_visited';
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading } = useAuth();
   const { stats } = useSiteStats(false);
 
+  const state = location.state as LocationState | null;
+  const fromLogo = state?.fromLogo === true;
+
   useEffect(() => {
     if (loading) return;
+
+    if (fromLogo) return;
 
     const hasVisited = localStorage.getItem(LANDING_VISITED_KEY);
     if (user || hasVisited) {
       navigate('/discover', { replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, fromLogo]);
 
   const handleEnterApp = () => {
     localStorage.setItem(LANDING_VISITED_KEY, 'true');
@@ -69,12 +79,14 @@ export function LandingPage() {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={handleSignUp}
-              className="text-stone-300 hover:text-white text-sm font-medium transition-colors"
-            >
-              Sign in
-            </button>
+            {!user && (
+              <button
+                onClick={handleSignUp}
+                className="text-stone-300 hover:text-white text-sm font-medium transition-colors"
+              >
+                Sign in
+              </button>
+            )}
             <button
               onClick={handleEnterApp}
               className="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
@@ -124,12 +136,14 @@ export function LandingPage() {
                 Start Exploring
                 <ArrowRight size={20} />
               </button>
-              <button
-                onClick={handleSignUp}
-                className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all border border-white/20"
-              >
-                Create Account
-              </button>
+              {!user && (
+                <button
+                  onClick={handleSignUp}
+                  className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all border border-white/20"
+                >
+                  Create Account
+                </button>
+              )}
             </div>
 
             {stats && (stats.totalItems > 0 || stats.totalUsers > 0) && (
@@ -326,7 +340,9 @@ export function LandingPage() {
           </div>
 
           <p className="text-stone-500 text-sm mt-6">
-            No account required to browse. Create one when you're ready to post.
+            {user
+              ? "Welcome back! Ready to explore?"
+              : "No account required to browse. Create one when you're ready to post."}
           </p>
         </div>
       </section>
