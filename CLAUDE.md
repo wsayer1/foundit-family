@@ -9,9 +9,9 @@
 1. **DO NOT read `PROMPT_HISTORY.md`** — never load it into context. Use a Bash append command to add entries.
 2. **Use this exact Bash command pattern** to append (escape special characters as needed):
    ```bash
-   echo '- **[YYYY-MM-DD]** | <one-line summary of what was done> | Prompt: "<first 300 chars of user prompt, single line>"' >> PROMPT_HISTORY.md
+   echo '- **[YYYY-MM-DD HH:MM]** | <one-line summary of what was done> | Prompt: "<first 300 chars of user prompt, single line>"' >> PROMPT_HISTORY.md
    ```
-3. **Date**: Use the current date in `YYYY-MM-DD` format.
+3. **Date/Time**: Use the current date and time in `YYYY-MM-DD HH:MM` format (24-hour, UTC).
 4. **Summary**: A brief one-line description of what the agent accomplished (e.g., "Added login page with email/password auth").
 6. **Prompt text**: The user's raw prompt, condensed to a single line (replace newlines with spaces), truncated to 300 characters max. Add `[truncated]` if shortened.
 7. **Special characters**: Escape single quotes (`'` -> `'\''`), backticks, and dollar signs in the prompt text to avoid breaking the shell command.
