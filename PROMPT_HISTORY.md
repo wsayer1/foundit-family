@@ -15,3 +15,6 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
   _2026-03-02 17:13 UTC_
 
 [test]}
+- [Updated prompt history format to use square brackets for green summary text]
+  Prompt: "I've noticed that markdown is displayed as green text when it's inside a square bracket. Please put the prompt summary inside of a square bracket so it looks green. Keep it Bolt."
+  _2026-03-02 17:15 UTC_

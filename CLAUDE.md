@@ -9,10 +9,10 @@
 1. **DO NOT read `PROMPT_HISTORY.md`** — never load it into context. Use a Bash append command to add entries.
 2. **Use this exact Bash command pattern** to append (escape special characters as needed):
    ```bash
-   printf '\n- **<one-line summary of what was done>**\n  Prompt: "<first 300 chars of user prompt, single line>"\n  _YYYY-MM-DD HH:MM UTC_\n' >> PROMPT_HISTORY.md
+   printf '\n- [<one-line summary of what was done>]\n  Prompt: "<first 300 chars of user prompt, single line>"\n  _YYYY-MM-DD HH:MM UTC_\n' >> PROMPT_HISTORY.md
    ```
 3. **Format**: Each entry has three lines with a blank line before each entry:
-   - Line 1: `- **Summary text**` (bold, will render green in markdown)
+   - Line 1: `- [Summary text]` (square brackets render as green text)
    - Line 2: `  Prompt: "prompt text here"` (indented with 2 spaces)
    - Line 3: `  _YYYY-MM-DD HH:MM UTC_` (indented with 2 spaces, italicized)
 4. **Date/Time**: Use the current date and time in `YYYY-MM-DD HH:MM` format (24-hour, UTC).
