@@ -8,6 +8,9 @@
     },
     "github": {
       "enabled": true
+    },
+    "shadcn_ui": {
+      "enabled": false
     }
   }
 }
