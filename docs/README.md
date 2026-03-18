@@ -15,6 +15,9 @@ This directory contains documentation for all React components in `src/component
 | ItemCard | [docs/components/ItemCard.md](components/ItemCard.md) | [src/components/ItemCard.tsx](../src/components/ItemCard.tsx) |
 | PreviewCard | [docs/components/PreviewCard.md](components/PreviewCard.md) | [src/components/PreviewCard.tsx](../src/components/PreviewCard.tsx) |
 | PullToRefresh | [docs/components/PullToRefresh.md](components/PullToRefresh.md) | [src/components/PullToRefresh.tsx](../src/components/PullToRefresh.tsx) |
+| FilterSidebar | [docs/components/FilterSidebar.md](components/FilterSidebar.md) | [src/components/FilterSidebar.tsx](../src/components/FilterSidebar.tsx) |
+| MapStyleToggle | [docs/components/MapStyleToggle.md](components/MapStyleToggle.md) | [src/components/MapStyleToggle.tsx](../src/components/MapStyleToggle.tsx) |
+| LeaderboardSidebar | [docs/components/LeaderboardSidebar.md](components/LeaderboardSidebar.md) | [src/components/LeaderboardSidebar.tsx](../src/components/LeaderboardSidebar.tsx) |
 
 ### Undocumented Components
 

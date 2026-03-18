@@ -4,11 +4,24 @@ import { MapPin, Clock, Tag, MapPinOff } from 'lucide-react';
 import { DiscoverMapView } from '../components/DiscoverMapView';
 import { BottomNav } from '../components/BottomNav';
 import { FloatingFilterDropdown } from '../components/FloatingFilterDropdown';
+import { MapStyleToggle } from '../components/MapStyleToggle';
 import { useMapItems, useCategories } from '../hooks/useItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters } from '../contexts/FilterContext';
 import type { TimeFilter, CategoryFilter } from '../components/FilterBar';
+
+const MAP_STYLE_STORAGE_KEY = 'foundit_map_style';
+
+type MapStyle = 'light' | 'dark';
+
+function getStoredMapStyle(): MapStyle | null {
+  try {
+    const stored = localStorage.getItem(MAP_STYLE_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch {}
+  return null;
+}
 
 const timeOptions: { value: TimeFilter; label: string }[] = [
   { value: '2h', label: 'Last 2 hours' },
@@ -31,6 +44,7 @@ export function MapPage() {
   const mapFilters = useMemo(() => ({ ...filters, distance: 'any' as const }), [filters]);
   const { items } = useMapItems(userCoords, mapFilters, !!user, authLoading);
   const { categories } = useCategories();
+  const [mapStyle, setMapStyle] = useState<MapStyle | null>(getStoredMapStyle);
 
   const categoryOptions: { value: string; label: string }[] = [
     { value: 'all', label: 'All Categories' },
@@ -63,6 +77,13 @@ export function MapPage() {
     }
   }, [requestLocation, setLocationEnabled]);
 
+  const handleMapStyleChange = useCallback((style: MapStyle) => {
+    setMapStyle(style);
+    try {
+      localStorage.setItem(MAP_STYLE_STORAGE_KEY, style);
+    } catch {}
+  }, []);
+
   const showLocationPrompt = !userCoords && permissionStatus !== 'denied';
   const showDeniedMessage = !userCoords && permissionStatus === 'denied';
 
@@ -75,6 +96,7 @@ export function MapPage() {
           isGuest={!user}
           onEnableLocation={handleEnableLocation}
           locationLoading={locationLoading}
+          mapStyleOverride={mapStyle || undefined}
         />
 
         <div className="absolute top-0 left-0 right-0 z-20 safe-area-top">
@@ -88,6 +110,10 @@ export function MapPage() {
               <span className="font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
             </Link>
             <div className="flex items-center gap-2">
+              <MapStyleToggle
+                style={mapStyle || 'dark'}
+                onChange={handleMapStyleChange}
+              />
               <FloatingFilterDropdown
                 icon={<Clock size={20} />}
                 label="Time"

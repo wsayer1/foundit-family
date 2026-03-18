@@ -12,12 +12,15 @@ import { FloatingAuthCard } from './FloatingAuthCard';
 import { MapZoomControls } from './MapZoomControls';
 import { createUserLocationElement } from './UserLocationMarker';
 
+type MapStyleOverride = 'light' | 'dark';
+
 interface DiscoverMapViewProps {
   items: ItemWithProfile[];
   userLocation: { lat: number; lng: number } | null;
   isGuest?: boolean;
   onEnableLocation?: () => void;
   locationLoading?: boolean;
+  mapStyleOverride?: MapStyleOverride;
 }
 
 const MAP_STYLES = {
@@ -148,9 +151,10 @@ function setupHoverEffects(el: HTMLElement, isSelected: boolean) {
   el.addEventListener('mouseleave', handleLeave);
 }
 
-export function DiscoverMapView({ items, userLocation, isGuest = false, onEnableLocation, locationLoading = false }: DiscoverMapViewProps) {
+export function DiscoverMapView({ items, userLocation, isGuest = false, onEnableLocation, locationLoading = false, mapStyleOverride }: DiscoverMapViewProps) {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
+  const effectiveStyle = mapStyleOverride || resolvedTheme;
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersMapRef = useRef<Map<string, { marker: mapboxgl.Marker; element: HTMLElement; item: ItemWithProfile }>>(new Map());
@@ -175,7 +179,7 @@ export function DiscoverMapView({ items, userLocation, isGuest = false, onEnable
 
     mapboxgl.accessToken = mapboxToken;
     initialFlyDoneRef.current = false;
-    currentStyleRef.current = resolvedTheme;
+    currentStyleRef.current = effectiveStyle;
 
     const center: [number, number] = userLocation
       ? [userLocation.lng, userLocation.lat]
@@ -183,7 +187,7 @@ export function DiscoverMapView({ items, userLocation, isGuest = false, onEnable
 
     const mapInstance = new mapboxgl.Map({
       container: mapContainer.current,
-      style: MAP_STYLES[resolvedTheme],
+      style: MAP_STYLES[effectiveStyle],
       center,
       zoom: userLocation ? 11 : 11,
       attributionControl: false
@@ -212,11 +216,11 @@ export function DiscoverMapView({ items, userLocation, isGuest = false, onEnable
 
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
-    if (currentStyleRef.current === resolvedTheme) return;
+    if (currentStyleRef.current === effectiveStyle) return;
 
-    currentStyleRef.current = resolvedTheme;
-    map.current.setStyle(MAP_STYLES[resolvedTheme]);
-  }, [resolvedTheme, mapLoaded]);
+    currentStyleRef.current = effectiveStyle;
+    map.current.setStyle(MAP_STYLES[effectiveStyle]);
+  }, [effectiveStyle, mapLoaded]);
 
   useEffect(() => {
     if (!map.current || !mapLoaded) return;

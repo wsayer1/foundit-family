@@ -2,6 +2,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Trophy, Award, Package, ShoppingBag, Sparkles, User, AlertCircle, RefreshCw } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { PullToRefresh } from '../components/PullToRefresh';
+import { LeaderboardSidebar } from '../components/LeaderboardSidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { useLeaderboard, LeaderboardEntry } from '../hooks/useLeaderboard';
 
@@ -132,8 +133,164 @@ function LeaderboardRow({
   );
 }
 
-export function LeaderboardPage() {
+function LeaderboardContent({
+  user,
+  currentUserRank,
+  leaderboard,
+  loading,
+  error,
+  refresh,
+  isUserInTop50,
+}: {
+  user: { id: string } | null;
+  currentUserRank: LeaderboardEntry | null;
+  leaderboard: LeaderboardEntry[];
+  loading: boolean;
+  error: string | null;
+  refresh: () => void;
+  isUserInTop50: boolean;
+}) {
   const navigate = useNavigate();
+
+  return (
+    <>
+      {currentUserRank ? (
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl">
+              <Trophy size={24} />
+            </div>
+            <div>
+              <p className="text-emerald-100 text-sm">Your Rank</p>
+              <p className="text-2xl font-bold">#{currentUserRank.rank}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
+              <Award size={18} className="text-amber-300 mx-auto mb-1" />
+              <p className="text-xl font-bold">{currentUserRank.points.toLocaleString()}</p>
+              <p className="text-xs text-emerald-100">Points</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
+              <Package size={18} className="mx-auto mb-1 opacity-90" />
+              <p className="text-xl font-bold">{currentUserRank.items_posted}</p>
+              <p className="text-xs text-emerald-100">Posted</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
+              <ShoppingBag size={18} className="mx-auto mb-1 opacity-90" />
+              <p className="text-xl font-bold">{currentUserRank.items_claimed}</p>
+              <p className="text-xs text-emerald-100">Claimed</p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-2 text-emerald-100 text-sm">
+            <Sparkles size={16} className="text-amber-300" />
+            <span>Keep sharing to climb the ranks!</span>
+          </div>
+        </div>
+      ) : !user ? (
+        <div className="bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-800 dark:to-stone-900 rounded-3xl p-6 shadow-sm mb-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-stone-200 dark:bg-stone-700 p-3 rounded-xl">
+              <Trophy size={24} className="text-stone-400 dark:text-stone-500" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-stone-900 dark:text-stone-100">
+                Track your ranking
+              </p>
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                Sign in to see where you stand
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/auth')}
+              className="bg-emerald-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-emerald-600 transition-colors text-sm"
+            >
+              Sign in
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="flex items-center gap-2 mb-4">
+        <Trophy size={20} className="text-amber-500" />
+        <h2 className="font-semibold text-stone-900 dark:text-stone-100">Top 50</h2>
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <LeaderboardEntrySkeleton key={i} />
+          ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-16">
+          <div className="bg-red-50 dark:bg-red-900/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="text-red-500 dark:text-red-400" size={32} />
+          </div>
+          <h3 className="font-semibold text-stone-800 dark:text-stone-200 text-lg mb-2">
+            Could not load leaderboard
+          </h3>
+          <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-xs mx-auto">
+            Something went wrong. Please try again.
+          </p>
+          <button
+            onClick={refresh}
+            className="inline-flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-600 transition-colors"
+          >
+            <RefreshCw size={16} />
+            Retry
+          </button>
+        </div>
+      ) : leaderboard.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="bg-stone-100 dark:bg-stone-800 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trophy className="text-stone-400 dark:text-stone-500" size={32} />
+          </div>
+          <h3 className="font-semibold text-stone-800 dark:text-stone-200 text-lg mb-2">
+            No community members yet
+          </h3>
+          <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-xs mx-auto">
+            Be the first to post an item and start earning points!
+          </p>
+          <button
+            onClick={() => navigate(user ? '/post' : '/auth')}
+            className="bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-600 transition-colors"
+          >
+            {user ? 'Post an item' : 'Get started'}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {leaderboard.map((entry) => (
+            <LeaderboardRow
+              key={entry.id}
+              entry={entry}
+              isCurrentUser={entry.id === user?.id}
+              showAvatar={entry.rank <= 5}
+            />
+          ))}
+
+          {currentUserRank && !isUserInTop50 && (
+            <>
+              <div className="flex items-center gap-3 py-2">
+                <div className="flex-1 border-t border-dashed border-stone-300 dark:border-stone-700" />
+                <span className="text-xs text-stone-400 dark:text-stone-500">
+                  Your position
+                </span>
+                <div className="flex-1 border-t border-dashed border-stone-300 dark:border-stone-700" />
+              </div>
+              <LeaderboardRow entry={currentUserRank} isCurrentUser showAvatar={false} />
+            </>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+export function LeaderboardPage() {
   const { user } = useAuth();
   const { leaderboard, currentUserRank, loading, error, refresh } = useLeaderboard(user?.id);
 
@@ -143,6 +300,16 @@ export function LeaderboardPage() {
   };
 
   const isUserInTop50 = currentUserRank && currentUserRank.rank <= 50;
+
+  const contentProps = {
+    user: user ? { id: user.id } : null,
+    currentUserRank,
+    leaderboard,
+    loading,
+    error,
+    refresh,
+    isUserInTop50: !!isUserInTop50,
+  };
 
   return (
     <Layout>
@@ -159,139 +326,21 @@ export function LeaderboardPage() {
         </div>
       </div>
       <PullToRefresh onRefresh={handleRefresh} className="flex-1 pt-16">
-        <div className="max-w-lg mx-auto px-4 py-6">
-          {currentUserRank ? (
-            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl">
-                  <Trophy size={24} />
-                </div>
-                <div>
-                  <p className="text-emerald-100 text-sm">Your Rank</p>
-                  <p className="text-2xl font-bold">#{currentUserRank.rank}</p>
-                </div>
-              </div>
+        <div className="max-w-lg mx-auto px-4 py-6 lg:hidden">
+          <LeaderboardContent {...contentProps} />
+        </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-                  <Award size={18} className="text-amber-300 mx-auto mb-1" />
-                  <p className="text-xl font-bold">{currentUserRank.points.toLocaleString()}</p>
-                  <p className="text-xs text-emerald-100">Points</p>
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-                  <Package size={18} className="mx-auto mb-1 opacity-90" />
-                  <p className="text-xl font-bold">{currentUserRank.items_posted}</p>
-                  <p className="text-xs text-emerald-100">Posted</p>
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-                  <ShoppingBag size={18} className="mx-auto mb-1 opacity-90" />
-                  <p className="text-xl font-bold">{currentUserRank.items_claimed}</p>
-                  <p className="text-xs text-emerald-100">Claimed</p>
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center gap-2 text-emerald-100 text-sm">
-                <Sparkles size={16} className="text-amber-300" />
-                <span>Keep sharing to climb the ranks!</span>
+        <div className="hidden lg:block max-w-6xl mx-auto px-6 py-6">
+          <div className="flex gap-6">
+            <div className="flex-1 min-w-0 max-w-2xl">
+              <LeaderboardContent {...contentProps} />
+            </div>
+            <div className="w-80 flex-shrink-0">
+              <div className="sticky top-4">
+                <LeaderboardSidebar />
               </div>
             </div>
-          ) : !user ? (
-            <div className="bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-800 dark:to-stone-900 rounded-3xl p-6 shadow-sm mb-6">
-              <div className="flex items-center gap-4">
-                <div className="bg-stone-200 dark:bg-stone-700 p-3 rounded-xl">
-                  <Trophy size={24} className="text-stone-400 dark:text-stone-500" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-stone-900 dark:text-stone-100">
-                    Track your ranking
-                  </p>
-                  <p className="text-sm text-stone-500 dark:text-stone-400">
-                    Sign in to see where you stand
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate('/auth')}
-                  className="bg-emerald-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-emerald-600 transition-colors text-sm"
-                >
-                  Sign in
-                </button>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="flex items-center gap-2 mb-4">
-            <Trophy size={20} className="text-amber-500" />
-            <h2 className="font-semibold text-stone-900 dark:text-stone-100">Top 50</h2>
           </div>
-
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <LeaderboardEntrySkeleton key={i} />
-              ))}
-            </div>
-          ) : error ? (
-            <div className="text-center py-16">
-              <div className="bg-red-50 dark:bg-red-900/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="text-red-500 dark:text-red-400" size={32} />
-              </div>
-              <h3 className="font-semibold text-stone-800 dark:text-stone-200 text-lg mb-2">
-                Could not load leaderboard
-              </h3>
-              <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-xs mx-auto">
-                Something went wrong. Please try again.
-              </p>
-              <button
-                onClick={refresh}
-                className="inline-flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-600 transition-colors"
-              >
-                <RefreshCw size={16} />
-                Retry
-              </button>
-            </div>
-          ) : leaderboard.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="bg-stone-100 dark:bg-stone-800 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trophy className="text-stone-400 dark:text-stone-500" size={32} />
-              </div>
-              <h3 className="font-semibold text-stone-800 dark:text-stone-200 text-lg mb-2">
-                No community members yet
-              </h3>
-              <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-xs mx-auto">
-                Be the first to post an item and start earning points!
-              </p>
-              <button
-                onClick={() => navigate(user ? '/post' : '/auth')}
-                className="bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-600 transition-colors"
-              >
-                {user ? 'Post an item' : 'Get started'}
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {leaderboard.map((entry) => (
-                <LeaderboardRow
-                  key={entry.id}
-                  entry={entry}
-                  isCurrentUser={entry.id === user?.id}
-                  showAvatar={entry.rank <= 5}
-                />
-              ))}
-
-              {currentUserRank && !isUserInTop50 && (
-                <>
-                  <div className="flex items-center gap-3 py-2">
-                    <div className="flex-1 border-t border-dashed border-stone-300 dark:border-stone-700" />
-                    <span className="text-xs text-stone-400 dark:text-stone-500">
-                      Your position
-                    </span>
-                    <div className="flex-1 border-t border-dashed border-stone-300 dark:border-stone-700" />
-                  </div>
-                  <LeaderboardRow entry={currentUserRank} isCurrentUser showAvatar={false} />
-                </>
-              )}
-            </div>
-          )}
         </div>
       </PullToRefresh>
     </Layout>
