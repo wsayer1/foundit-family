@@ -3,14 +3,8 @@
     "notion": {
       "enabled": true
     },
-    "linear": {
-      "enabled": true
-    },
     "github": {
       "enabled": true
-    },
-    "shadcn_ui": {
-      "enabled": false
     }
   }
 }
