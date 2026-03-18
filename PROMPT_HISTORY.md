@@ -25,3 +25,7 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
 - [Fixed landing page skeleton loaders persisting after load; featured items now fall back to past items]
   Prompt: "The Your Neighborhood, Your Community section of the landing page still has rotating skeleton loaders. Also, if there are no current items in the database, use past ones."
   _2026-03-18 12:15 UTC_
+
+- [Fixed leaderboard page: created public_profiles DB view for data privacy, updated hook to query restricted view, fixed skeleton loader width, added error state display]
+  Prompt: "1. yes they can be visible. 2. actually just use the entire username 3. yes please"
+  _2026-03-18 19:30 UTC_

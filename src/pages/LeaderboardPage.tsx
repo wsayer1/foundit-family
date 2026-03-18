@@ -1,5 +1,5 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { Trophy, Award, Package, ShoppingBag, Sparkles, User } from 'lucide-react';
+import { Trophy, Award, Package, ShoppingBag, Sparkles, User, AlertCircle, RefreshCw } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { useAuth } from '../contexts/AuthContext';
@@ -37,14 +37,13 @@ function getRankStyle(rank: number): { bg: string; text: string; border: string 
 function LeaderboardEntrySkeleton() {
   return (
     <div className="bg-white dark:bg-stone-900 rounded-2xl p-4 animate-pulse">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 bg-stone-200 dark:bg-stone-700 rounded-full" />
-        <div className="w-10 h-10 bg-stone-200 dark:bg-stone-700 rounded-full" />
-        <div className="flex-1">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 bg-stone-200 dark:bg-stone-700 rounded-full flex-shrink-0" />
+        <div className="flex-1 min-w-0">
           <div className="h-4 bg-stone-200 dark:bg-stone-700 rounded w-24 mb-2" />
           <div className="h-3 bg-stone-200 dark:bg-stone-700 rounded w-16" />
         </div>
-        <div className="h-6 bg-stone-200 dark:bg-stone-700 rounded w-16" />
+        <div className="h-8 bg-stone-200 dark:bg-stone-700 rounded-full w-20 flex-shrink-0" />
       </div>
     </div>
   );
@@ -136,7 +135,7 @@ function LeaderboardRow({
 export function LeaderboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { leaderboard, currentUserRank, loading, refresh } = useLeaderboard(user?.id);
+  const { leaderboard, currentUserRank, loading, error, refresh } = useLeaderboard(user?.id);
 
   const handleRefresh = async () => {
     refresh();
@@ -230,6 +229,25 @@ export function LeaderboardPage() {
               {[1, 2, 3, 4, 5].map((i) => (
                 <LeaderboardEntrySkeleton key={i} />
               ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <div className="bg-red-50 dark:bg-red-900/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="text-red-500 dark:text-red-400" size={32} />
+              </div>
+              <h3 className="font-semibold text-stone-800 dark:text-stone-200 text-lg mb-2">
+                Could not load leaderboard
+              </h3>
+              <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-xs mx-auto">
+                Something went wrong. Please try again.
+              </p>
+              <button
+                onClick={refresh}
+                className="inline-flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-600 transition-colors"
+              >
+                <RefreshCw size={16} />
+                Retry
+              </button>
             </div>
           ) : leaderboard.length === 0 ? (
             <div className="text-center py-16">

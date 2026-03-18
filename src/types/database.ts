@@ -111,6 +111,15 @@ export interface Database {
 
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 
+export interface PublicProfile {
+  id: string;
+  username: string | null;
+  avatar_url: string | null;
+  points: number;
+  items_posted: number;
+  items_claimed: number;
+}
+
 type Item = Database['public']['Tables']['items']['Row'];
 
 export interface ItemWithProfile extends Item {

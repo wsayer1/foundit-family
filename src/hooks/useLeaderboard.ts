@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Profile } from '../types/database';
+import type { PublicProfile } from '../types/database';
 
-export interface LeaderboardEntry extends Profile {
+export interface LeaderboardEntry extends PublicProfile {
   rank: number;
 }
 
@@ -13,6 +13,8 @@ interface UseLeaderboardResult {
   error: string | null;
   refresh: () => void;
 }
+
+const PUBLIC_PROFILE_COLUMNS = 'id, username, avatar_url, points, items_posted, items_claimed';
 
 export function useLeaderboard(currentUserId: string | undefined): UseLeaderboardResult {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -26,8 +28,8 @@ export function useLeaderboard(currentUserId: string | undefined): UseLeaderboar
 
     try {
       const { data: topProfiles, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
+        .from('public_profiles')
+        .select(PUBLIC_PROFILE_COLUMNS)
         .order('points', { ascending: false })
         .limit(50);
 
@@ -47,8 +49,8 @@ export function useLeaderboard(currentUserId: string | undefined): UseLeaderboar
           setCurrentUserRank(userInTop50);
         } else {
           const { data: userProfile, error: userError } = await supabase
-            .from('profiles')
-            .select('*')
+            .from('public_profiles')
+            .select(PUBLIC_PROFILE_COLUMNS)
             .eq('id', currentUserId)
             .maybeSingle();
 
@@ -56,8 +58,8 @@ export function useLeaderboard(currentUserId: string | undefined): UseLeaderboar
 
           if (userProfile) {
             const { count, error: countError } = await supabase
-              .from('profiles')
-              .select('*', { count: 'exact', head: true })
+              .from('public_profiles')
+              .select('id', { count: 'exact', head: true })
               .gt('points', userProfile.points);
 
             if (countError) throw countError;
