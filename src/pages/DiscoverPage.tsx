@@ -410,7 +410,7 @@ export function DiscoverPage() {
   return (
     <Layout>
       <div className="absolute top-0 left-0 right-0 z-40 safe-area-top">
-        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:max-w-6xl lg:mx-auto lg:px-6 pt-4">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
           <Link to="/" state={{ fromLogo: true }} className="flex-shrink-0 bg-white dark:bg-stone-900 p-2 sm:p-2.5 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
             <img
               src="/foundit.family_logo_small_light_grey_bg.png"
