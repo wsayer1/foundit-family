@@ -105,9 +105,9 @@ export function LandingPage() {
           <img
             src="https://images.pexels.com/photos/1006965/pexels-photo-1006965.jpeg?auto=compress&cs=tinysrgb&w=1920"
             alt="San Francisco skyline"
-            className="w-full h-full object-cover opacity-30"
+            className="w-full h-full object-cover opacity-50 brightness-110"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-stone-950/60 via-stone-950/80 to-stone-950" />
+          <div className="absolute inset-0 bg-gradient-to-b from-stone-950/30 via-stone-950/60 to-stone-950" />
         </div>
 
         <div className="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
@@ -266,12 +266,12 @@ export function LandingPage() {
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-4">
-                    <div className="rounded-2xl w-full aspect-[4/5] bg-stone-800/50 animate-pulse" />
-                    <div className="rounded-2xl w-full aspect-square bg-stone-800/50 animate-pulse" />
+                    <FeaturedItemSkeleton aspectClass="aspect-[4/5]" />
+                    <FeaturedItemSkeleton aspectClass="aspect-square" />
                   </div>
                   <div className="space-y-4 pt-8">
-                    <div className="rounded-2xl w-full aspect-square bg-stone-800/50 animate-pulse" />
-                    <div className="rounded-2xl w-full aspect-[4/5] bg-stone-800/50 animate-pulse" />
+                    <FeaturedItemSkeleton aspectClass="aspect-square" />
+                    <FeaturedItemSkeleton aspectClass="aspect-[4/5]" />
                   </div>
                 </div>
               )}
@@ -430,6 +430,29 @@ function ValueCard({
         {title}
       </h3>
       <p className="text-stone-400 text-sm leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
+function FeaturedItemSkeleton({ aspectClass }: { aspectClass: string }) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-stone-800/50 animate-pulse">
+      <div className={`w-full ${aspectClass} bg-stone-700/50`} />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-6 h-6 rounded-full bg-stone-600/50" />
+          <div className="flex-1 min-w-0 space-y-1">
+            <div className="h-3 w-16 bg-stone-600/50 rounded" />
+            <div className="h-2 w-10 bg-stone-600/50 rounded" />
+          </div>
+          <div className="h-4 w-10 bg-stone-600/50 rounded-full" />
+        </div>
+        <div className="space-y-1">
+          <div className="h-3.5 w-full bg-stone-600/50 rounded" />
+          <div className="h-3.5 w-2/3 bg-stone-600/50 rounded" />
+        </div>
+      </div>
     </div>
   );
 }

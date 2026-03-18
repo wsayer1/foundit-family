@@ -122,57 +122,65 @@ export interface AIDescriptionResult {
   description: string;
 }
 
+async function callServer(
+  imageData: string,
+  supabaseUrl: string,
+  supabaseKey: string
+): Promise<AIDescriptionResult | null> {
+  const response = await fetch(
+    `${supabaseUrl}/functions/v1/describe-image`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ imageData }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (data.success === false) {
+    console.warn('[AI Description] Server classification failed:', data.reason);
+    return null;
+  }
+
+  if (data.tag && data.description && data.tag !== 'item' && data.description !== 'Curbside find') {
+    return { tag: data.tag, description: data.description };
+  }
+
+  if (data.description && data.description !== 'Curbside find') {
+    return { tag: data.tag || 'item', description: data.description };
+  }
+
+  return null;
+}
+
 export async function describeImageWithFallback(
   imageData: string,
   supabaseUrl: string,
   supabaseKey: string
 ): Promise<AIDescriptionResult> {
+  try {
+    const result = await callServer(imageData, supabaseUrl, supabaseKey);
+    if (result) return result;
+  } catch (error) {
+    console.error('[AI Description] Server call failed:', error);
+  }
+
   const chromeAIAvailable = await checkChromeAIAvailability();
-  console.log('[AI Description] Chrome AI available:', chromeAIAvailable);
 
   if (chromeAIAvailable) {
     try {
-      console.log('[AI Description] Attempting Chrome AI...');
       const description = await describeImageWithChromeAI(imageData);
-      if (description && description.length > 0) {
-        console.log('[AI Description] Chrome AI success:', description);
+      if (description && description.length > 10) {
         return { tag: 'item', description };
       }
     } catch (error) {
-      console.log('[AI Description] Chrome AI failed, falling back to server:', error);
+      console.warn('[AI Description] Chrome AI failed:', error);
     }
   }
 
-  console.log('[AI Description] Using server fallback...');
-  try {
-    const response = await fetch(
-      `${supabaseUrl}/functions/v1/describe-image`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ imageData }),
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log('[AI Description] Server response:', data);
-      if (data.debug) {
-        console.warn('[AI Description] Server debug info:', data.debug, data.message || data.error);
-      }
-      return {
-        tag: data.tag || 'item',
-        description: data.description || 'Curbside find'
-      };
-    } else {
-      console.error('[AI Description] Server error:', response.status, response.statusText);
-    }
-  } catch (error) {
-    console.error('[AI Description] Server fallback failed:', error);
-  }
-
-  return { tag: 'item', description: 'Curbside find' };
+  return { tag: 'item', description: '' };
 }

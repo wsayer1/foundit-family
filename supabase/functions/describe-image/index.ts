@@ -6,40 +6,70 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function extractJSON(raw: string): { tag: string; description: string } | null {
+  const cleaned = raw
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .trim();
+
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (parsed.tag && parsed.description) return parsed;
+  } catch { /* try regex fallback */ }
+
+  const tagMatch = cleaned.match(/"tag"\s*:\s*"([^"]+)"/);
+  const descMatch = cleaned.match(/"description"\s*:\s*"([^"]+)"/);
+
+  if (tagMatch && descMatch) {
+    return { tag: tagMatch[1], description: descMatch[1] };
+  }
+
+  return null;
+}
+
+const PROMPT = `You are an AI assistant that analyzes images of items found on the street and generates structured data about them.
+
+When you receive an image, examine it carefully and:
+1. Identify the main item(s) in the image
+2. Determine an appropriate tag/category (e.g., "sofa", "bookshelf", "chair", "table", "dresser", "mattress", "television", "refrigerator", "clothing", "toys", "books", "electronics", "kitchen", "tools", "outdoor", "sports", "appliances", "decor", etc.)
+3. Write a brief, direct description of the item's condition, color, style, and any notable features
+
+Output your response as valid JSON with this exact structure:
+{"tag": "item_category", "description": "Direct description without introductory phrases"}
+
+Requirements:
+- Do NOT include phrases like "Here's a description" or "This is a"
+- Start descriptions directly with descriptive content
+- Keep descriptions concise but informative (2-3 sentences max)
+- Use lowercase for tags, keep them simple (single words when possible)
+- Return ONLY the JSON object, no additional text or markdown`;
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
+    return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   try {
     const { imageData } = await req.json();
 
     if (!imageData) {
-      return new Response(
-        JSON.stringify({ error: "No image data provided", debug: "missing_image" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return jsonResponse({ error: "No image data provided" }, 400);
     }
 
     const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
 
     if (!geminiApiKey) {
-      return new Response(
-        JSON.stringify({
-          tag: "item",
-          description: "Curbside find",
-          debug: "no_api_key",
-          message: "GEMINI_API_KEY not configured"
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      console.error("GEMINI_API_KEY not configured");
+      return jsonResponse(
+        { tag: "item", description: "Curbside find", success: false, reason: "api_not_configured" },
+        503
       );
     }
 
@@ -47,108 +77,87 @@ Deno.serve(async (req: Request) => {
       ? imageData.split(",")[1]
       : imageData;
 
-    const response = await fetch(
+    const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `You are an AI assistant that analyzes images of items found on the street and generates structured data about them. Your task is to identify household items that people commonly leave outside and provide specific information in JSON format.
-
-When you receive an image, examine it carefully and:
-
-1. Identify the main item(s) in the image
-2. Determine an appropriate tag/category for the item (e.g., "sofa", "bookshelf", "chair", "table", "dresser", "mattress", "television", "refrigerator", etc.)
-3. Write a brief, direct description of the item's condition, color, style, and any notable features
-
-Output your response as valid JSON with the following structure:
-{
-  "tag": "item_category",
-  "description": "Direct description without introductory phrases"
-}
-
-Requirements:
-- Do NOT include phrases like "Here's a description" or "This is a" in your description
-- Start descriptions directly with descriptive content
-- Focus on items that are typically household furniture, appliances, or common personal belongings
-- Keep descriptions concise but informative (2-3 sentences maximum)
-- Use lowercase for tags and keep them simple (single words when possible)
-- Return ONLY the JSON object, no additional text or markdown`,
-                },
-                {
-                  inline_data: {
-                    mime_type: "image/jpeg",
-                    data: base64Data,
-                  },
-                },
-              ],
-            },
-          ],
+          contents: [{
+            parts: [
+              { text: PROMPT },
+              { inline_data: { mime_type: "image/jpeg", data: base64Data } },
+            ],
+          }],
           generationConfig: {
             temperature: 0.4,
             topK: 32,
             topP: 1,
-            maxOutputTokens: 200,
+            maxOutputTokens: 300,
+            responseMimeType: "application/json",
           },
         }),
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API error:", errorText);
-      return new Response(
-        JSON.stringify({
-          tag: "item",
-          description: "Curbside find",
-          debug: "api_error",
-          error: errorText
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text();
+      console.error("Gemini API error:", geminiResponse.status, errorText);
+      return jsonResponse(
+        { tag: "item", description: "Curbside find", success: false, reason: "api_error" },
+        502
       );
     }
 
-    const data = await response.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const data = await geminiResponse.json();
 
-    let tag = "item";
-    let description = "Curbside find";
-
-    try {
-      const cleanedText = rawText.replace(/```json\n?|\n?```/g, "").trim();
-      const parsed = JSON.parse(cleanedText);
-      tag = parsed.tag || "item";
-      description = parsed.description || "Curbside find";
-    } catch {
-      description = rawText.trim() || "Curbside find";
+    const blockReason = data.candidates?.[0]?.finishReason;
+    if (blockReason === "SAFETY" || blockReason === "RECITATION") {
+      console.warn("Gemini blocked response:", blockReason);
+      return jsonResponse(
+        { tag: "item", description: "Curbside find", success: false, reason: "content_blocked" },
+        200
+      );
     }
 
-    return new Response(
-      JSON.stringify({ tag, description }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    if (!rawText) {
+      console.error("Empty Gemini response:", JSON.stringify(data));
+      return jsonResponse(
+        { tag: "item", description: "Curbside find", success: false, reason: "empty_response" },
+        502
+      );
+    }
+
+    const parsed = extractJSON(rawText);
+
+    if (parsed) {
+      return jsonResponse({
+        tag: parsed.tag.toLowerCase(),
+        description: parsed.description,
+        success: true,
+      });
+    }
+
+    const trimmed = rawText.trim();
+    if (trimmed.length > 10) {
+      return jsonResponse({
+        tag: "item",
+        description: trimmed.slice(0, 300),
+        success: true,
+      });
+    }
+
+    return jsonResponse(
+      { tag: "item", description: "Curbside find", success: false, reason: "parse_failed" },
+      502
     );
   } catch (error) {
     console.error("Error processing image:", error);
-    return new Response(
-      JSON.stringify({
-        tag: "item",
-        description: "Curbside find",
-        debug: "exception",
-        error: error instanceof Error ? error.message : String(error)
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return jsonResponse(
+      { tag: "item", description: "Curbside find", success: false, reason: "exception" },
+      500
     );
   }
 });
