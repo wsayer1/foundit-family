@@ -179,10 +179,10 @@ When `item.status === 'claimed'`:
 ### Skeleton State
 
 `ItemCardSkeleton` component provides:
-- Animated pulse placeholder for image
-- Animated text placeholders
-- Animated avatar and metadata placeholders
-- Matching dimensions to real cards
+- Individual `animate-pulse` on each placeholder element (not on outer container, to prevent layout expansion)
+- `w-full` on outer container to match `ItemCard` width behavior
+- Matching dimensions and padding to real cards for zero layout shift
+- Static (non-animated) separator dots and freshness bar background for visual stability
 
 ## Edge Cases
 
@@ -296,3 +296,4 @@ describe('ItemCard', () => {
 | 1.0.0 | 2024-12-06 | Initial implementation with basic display |
 | 1.1.0 | 2024-12-20 | Added freshness indicator and confirmation count |
 | 1.2.0 | 2024-12-30 | Added claimed status display with claimer name |
+| 1.3.0 | 2026-03-18 | Fixed skeleton layout expansion by moving animate-pulse to individual elements and adding w-full |

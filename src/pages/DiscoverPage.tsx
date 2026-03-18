@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation as useRouterLocation, Link } from 'react-router-dom';
-import { MapPin, Sparkles, Loader2, SlidersHorizontal, Clock, Tag, ArrowUpDown, Check } from 'lucide-react';
+import { MapPin, Loader2, SlidersHorizontal, Clock, Tag, ArrowUpDown, Check } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
@@ -8,12 +8,13 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { GuestHero, GuestBottomCTA } from '../components/GuestHero';
 import { FloatingAuthCard } from '../components/FloatingAuthCard';
 import { FloatingFilterDropdown } from '../components/FloatingFilterDropdown';
-import { useItems, useCategories, useSiteStats, useAvailableItemCount } from '../hooks/useItems';
+import { useItems, useCategories, useSiteStats, useAvailableItemCount, useRecentListings } from '../hooks/useItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { supabase } from '../lib/supabase';
 import { dataURLtoBlob } from '../utils/image';
 import { useFilters, DEFAULT_FILTERS } from '../contexts/FilterContext';
+import { PreviewCard, PreviewCardSkeleton } from '../components/PreviewCard';
 import type { ItemWithProfile } from '../types/database';
 import type { DistanceFilter, TimeFilter, CategoryFilter, SortOption } from '../components/FilterBar';
 
@@ -136,6 +137,7 @@ export function DiscoverPage() {
   const { categories } = useCategories();
   const { stats } = useSiteStats(!!user);
   const { totalCount } = useAvailableItemCount(filters);
+  const { items: recentListings, loading: recentLoading } = useRecentListings(3);
 
   const handleRefresh = async () => {
     refresh();
@@ -335,86 +337,81 @@ export function DiscoverPage() {
                   Clear filters
                 </button>
               </div>
-            ) : user ? (
-              <div className="py-8">
-                <div className="text-center mb-8">
-                  <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                    <Sparkles size={16} />
-                    Be a pioneer
-                  </div>
-                  <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-3">
-                    Your neighborhood awaits
+            ) : (
+              <div className="py-4">
+                <div className="text-center mb-6">
+                  <h2 className="text-lg font-semibold text-stone-800 dark:text-stone-200 mb-1">
+                    No active finds right now
                   </h2>
-                  <p className="text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
-                    Help your community by sharing curbside treasures. Post items you find and help others discover hidden gems nearby.
+                  <p className="text-sm text-stone-500 dark:text-stone-400">
+                    {user
+                      ? 'Be the first to post a new find in your area!'
+                      : 'Check back soon or sign up to start posting finds.'}
                   </p>
                 </div>
 
-                <div className="space-y-3">
+                {user && (
                   <button
                     onClick={() => navigate('/post')}
-                    className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-semibold hover:bg-emerald-600 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                    className="w-full mb-6 bg-emerald-500 text-white py-4 rounded-2xl font-semibold hover:bg-emerald-600 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
                   >
                     <MapPin size={20} />
-                    Post your first find
+                    Post a find
                   </button>
-                  <p className="text-center text-sm text-stone-400 dark:text-stone-500">
-                    Spotted something interesting on your street? Share it!
-                  </p>
-                </div>
+                )}
 
-                <div className="mt-10 grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl p-4">
-                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Free</div>
-                    <div className="text-xs text-stone-500 dark:text-stone-400 mt-1">Always free items</div>
+                {recentLoading ? (
+                  <div className="grid gap-4">
+                    {[1, 2, 3].map((i) => (
+                      <PreviewCardSkeleton key={i} />
+                    ))}
                   </div>
-                  <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl p-4">
-                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Local</div>
-                    <div className="text-xs text-stone-500 dark:text-stone-400 mt-1">In your area</div>
+                ) : recentListings.length > 0 ? (
+                  <>
+                    <div className="flex items-center gap-2 mb-4 text-sm text-stone-500 dark:text-stone-400">
+                      <div className="h-px flex-1 bg-stone-200 dark:bg-stone-800" />
+                      <span>Recently listed</span>
+                      <div className="h-px flex-1 bg-stone-200 dark:bg-stone-800" />
+                    </div>
+                    <div className="grid gap-4">
+                      {recentListings.map((item) => (
+                        <PreviewCard
+                          key={item.id}
+                          item={item}
+                          onClick={user ? () => navigate(`/item/${item.id}`) : () => setShowAuthModal(true)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+
+                {!user && (
+                  <div className="mt-6">
+                    <GuestBottomCTA />
                   </div>
-                  <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl p-4">
-                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Fast</div>
-                    <div className="text-xs text-stone-500 dark:text-stone-400 mt-1">Real-time updates</div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <div className="bg-stone-100 dark:bg-stone-800 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="text-stone-400 dark:text-stone-500" size={32} />
-                </div>
-                <h3 className="font-semibold text-stone-800 dark:text-stone-200 text-lg mb-2">
-                  No finds yet
-                </h3>
-                <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-xs mx-auto">
-                  Be the first to share a curbside find in your area!
-                </p>
-                <button
-                  onClick={() => navigate('/auth')}
-                  className="bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-600 transition-colors"
-                >
-                  Sign up to post
-                </button>
+                )}
               </div>
             )
           ) : (
             <div className="space-y-4">
               <div className="grid gap-4">
                 {items.map((item) => (
-                  <ItemCard
-                    key={item.id}
-                    item={item}
-                    userLocation={userCoords}
-                    currentUserId={user?.id}
-                    onClick={() => {
-                      if (user) {
-                        navigate(`/item/${item.id}`);
-                      } else {
-                        setShowAuthModal(true);
-                      }
-                    }}
-                    onEdit={() => setEditingItem(item)}
-                  />
+                  user ? (
+                    <ItemCard
+                      key={item.id}
+                      item={item}
+                      userLocation={userCoords}
+                      currentUserId={user.id}
+                      onClick={() => navigate(`/item/${item.id}`)}
+                      onEdit={() => setEditingItem(item)}
+                    />
+                  ) : (
+                    <PreviewCard
+                      key={item.id}
+                      item={item}
+                      onClick={() => setShowAuthModal(true)}
+                    />
+                  )
                 ))}
               </div>
               {items.length > 0 && totalCount > items.length && (

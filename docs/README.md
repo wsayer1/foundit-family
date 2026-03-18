@@ -13,6 +13,7 @@ This directory contains documentation for all React components in `src/component
 | FilterBar | [docs/components/FilterBar.md](components/FilterBar.md) | [src/components/FilterBar.tsx](../src/components/FilterBar.tsx) |
 | FloatingAuthCard | [docs/components/FloatingAuthCard.md](components/FloatingAuthCard.md) | [src/components/FloatingAuthCard.tsx](../src/components/FloatingAuthCard.tsx) |
 | ItemCard | [docs/components/ItemCard.md](components/ItemCard.md) | [src/components/ItemCard.tsx](../src/components/ItemCard.tsx) |
+| PreviewCard | [docs/components/PreviewCard.md](components/PreviewCard.md) | [src/components/PreviewCard.tsx](../src/components/PreviewCard.tsx) |
 | PullToRefresh | [docs/components/PullToRefresh.md](components/PullToRefresh.md) | [src/components/PullToRefresh.tsx](../src/components/PullToRefresh.tsx) |
 
 ### Undocumented Components

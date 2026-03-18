@@ -541,6 +541,37 @@ export function useFeaturedItems(count = 4) {
   return { items, loading };
 }
 
+export function useRecentListings(count = 3) {
+  const [items, setItems] = useState<ItemWithProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchRecent() {
+      try {
+        const { data } = await supabase
+          .from('items')
+          .select(`
+            *,
+            profiles!items_user_id_fkey (username, avatar_url),
+            claimer_profile:profiles!items_claimed_by_fkey (username, avatar_url)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(count);
+
+        setItems((data as ItemWithProfile[]) || []);
+      } catch {
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRecent();
+  }, [count]);
+
+  return { items, loading };
+}
+
 export function useMapItems(
   _userLocation: { lat: number; lng: number } | null,
   filters: FilterState,
