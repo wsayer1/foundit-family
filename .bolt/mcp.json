@@ -1,10 +1,10 @@
 {
   "mcpServers": {
     "notion": {
-      "enabled": true
+      "enabled": false
     },
     "github": {
-      "enabled": true
+      "enabled": false
     },
     "granola": {
       "enabled": true
