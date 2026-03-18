@@ -504,7 +504,6 @@ export function useFeaturedItems(count = 4) {
 
         if (availableItems && availableItems.length >= count) {
           setItems(availableItems as FeaturedItem[]);
-          setLoading(false);
           return;
         }
 
@@ -515,7 +514,7 @@ export function useFeaturedItems(count = 4) {
           let query = supabase
             .from('items')
             .select(FEATURED_SELECT)
-            .in('status', ['claimed', 'expired'])
+            .neq('status', 'available')
             .order('created_at', { ascending: false })
             .limit(remaining);
 

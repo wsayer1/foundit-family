@@ -30,7 +30,7 @@ export function LandingPage() {
   const location = useLocation();
   const { user, loading } = useAuth();
   const { stats } = useSiteStats(false);
-  const { items: featuredItems } = useFeaturedItems(4);
+  const { items: featuredItems, loading: featuredLoading } = useFeaturedItems(4);
 
   const state = location.state as LocationState | null;
   const fromLogo = state?.fromLogo === true;
@@ -252,7 +252,18 @@ export function LandingPage() {
             </div>
 
             <div className="relative">
-              {featuredItems.length > 0 ? (
+              {featuredLoading ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <FeaturedItemSkeleton aspectClass="aspect-[4/5]" />
+                    <FeaturedItemSkeleton aspectClass="aspect-square" />
+                  </div>
+                  <div className="space-y-4 pt-8">
+                    <FeaturedItemSkeleton aspectClass="aspect-square" />
+                    <FeaturedItemSkeleton aspectClass="aspect-[4/5]" />
+                  </div>
+                </div>
+              ) : featuredItems.length > 0 ? (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-4">
                     <FeaturedItemCard item={featuredItems[0]} aspectClass="aspect-[4/5]" />
@@ -266,12 +277,20 @@ export function LandingPage() {
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-4">
-                    <FeaturedItemSkeleton aspectClass="aspect-[4/5]" />
-                    <FeaturedItemSkeleton aspectClass="aspect-square" />
+                    <div className="rounded-2xl aspect-[4/5] bg-stone-800/30 border border-stone-700/50 flex items-center justify-center">
+                      <div className="text-center p-4">
+                        <Camera size={32} className="text-stone-600 mx-auto mb-2" />
+                        <p className="text-stone-500 text-sm">Be the first to share a find!</p>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-4 pt-8">
-                    <FeaturedItemSkeleton aspectClass="aspect-square" />
-                    <FeaturedItemSkeleton aspectClass="aspect-[4/5]" />
+                    <div className="rounded-2xl aspect-square bg-stone-800/30 border border-stone-700/50 flex items-center justify-center">
+                      <div className="text-center p-4">
+                        <MapPin size={32} className="text-stone-600 mx-auto mb-2" />
+                        <p className="text-stone-500 text-sm">Finds will appear here</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
