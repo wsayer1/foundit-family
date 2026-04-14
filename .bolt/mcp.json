@@ -5,9 +5,6 @@
     },
     "github": {
       "enabled": false
-    },
-    "granola": {
-      "enabled": true
     }
   }
 }
