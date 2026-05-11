@@ -23,6 +23,7 @@ export function createUserLocationElement(): HTMLElement {
     background: rgba(59, 130, 246, 0.15);
     border-radius: 50%;
     animation: pulseOuter 2s ease-out infinite;
+    pointer-events: none;
   `;
 
   const pulseInner = document.createElement('div');
@@ -37,6 +38,7 @@ export function createUserLocationElement(): HTMLElement {
     background: rgba(59, 130, 246, 0.25);
     border-radius: 50%;
     animation: pulseInner 2s ease-out infinite;
+    pointer-events: none;
   `;
 
   const dot = document.createElement('div');
@@ -53,6 +55,7 @@ export function createUserLocationElement(): HTMLElement {
     border: 3px solid white;
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5), 0 1px 4px rgba(0,0,0,0.2);
     z-index: 2;
+    pointer-events: none;
   `;
 
   userEl.appendChild(pulseOuter);

@@ -45,3 +45,7 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
 - [Made user location marker pass through taps so nearby items are clickable]
   Prompt: "If an item is very close to my current location on the map page, and I try and click or tap on the item, often it won't work. I have a feeling that the location marker is blocking the tap. Please let the tap pass through the location indicator so that I can easily open these items while keeping the location indicator visually stacked on top of the other items."
   _2026-05-11 00:00 UTC_
+
+- [Explicitly disabled pointer events on pulsating location rings so taps pass through]
+  Prompt: "Still, the rings that are pulsating, growing out from the current location marker seem to obstruct my ability to click on the listed items."
+  _2026-05-11 00:00 UTC_
