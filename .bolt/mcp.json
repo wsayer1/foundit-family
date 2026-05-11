@@ -5,6 +5,27 @@
     },
     "github": {
       "enabled": false
+    },
+    "granola": {
+      "enabled": true
+    },
+    "shadcn_ui": {
+      "enabled": true
+    },
+    "tella_tv": {
+      "enabled": false
+    },
+    "miro": {
+      "enabled": false
+    },
+    "clickup": {
+      "enabled": false
+    },
+    "shaders": {
+      "enabled": true
+    },
+    "slack": {
+      "enabled": false
     }
   }
 }

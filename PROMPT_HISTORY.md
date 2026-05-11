@@ -41,7 +41,3 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
 - [Implemented Tyler's desktop UX feedback: added filter sidebar on Discover page, map light/dark toggle, and expanded Leaderboard with community stats sidebar]
   Prompt: "Using the Granola connector please look at the meeting notes from my recent user feedback session with Tyler. Create a clear plan to implement his feedback."
   _2026-03-18 19:30 UTC_
-
-- [Set up Supabase: verified database schema, created items storage bucket with RLS policies, deployed describe-image edge function, fixed white screen]
-  Prompt: "I only see a white screen. Please set up a Supabase so this project works."
-  _2026-04-14 12:00 UTC_
