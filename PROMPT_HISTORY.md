@@ -41,3 +41,7 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
 - [Implemented Tyler's desktop UX feedback: added filter sidebar on Discover page, map light/dark toggle, and expanded Leaderboard with community stats sidebar]
   Prompt: "Using the Granola connector please look at the meeting notes from my recent user feedback session with Tyler. Create a clear plan to implement his feedback."
   _2026-03-18 19:30 UTC_
+
+- [Made user location marker pass through taps so nearby items are clickable]
+  Prompt: "If an item is very close to my current location on the map page, and I try and click or tap on the item, often it won't work. I have a feeling that the location marker is blocking the tap. Please let the tap pass through the location indicator so that I can easily open these items while keeping the location indicator visually stacked on top of the other items."
+  _2026-05-11 00:00 UTC_

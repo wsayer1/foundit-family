@@ -9,7 +9,7 @@ interface UserLocationMarkerProps {
 export function createUserLocationElement(): HTMLElement {
   const userEl = document.createElement('div');
   userEl.className = 'user-location-marker';
-  userEl.style.cssText = 'width: 56px; height: 56px; position: relative; z-index: 9999;';
+  userEl.style.cssText = 'width: 56px; height: 56px; position: relative; z-index: 9999; pointer-events: none;';
 
   const pulseOuter = document.createElement('div');
   pulseOuter.style.cssText = `
@@ -81,6 +81,7 @@ function useUserLocationMarker({ map, location }: UserLocationMarkerProps) {
 
     const markerElement = markerRef.current.getElement();
     markerElement.style.zIndex = '9999';
+    markerElement.style.pointerEvents = 'none';
 
     return () => {
       if (markerRef.current) {
