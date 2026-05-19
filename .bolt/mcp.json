@@ -22,7 +22,7 @@
       "enabled": false
     },
     "shaders": {
-      "enabled": true
+      "enabled": false
     },
     "slack": {
       "enabled": false
