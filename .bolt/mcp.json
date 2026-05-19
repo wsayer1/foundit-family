@@ -10,7 +10,7 @@
       "enabled": false
     },
     "shadcn_ui": {
-      "enabled": true
+      "enabled": false
     },
     "tella_tv": {
       "enabled": false
