@@ -7,7 +7,7 @@
       "enabled": false
     },
     "granola": {
-      "enabled": true
+      "enabled": false
     },
     "shadcn_ui": {
       "enabled": true
