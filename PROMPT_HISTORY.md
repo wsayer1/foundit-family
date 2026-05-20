@@ -49,3 +49,7 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
 - [Explicitly disabled pointer events on pulsating location rings so taps pass through]
   Prompt: "Still, the rings that are pulsating, growing out from the current location marker seem to obstruct my ability to click on the listed items."
   _2026-05-11 00:00 UTC_
+
+- [Created Notion page "Foundit.Family WebApp Info" with complete site map, route table, user flows, and architecture overview]
+  Prompt: "Review this project and create a clear site map that shows every major page, how the pages connect, and the purpose of each route. Include the key user flows so a teammate can quickly understand the structure of the app."
+  _2026-05-19 12:00 UTC_
