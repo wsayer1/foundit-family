@@ -53,3 +53,7 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
 - [Created Notion page "Foundit.Family WebApp Info" with complete site map, route table, user flows, and architecture overview]
   Prompt: "Review this project and create a clear site map that shows every major page, how the pages connect, and the purpose of each route. Include the key user flows so a teammate can quickly understand the structure of the app."
   _2026-05-19 12:00 UTC_
+
+- [Fixed onboarding and first-time experience friction: landing page redirect, auth tab colors, email form visibility, welcome banner, guest limit, onboarding guide]
+  Prompt: "Go ahead and fix the onboarding and first-time experience friction."
+  _2026-05-20 00:00 UTC_

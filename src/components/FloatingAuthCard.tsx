@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Eye, EyeOff, Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface FloatingAuthCardProps {
@@ -18,26 +18,11 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showEmailForm, setShowEmailForm] = useState(false);
-  const [emailFormHeight, setEmailFormHeight] = useState(0);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const emailFormRef = useRef<HTMLDivElement>(null);
-  const emailInputRef = useRef<HTMLInputElement>(null);
   const forgotPasswordInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (showEmailForm && emailFormRef.current) {
-      const height = emailFormRef.current.scrollHeight;
-      setEmailFormHeight(height);
-      setTimeout(() => {
-        emailInputRef.current?.focus();
-      }, 300);
-    } else {
-      setEmailFormHeight(0);
-    }
-  }, [showEmailForm, isSignUp]);
 
   useEffect(() => {
     if (showForgotPassword) {
@@ -68,6 +53,7 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
       if (isSignUp) {
         const { error } = await signUp(email, password, username);
         if (error) throw error;
+        sessionStorage.setItem('foundit_just_signed_up', 'true');
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
@@ -80,23 +66,9 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
     }
   };
 
-  const handleShowEmailForm = () => {
-    if (!showEmailForm) {
-      setShowEmailForm(true);
-      setError('');
-    }
-  };
-
   const handleTabChange = (signup: boolean) => {
     setIsSignUp(signup);
     setError('');
-    if (showEmailForm) {
-      setTimeout(() => {
-        if (emailFormRef.current) {
-          setEmailFormHeight(emailFormRef.current.scrollHeight);
-        }
-      }, 50);
-    }
   };
 
   const handleForgotPassword = () => {
@@ -142,7 +114,7 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
       <div
         className="pointer-events-auto w-full md:w-[420px] flex flex-col bg-stone-950 rounded-t-3xl md:rounded-2xl shadow-2xl transition-all duration-300 ease-out"
         style={{
-          maxHeight: showEmailForm ? '90vh' : 'auto',
+          maxHeight: '90vh',
           fontFamily: "'Archivo', system-ui, sans-serif"
         }}
       >
@@ -258,10 +230,9 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
               <div className="bg-stone-900 rounded-2xl p-1.5 mb-4">
                 <div className="relative flex">
                   <div
-                    className="absolute top-0 bottom-0 w-1/2 rounded-xl transition-all duration-300 ease-out"
+                    className="absolute top-0 bottom-0 w-1/2 bg-emerald-500 rounded-xl transition-all duration-300 ease-out"
                     style={{
                       transform: isSignUp ? 'translateX(100%)' : 'translateX(0)',
-                      backgroundColor: isSignUp ? '#ffffff' : '#10b981'
                     }}
                   />
                   <button
@@ -275,7 +246,7 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
                   <button
                     onClick={() => handleTabChange(true)}
                     className={`relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-colors duration-300 z-10 ${
-                      isSignUp ? 'text-stone-900' : 'text-stone-400'
+                      isSignUp ? 'text-white' : 'text-stone-400'
                     }`}
                   >
                     Sign up
@@ -311,31 +282,14 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
                   </div>
                 </button>
 
-                {!showEmailForm && (
-                  <button
-                    onClick={handleShowEmailForm}
-                    className="gsi-material-button gsi-material-button--outline"
-                    type="button"
-                  >
-                    <div className="gsi-material-button-state"></div>
-                    <div className="gsi-material-button-content-wrapper">
-                      <div className="gsi-material-button-icon">
-                        <Mail size={20} />
-                      </div>
-                      <span className="gsi-material-button-contents">{isSignUp ? 'Sign up with email' : 'Sign in with email'}</span>
-                    </div>
-                  </button>
-                )}
+                <div className="flex items-center gap-3 my-3">
+                  <div className="h-px flex-1 bg-stone-800" />
+                  <span className="text-xs text-stone-500">or</span>
+                  <div className="h-px flex-1 bg-stone-800" />
+                </div>
               </div>
 
-              <div
-                className="overflow-hidden transition-all duration-300 ease-out"
-                style={{
-                  height: emailFormHeight,
-                  opacity: showEmailForm ? 1 : 0
-                }}
-              >
-                <div ref={emailFormRef} className="pt-4">
+              <div ref={emailFormRef}>
                   <form onSubmit={handleSubmit} className="space-y-3">
                     {isSignUp && (
                       <div className="transition-all duration-200">
@@ -358,7 +312,6 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
                         Email
                       </label>
                       <input
-                        ref={emailInputRef}
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -415,7 +368,6 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
                       </p>
                     )}
                   </form>
-                </div>
               </div>
             </>
           )}

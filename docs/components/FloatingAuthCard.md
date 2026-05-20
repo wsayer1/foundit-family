@@ -104,6 +104,10 @@ Displays red error messages below form fields when authentication fails.
 
 Shows a confirmation screen with check icon when reset email is sent successfully.
 
+### Sign-Up Success
+
+Sets a sessionStorage flag (`foundit_just_signed_up`) which triggers a welcome banner on the Discover page.
+
 ### Forgot Password View
 
 A separate view mode that:
@@ -139,7 +143,7 @@ Supabase rate limiting errors are displayed to the user.
 
 ### External Dependencies
 
-- `lucide-react` - Icons (MapPin, Eye, EyeOff, Loader2, Mail, ArrowLeft, CheckCircle)
+- `lucide-react` - Icons (Eye, EyeOff, Loader2, ArrowLeft, CheckCircle)
 
 ## Related Components
 
@@ -151,6 +155,7 @@ Supabase rate limiting errors are displayed to the user.
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.3.0 | 2026-05-20 | Removed extra click to reveal email form (now always visible), fixed tab indicator to use consistent emerald color, added sign-up sessionStorage flag for onboarding |
 | 1.2.1 | 2026-01-16 | Updated email button to match Google button styling |
 | 1.2.0 | 2026-01-16 | Updated Google Sign-In button to use official Google brand guidelines |
 | 1.1.0 | 2026-01-16 | Added forgot password flow with email reset |

@@ -23,7 +23,6 @@ const SF_NEIGHBORHOODS = [
   'Potrero Hill',
 ];
 
-const LANDING_VISITED_KEY = 'foundit_landing_visited';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -40,19 +39,16 @@ export function LandingPage() {
 
     if (fromLogo) return;
 
-    const hasVisited = localStorage.getItem(LANDING_VISITED_KEY);
-    if (user || hasVisited) {
+    if (user) {
       navigate('/discover', { replace: true });
     }
   }, [user, loading, navigate, fromLogo]);
 
   const handleEnterApp = () => {
-    localStorage.setItem(LANDING_VISITED_KEY, 'true');
     navigate('/discover');
   };
 
   const handleSignUp = () => {
-    localStorage.setItem(LANDING_VISITED_KEY, 'true');
     navigate('/auth');
   };
 

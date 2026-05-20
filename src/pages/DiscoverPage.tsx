@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation as useRouterLocation, Link } from 'react-router-dom';
-import { MapPin, Loader2, SlidersHorizontal, Clock, Tag, ArrowUpDown, Check } from 'lucide-react';
+import { MapPin, Loader2, SlidersHorizontal, Clock, Tag, ArrowUpDown, Check, X } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { ItemCard, ItemCardSkeleton } from '../components/ItemCard';
 import { EditItemModal } from '../components/EditItemModal';
@@ -16,6 +16,7 @@ import { supabase } from '../lib/supabase';
 import { dataURLtoBlob } from '../utils/image';
 import { useFilters, DEFAULT_FILTERS } from '../contexts/FilterContext';
 import { PreviewCard, PreviewCardSkeleton } from '../components/PreviewCard';
+import { OnboardingGuide, useOnboardingVisible } from '../components/OnboardingGuide';
 import type { ItemWithProfile } from '../types/database';
 import type { DistanceFilter, TimeFilter, CategoryFilter, SortOption } from '../components/FilterBar';
 
@@ -123,6 +124,8 @@ export function DiscoverPage() {
   const { filters, setFilters, hasActiveFilters, resetFilters } = useFilters();
   const [editingItem, setEditingItem] = useState<ItemWithProfile | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showOnboarding, dismissOnboarding] = useOnboardingVisible(user?.id);
 
   const [pendingPost, setPendingPost] = useState<PendingPost | null>(null);
   const [postingStatus, setPostingStatus] = useState<PostingStatus>('uploading');
@@ -200,6 +203,16 @@ export function DiscoverPage() {
   }, [routerLocation, pendingPost, uploadPost, navigate]);
 
   useEffect(() => {
+    if (user && sessionStorage.getItem('foundit_just_signed_up') === 'true') {
+      sessionStorage.removeItem('foundit_just_signed_up');
+      if (!showOnboarding) {
+        setShowWelcome(true);
+        setTimeout(() => setShowWelcome(false), 5000);
+      }
+    }
+  }, [user, showOnboarding]);
+
+  useEffect(() => {
     checkPermission().then((status) => {
       if (status === 'granted') {
         requestLocation().then((coords) => {
@@ -231,6 +244,26 @@ export function DiscoverPage() {
 
   const itemFeed = (
     <>
+      {showWelcome && (
+        <div className="mb-4 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-start gap-3">
+            <div className="bg-emerald-500 p-2 rounded-xl flex-shrink-0">
+              <Check size={18} className="text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-emerald-800 dark:text-emerald-200 text-sm">Welcome to Foundit.Family!</h3>
+              <p className="text-emerald-700 dark:text-emerald-300 text-sm mt-0.5">Your account is ready. Browse nearby finds or post your own curbside treasure.</p>
+            </div>
+            <button
+              onClick={() => setShowWelcome(false)}
+              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 p-1 -mr-1 -mt-1 flex-shrink-0"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {!user && <GuestHero stats={stats} />}
 
       {user && !locationEnabled && permissionStatus !== 'granted' && permissionStatus !== 'unknown' && (
@@ -518,6 +551,8 @@ export function DiscoverPage() {
           />
         </div>
       )}
+
+      {showOnboarding && <OnboardingGuide onDismiss={dismissOnboarding} />}
     </Layout>
   );
 }
