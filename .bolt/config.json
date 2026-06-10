@@ -4,7 +4,7 @@
   "systemSkills": {
     "browser-testing": false,
     "remotion-best-practices": false,
-    "seo-geo": false,
+    "seo-geo": true,
     "skill-creator": true,
     "web-design-guidelines": false,
     "writing-guidelines": false
