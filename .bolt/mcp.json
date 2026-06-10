@@ -15,16 +15,16 @@
     "tella_tv": {
       "enabled": false
     },
-    "miro": {
-      "enabled": false
-    },
-    "clickup": {
-      "enabled": false
-    },
     "shaders": {
       "enabled": false
     },
     "slack": {
+      "enabled": false
+    },
+    "jira": {
+      "enabled": false
+    },
+    "attio": {
       "enabled": false
     }
   }
