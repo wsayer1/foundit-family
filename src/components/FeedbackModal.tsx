@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, MessageSquare, Bug, Send, Loader2, CheckCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useFeedback } from '../hooks/useFeedback';
 
 type FeedbackType = 'feedback' | 'bug';
 
@@ -12,6 +12,7 @@ interface FeedbackModalProps {
 
 export function FeedbackModal({ type, onClose }: FeedbackModalProps) {
   const { user } = useAuth();
+  const { submitFeedback } = useFeedback();
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -30,19 +31,15 @@ export function FeedbackModal({ type, onClose }: FeedbackModalProps) {
     setSubmitting(true);
     setError(null);
 
-    const { error: submitError } = await supabase.from('feedback').insert({
-      user_id: user.id,
-      type,
-      message: message.trim(),
-    });
-
-    setSubmitting(false);
-
-    if (submitError) {
+    try {
+      await submitFeedback(type, message.trim());
+    } catch {
+      setSubmitting(false);
       setError('Failed to submit. Please try again.');
       return;
     }
 
+    setSubmitting(false);
     setSubmitted(true);
     setTimeout(() => {
       onClose();

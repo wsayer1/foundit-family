@@ -1,13 +1,13 @@
 # FeedbackModal
 
-A modal dialog for collecting user feedback or bug reports with real-time submission to Supabase.
+A modal dialog for collecting user feedback or bug reports, submitted via the `useFeedback` hook.
 
 ## Purpose
 
 The FeedbackModal provides a standardized interface for users to submit feedback or report bugs directly from the application. It handles:
 
 - Capturing user input with appropriate prompts based on feedback type
-- Submitting to the database with user attribution
+- Submitting via `useFeedback().submitFeedback(type, message)` with user attribution
 - Displaying submission states (loading, success, error)
 - Automatic dismissal after successful submission
 
@@ -198,8 +198,8 @@ The component requires authentication via `useAuth()`. The submit handler checks
 
 ### Internal Dependencies
 
-- `useAuth` from `@/contexts/AuthContext` - Gets current user for attribution
-- `supabase` from `@/lib/supabase` - Database client for submission
+- `useAuth` from `src/contexts/AuthContext` - Gets current user (submit is gated on a signed-in user)
+- `useFeedback` from `src/hooks/useFeedback` - Provides `submitFeedback`; the hook owns the Supabase insert into the `feedback` table
 
 ### External Dependencies
 
@@ -208,7 +208,7 @@ The component requires authentication via `useAuth()`. The submit handler checks
 
 ### Database Dependencies
 
-Requires `feedback` table in Supabase with columns:
+Via `useFeedback`, requires the `feedback` table in Supabase with columns:
 - `user_id` (uuid, foreign key to auth.users)
 - `type` (text, 'feedback' or 'bug')
 - `message` (text)

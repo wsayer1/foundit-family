@@ -2,7 +2,6 @@ import { MapPin, Navigation, Camera, Check } from 'lucide-react';
 
 interface LocationPermissionScreenProps {
   onGranted: () => void;
-  onCancel: () => void;
 }
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
@@ -47,7 +46,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 
 export { StepIndicator };
 
-export function LocationPermissionScreen({ onGranted, onCancel }: LocationPermissionScreenProps) {
+export function LocationPermissionScreen({ onGranted }: LocationPermissionScreenProps) {
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex flex-col overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">

@@ -1,11 +1,3 @@
-import { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-
-interface UserLocationMarkerProps {
-  map: mapboxgl.Map | null;
-  location: { lat: number; lng: number };
-}
-
 export function createUserLocationElement(): HTMLElement {
   const userEl = document.createElement('div');
   userEl.className = 'user-location-marker';
@@ -63,36 +55,4 @@ export function createUserLocationElement(): HTMLElement {
   userEl.appendChild(dot);
 
   return userEl;
-}
-
-function useUserLocationMarker({ map, location }: UserLocationMarkerProps) {
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
-
-  useEffect(() => {
-    if (!map) return;
-
-    if (markerRef.current) {
-      markerRef.current.remove();
-      markerRef.current = null;
-    }
-
-    const userEl = createUserLocationElement();
-
-    markerRef.current = new mapboxgl.Marker({ element: userEl, anchor: 'center' })
-      .setLngLat([location.lng, location.lat])
-      .addTo(map);
-
-    const markerElement = markerRef.current.getElement();
-    markerElement.style.zIndex = '9999';
-    markerElement.style.pointerEvents = 'none';
-
-    return () => {
-      if (markerRef.current) {
-        markerRef.current.remove();
-        markerRef.current = null;
-      }
-    };
-  }, [map, location.lat, location.lng]);
-
-  return markerRef;
 }

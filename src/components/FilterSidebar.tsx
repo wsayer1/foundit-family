@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, ArrowUpDown, MapPin, Clock, Tag, Navigation, RotateCcw } from 'lucide-react';
 import type { DistanceFilter, TimeFilter, CategoryFilter, SortOption } from './FilterBar';
+import { distanceOptions, timeOptions, sortOptions } from './FilterBar';
+import { capitalize } from '../utils/format';
 
 interface FilterSectionProps {
   icon: React.ReactNode;
@@ -77,35 +79,6 @@ interface FilterSidebarProps {
   locationEnabled: boolean;
   onEnableLocation: () => void;
   categories: string[];
-}
-
-const sortOptions: { value: SortOption; label: string }[] = [
-  { value: 'recent', label: 'Most Recent' },
-  { value: 'nearest', label: 'Nearest' },
-  { value: 'verified', label: 'Most Verified' },
-];
-
-const distanceOptions: { value: DistanceFilter; label: string }[] = [
-  { value: 'any', label: 'Any Distance' },
-  { value: '500', label: '500m' },
-  { value: '1000', label: '1 km' },
-  { value: '2000', label: '2 km' },
-  { value: '5000', label: '5 km' },
-  { value: '10000', label: '10 km' },
-  { value: '25000', label: '25 km' },
-];
-
-const timeOptions: { value: TimeFilter; label: string }[] = [
-  { value: '2h', label: 'Last 2 hours' },
-  { value: '8h', label: 'Last 8 hours' },
-  { value: '24h', label: 'Last 24 hours' },
-  { value: '48h', label: 'Last 48 hours' },
-  { value: 'week', label: 'Last week' },
-  { value: 'all', label: 'All time' },
-];
-
-function formatCategoryLabel(category: string): string {
-  return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
 }
 
 export function FilterSidebar({
@@ -212,7 +185,7 @@ export function FilterSidebar({
           {categories.map((cat) => (
             <FilterOption
               key={cat}
-              label={formatCategoryLabel(cat)}
+              label={capitalize(cat)}
               selected={filters.category === cat}
               onClick={() => onCategoryChange(cat)}
             />

@@ -4,13 +4,14 @@ import { X, Hand } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { ItemWithProfile } from '../types/database';
-import { formatDistance, calculateDistance } from '../hooks/useItems';
+import { formatDistance, calculateDistance } from '../utils/distance';
 import { formatTimeAgo, getFreshnessOpacity, calculateRingDecay, getRingColor, getFreshnessColor } from '../utils/time';
 import { getPreviewUrl } from '../utils/image';
 import { useTheme } from '../contexts/ThemeContext';
 import { FloatingAuthCard } from './FloatingAuthCard';
 import { MapZoomControls } from './MapZoomControls';
 import { createUserLocationElement } from './UserLocationMarker';
+import { getClaimerFirstName } from '../utils/format';
 
 type MapStyleOverride = 'light' | 'dark';
 
@@ -27,13 +28,6 @@ const MAP_STYLES = {
   light: 'mapbox://styles/mapbox/streets-v12',
   dark: 'mapbox://styles/mapbox/dark-v11',
 };
-
-function getClaimerFirstName(item: ItemWithProfile): string {
-  const username = item.claimer_profile?.username;
-  if (!username) return 'Someone';
-  const firstName = username.split(' ')[0];
-  return firstName.charAt(0).toUpperCase() + firstName.slice(1);
-}
 
 function createRingSvg(size: number, decayPercent: number, strokeWidth: number, color: string): string {
   const radius = (size - strokeWidth) / 2;
@@ -189,7 +183,7 @@ export function DiscoverMapView({ items, userLocation, isGuest = false, onEnable
       container: mapContainer.current,
       style: MAP_STYLES[effectiveStyle],
       center,
-      zoom: userLocation ? 11 : 11,
+      zoom: 11,
       attributionControl: false
     });
 

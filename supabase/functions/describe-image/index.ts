@@ -78,7 +78,7 @@ Deno.serve(async (req: Request) => {
       : imageData;
 
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,7 +104,7 @@ Deno.serve(async (req: Request) => {
       const errorText = await geminiResponse.text();
       console.error("Gemini API error:", geminiResponse.status, errorText);
       return jsonResponse(
-        { tag: "item", description: "Curbside find", success: false, reason: "api_error" },
+        { tag: "item", description: "Curbside find", success: false, reason: "api_error", upstreamStatus: geminiResponse.status },
         502
       );
     }

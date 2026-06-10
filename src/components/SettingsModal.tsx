@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, User, Camera, Loader2, Sun, Moon, Monitor, Trash2, Check } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { compressAvatar, getAvatarUrl } from '../utils/image';
+import { useProfileMutations } from '../hooks/useProfileMutations';
+import { getAvatarUrl } from '../utils/image';
 import type { AppearancePreference } from '../types/database';
 
 interface SettingsModalProps {
@@ -21,8 +21,9 @@ const themeOptions: { value: AppearancePreference; label: string; icon: typeof S
 ];
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile } = useAuth();
   const { preference, setPreference } = useTheme();
+  const { updateUsername, uploadAvatar, removeAvatar } = useProfileMutations();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [displayName, setDisplayName] = useState(profile?.username || '');
@@ -80,14 +81,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setNameSuccess(false);
 
     try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ username: trimmedName })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      await refreshProfile();
+      await updateUsername(trimmedName);
       setNameSuccess(true);
       setTimeout(() => setNameSuccess(false), 2000);
     } catch {
@@ -119,32 +113,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setUploadingAvatar(true);
 
     try {
-      const compressedBlob = await compressAvatar(file);
-      const fileName = `${user.id}/avatar.jpg`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, compressedBlob, {
-          contentType: 'image/jpeg',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      const avatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: avatarUrl })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      await refreshProfile();
+      await uploadAvatar(file);
     } catch {
       setAvatarError('Failed to upload avatar');
     } finally {
@@ -162,17 +131,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setAvatarError(null);
 
     try {
-      const fileName = `${user.id}/avatar.jpg`;
-      await supabase.storage.from('avatars').remove([fileName]);
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: null })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      await refreshProfile();
+      await removeAvatar();
     } catch {
       setAvatarError('Failed to remove avatar');
     } finally {

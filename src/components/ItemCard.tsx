@@ -1,8 +1,9 @@
 import { MapPin, Clock, ThumbsUp, Pencil, User, Hand } from 'lucide-react';
 import type { ItemWithProfile } from '../types/database';
 import { formatTimeAgo, calculateRingDecay, getFreshnessColor } from '../utils/time';
-import { formatDistance, calculateDistance } from '../hooks/useItems';
+import { formatDistance, calculateDistance } from '../utils/distance';
 import { getThumbnailUrl, getAvatarUrl } from '../utils/image';
+import { getClaimerFirstName } from '../utils/format';
 
 interface ItemCardProps {
   item: ItemWithProfile;
@@ -10,13 +11,6 @@ interface ItemCardProps {
   currentUserId?: string | null;
   onClick?: () => void;
   onEdit?: () => void;
-}
-
-function getClaimerFirstName(item: ItemWithProfile): string {
-  const username = item.claimer_profile?.username;
-  if (!username) return 'Someone';
-  const firstName = username.split(' ')[0];
-  return firstName.charAt(0).toUpperCase() + firstName.slice(1);
 }
 
 export function ItemCard({ item, userLocation, currentUserId, onClick, onEdit }: ItemCardProps) {

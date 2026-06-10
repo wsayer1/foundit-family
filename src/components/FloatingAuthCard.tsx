@@ -21,7 +21,6 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
-  const emailFormRef = useRef<HTMLDivElement>(null);
   const forgotPasswordInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -94,16 +93,10 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
 
     try {
       const { error } = await resetPassword(email);
-      if (error) {
-        console.error('Password reset error:', error);
-        throw error;
-      }
-      console.log('Password reset email sent successfully to:', email);
+      if (error) throw error;
       setResetEmailSent(true);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send reset email';
-      console.error('Password reset failed:', errorMessage);
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to send reset email');
     } finally {
       setResetLoading(false);
     }
@@ -289,7 +282,7 @@ export function FloatingAuthCard({ onSuccess, onClose, hideHeader = false }: Flo
                 </div>
               </div>
 
-              <div ref={emailFormRef}>
+              <div>
                   <form onSubmit={handleSubmit} className="space-y-3">
                     {isSignUp && (
                       <div className="transition-all duration-200">

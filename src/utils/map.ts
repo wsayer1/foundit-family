@@ -1,3 +1,5 @@
+import { calculateDistance } from './distance';
+
 function metersPerPixelAtZoom(latitude: number, zoom: number): number {
   return 156543.03392 * Math.cos(latitude * Math.PI / 180) / Math.pow(2, zoom);
 }
@@ -5,16 +7,6 @@ function metersPerPixelAtZoom(latitude: number, zoom: number): number {
 export function metersToPixels(meters: number, latitude: number, zoom: number): number {
   const mpp = metersPerPixelAtZoom(latitude, zoom);
   return meters / mpp;
-}
-
-function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371e3;
-  const phi1 = (lat1 * Math.PI) / 180;
-  const phi2 = (lat2 * Math.PI) / 180;
-  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
-  const deltaLambda = ((lng2 - lng1) * Math.PI) / 180;
-  const a = Math.sin(deltaPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 export function constrainToRadius(

@@ -207,7 +207,7 @@ export function LocationPicker({
       <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col">
         <div className="sticky top-0 z-40 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 h-14 flex items-center gap-4">
           <button onClick={onBack} className="p-2 -ml-2 text-stone-600 dark:text-stone-400">
-            <X size={24} />
+            <ArrowLeft size={24} />
           </button>
           <h1 className="font-semibold text-stone-900 dark:text-stone-100">Confirm location</h1>
         </div>

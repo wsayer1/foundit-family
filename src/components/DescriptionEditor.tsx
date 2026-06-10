@@ -2,14 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { Loader2, Sparkles, Send, Tag, X, ChevronDown, Check, ArrowLeft } from 'lucide-react';
 import { StepIndicator } from './LocationPermissionScreen';
 import { triggerConfettiFromElement } from '../utils/confetti';
+import { capitalize } from '../utils/format';
 
 interface DescriptionEditorProps {
   imageData: string;
   description: string;
   tag: string;
   loading: boolean;
-  posting: boolean;
-  error: string | null;
   onDescriptionChange: (value: string) => void;
   onTagChange: (value: string) => void;
   onPost: () => void;
@@ -30,10 +29,6 @@ const PRESET_CATEGORIES = [
   'appliances',
   'other',
 ];
-
-function formatTag(tag: string): string {
-  return tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase();
-}
 
 interface TagSelectorProps {
   tag: string;
@@ -146,7 +141,7 @@ function TagSelector({ tag, onTagChange, disabled }: TagSelectorProps) {
                     onClick={() => handleSelectCategory(category)}
                     className="w-full px-4 py-2 text-left text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors flex items-center justify-between"
                   >
-                    <span>{formatTag(category)}</span>
+                    <span>{capitalize(category)}</span>
                     {category === 'other' && (
                       <span className="text-xs text-stone-400">Custom</span>
                     )}
@@ -169,7 +164,7 @@ function TagSelector({ tag, onTagChange, disabled }: TagSelectorProps) {
         className="group flex items-center gap-2 pl-4 pr-2 py-2.5 min-h-[44px] bg-stone-200 dark:bg-stone-700 text-stone-800 dark:text-stone-100 rounded-full text-sm font-medium hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Tag size={16} />
-        <span>{formatTag(tag)}</span>
+        <span>{capitalize(tag)}</span>
         <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         <span
           onClick={handleRemoveTag}
@@ -228,7 +223,7 @@ function TagSelector({ tag, onTagChange, disabled }: TagSelectorProps) {
                         : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
                     }`}
                   >
-                    <span>{formatTag(category)}</span>
+                    <span>{capitalize(category)}</span>
                     {isSelected && <Check size={14} />}
                     {category === 'other' && !isSelected && (
                       <span className="text-xs text-stone-400">Custom</span>
@@ -249,8 +244,6 @@ export function DescriptionEditor({
   description,
   tag,
   loading,
-  posting,
-  error,
   onDescriptionChange,
   onTagChange,
   onPost,
@@ -302,7 +295,6 @@ export function DescriptionEditor({
                 <TagSelector
                   tag={tag}
                   onTagChange={onTagChange}
-                  disabled={posting}
                 />
               )}
             </div>
@@ -310,7 +302,7 @@ export function DescriptionEditor({
             <textarea
               value={description}
               onChange={(e) => onDescriptionChange(e.target.value)}
-              disabled={loading || posting}
+              disabled={loading}
               placeholder="Describe this item..."
               className="w-full h-32 resize-none bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50 transition-all"
             />
@@ -320,11 +312,6 @@ export function DescriptionEditor({
             </p>
           </div>
 
-          {error && (
-            <div className="mt-4 bg-red-100/90 backdrop-blur-sm text-red-700 px-4 py-3 rounded-xl text-sm">
-              {error}
-            </div>
-          )}
         </div>
       </div>
 
@@ -336,7 +323,6 @@ export function DescriptionEditor({
           <div className="flex gap-3">
             <button
               onClick={onBack}
-              disabled={posting}
               className="bg-white/20 backdrop-blur-sm text-white py-4 px-5 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:bg-white/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/30"
             >
               <ArrowLeft size={20} />
@@ -345,20 +331,11 @@ export function DescriptionEditor({
             <button
               ref={postButtonRef}
               onClick={handlePost}
-              disabled={loading || posting || !description.trim()}
+              disabled={loading || !description.trim()}
               className="flex-1 bg-white text-emerald-600 py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
             >
-              {posting ? (
-                <>
-                  <Loader2 size={20} className="animate-spin" />
-                  Posting...
-                </>
-              ) : (
-                <>
-                  <Send size={20} />
-                  Post your find
-                </>
-              )}
+              <Send size={20} />
+              Post your find
             </button>
           </div>
           <p className="text-center text-xs text-white/70 mt-3">

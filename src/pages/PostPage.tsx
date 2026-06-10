@@ -6,11 +6,9 @@ import { LocationPermissionScreen } from '../components/LocationPermissionScreen
 import { CameraCapture } from '../components/CameraCapture';
 import { LocationPicker } from '../components/LocationPicker';
 import { DescriptionEditor } from '../components/DescriptionEditor';
-import { supabase } from '../lib/supabase';
-import { dataURLtoBlob } from '../utils/image';
-import { describeImageWithFallback } from '../utils/chromeAI';
+import { describeImage } from '../utils/describeImage';
 
-type PostStep = 'checking' | 'location' | 'camera' | 'map' | 'description' | 'posting';
+type PostStep = 'checking' | 'location' | 'camera' | 'map' | 'description';
 
 export function PostPage() {
   const navigate = useNavigate();
@@ -23,8 +21,6 @@ export function PostPage() {
   const [description, setDescription] = useState('');
   const [tag, setTag] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
-  const [posting, setPosting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -70,11 +66,7 @@ export function PostPage() {
     setAiGenerating(true);
 
     try {
-      const result = await describeImageWithFallback(
-        imageData,
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_ANON_KEY
-      );
+      const result = await describeImage(imageData);
       setTag(result.tag);
       setDescription(result.description);
     } catch {
@@ -85,11 +77,8 @@ export function PostPage() {
     }
   };
 
-  const handlePost = async () => {
+  const handlePost = () => {
     if (!user || !imageData || !pinLocation || !description.trim()) return;
-
-    setPosting(true);
-    setError(null);
 
     navigate('/discover', {
       replace: true,
@@ -115,7 +104,7 @@ export function PostPage() {
   }
 
   if (step === 'location') {
-    return <LocationPermissionScreen onGranted={handleLocationGranted} onCancel={() => navigate(-1)} />;
+    return <LocationPermissionScreen onGranted={handleLocationGranted} />;
   }
 
   if (step === 'camera') {
@@ -145,15 +134,13 @@ export function PostPage() {
     );
   }
 
-  if (step === 'description' || step === 'posting') {
+  if (step === 'description') {
     return (
       <DescriptionEditor
         imageData={imageData!}
         description={description}
         tag={tag}
         loading={aiGenerating}
-        posting={posting}
-        error={error}
         onDescriptionChange={setDescription}
         onTagChange={setTag}
         onPost={handlePost}

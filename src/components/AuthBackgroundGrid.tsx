@@ -233,8 +233,6 @@ export function AuthBackgroundGrid() {
     return rowsData;
   }, [items, rowCount, totalCards]);
 
-  const totalRowsHeight = rowCount * (CARD_HEIGHT + ROW_GAP);
-
   if (loading) {
     return (
       <div className="fixed inset-0 bg-stone-950">

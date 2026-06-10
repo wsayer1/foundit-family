@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthBackgroundGrid } from '../components/AuthBackgroundGrid';
-import { supabase } from '../lib/supabase';
 
 export function ResetPasswordPage() {
   const navigate = useNavigate();
-  const { updatePassword, user, loading: authLoading } = useAuth();
+  const { updatePassword, setRecoverySession, user, loading: authLoading } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -15,7 +14,6 @@ export function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
 
   useEffect(() => {
@@ -25,12 +23,8 @@ export function ResetPasswordPage() {
       const type = hashParams.get('type');
 
       if (type === 'recovery' && accessToken) {
-        setIsRecoveryMode(true);
         try {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: hashParams.get('refresh_token') || '',
-          });
+          const { error } = await setRecoverySession(accessToken, hashParams.get('refresh_token') || '');
           if (error) {
             console.error('Session error:', error);
           }

@@ -214,10 +214,11 @@ The thumbs-up badge is not shown when `still_there_count` is 0.
 
 ### Internal Dependencies
 
-- `ItemWithProfile` from `@/types/database` - Type definition
-- `formatTimeAgo`, `calculateFreshness`, `getFreshnessColor` from `@/utils/time` - Time utilities
-- `formatDistance`, `calculateDistance` from `@/hooks/useItems` - Distance utilities
-- `getThumbnailUrl`, `getAvatarUrl` from `@/utils/image` - Image URL utilities
+- `ItemWithProfile` from `src/types/database` - Type definition
+- `formatTimeAgo`, `calculateRingDecay`, `getFreshnessColor` from `src/utils/time` - Time/freshness utilities
+- `calculateDistance`, `formatDistance` from `src/utils/distance` - Distance utilities
+- `getThumbnailUrl`, `getAvatarUrl` from `src/utils/image` - Image URL utilities
+- `getClaimerFirstName` from `src/utils/format` - Claimer name shown on the claimed banner
 
 ### External Dependencies
 
@@ -297,3 +298,4 @@ describe('ItemCard', () => {
 | 1.1.0 | 2024-12-20 | Added freshness indicator and confirmation count |
 | 1.2.0 | 2024-12-30 | Added claimed status display with claimer name |
 | 1.3.0 | 2026-03-18 | Fixed skeleton layout expansion by moving animate-pulse to individual elements and adding w-full |
+| 1.4.0 | 2026-06-10 | Distance utilities moved to utils/distance; claimer name via getClaimerFirstName from utils/format |

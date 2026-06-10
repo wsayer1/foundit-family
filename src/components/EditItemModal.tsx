@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Loader2, Trash2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { useItemMutations } from '../hooks/useItemMutations';
 import type { ItemWithProfile } from '../types/database';
 
 interface EditItemModalProps {
@@ -11,6 +11,7 @@ interface EditItemModalProps {
 }
 
 export function EditItemModal({ item, onClose, onSaved, onDeleted }: EditItemModalProps) {
+  const { updateItemDescription, deleteItem } = useItemMutations();
   const [description, setDescription] = useState(item.description);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -26,12 +27,9 @@ export function EditItemModal({ item, onClose, onSaved, onDeleted }: EditItemMod
     setSaving(true);
     setError(null);
 
-    const { error: updateError } = await supabase
-      .from('items')
-      .update({ description: description.trim() })
-      .eq('id', item.id);
-
-    if (updateError) {
+    try {
+      await updateItemDescription(item.id, description.trim());
+    } catch {
       setError('Failed to save changes');
       setSaving(false);
       return;
@@ -44,12 +42,9 @@ export function EditItemModal({ item, onClose, onSaved, onDeleted }: EditItemMod
     setDeleting(true);
     setError(null);
 
-    const { error: deleteError } = await supabase
-      .from('items')
-      .delete()
-      .eq('id', item.id);
-
-    if (deleteError) {
+    try {
+      await deleteItem(item.id);
+    } catch {
       setError('Failed to delete item');
       setDeleting(false);
       setShowDeleteConfirm(false);

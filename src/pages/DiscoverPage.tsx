@@ -9,111 +9,23 @@ import { GuestHero, GuestBottomCTA } from '../components/GuestHero';
 import { FloatingAuthCard } from '../components/FloatingAuthCard';
 import { FloatingFilterDropdown } from '../components/FloatingFilterDropdown';
 import { FilterSidebar } from '../components/FilterSidebar';
-import { useItems, useCategories, useSiteStats, useAvailableItemCount, useRecentListings } from '../hooks/useItems';
+import { LogoBadge } from '../components/LogoBadge';
+import { PendingPostCard } from '../components/PendingPostCard';
+import type { PostingStatus } from '../components/PendingPostCard';
+import { useItems, useAvailableItemCount } from '../hooks/useItems';
+import { useCategories } from '../hooks/useCategories';
+import { useSiteStats, useRecentListings } from '../hooks/useSiteData';
+import { useItemMutations } from '../hooks/useItemMutations';
+import type { PendingPost } from '../hooks/useItemMutations';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
-import { supabase } from '../lib/supabase';
-import { dataURLtoBlob } from '../utils/image';
+import { capitalize } from '../utils/format';
 import { useFilters, DEFAULT_FILTERS } from '../contexts/FilterContext';
 import { PreviewCard, PreviewCardSkeleton } from '../components/PreviewCard';
 import { OnboardingGuide, useOnboardingVisible } from '../components/OnboardingGuide';
 import type { ItemWithProfile } from '../types/database';
 import type { DistanceFilter, TimeFilter, CategoryFilter, SortOption } from '../components/FilterBar';
-
-interface PendingPost {
-  imageData: string;
-  description: string;
-  latitude: number;
-  longitude: number;
-  category: string | null;
-  userId: string;
-}
-
-type PostingStatus = 'uploading' | 'success' | 'error';
-
-function PendingPostCard({
-  imageData,
-  description,
-  status,
-  error,
-}: {
-  imageData: string;
-  description: string;
-  status: PostingStatus;
-  error?: string;
-}) {
-  return (
-    <div className="bg-white dark:bg-stone-900 rounded-2xl overflow-hidden shadow-sm border border-stone-200/50 dark:border-stone-700/50 mb-4">
-      <div className="flex items-center gap-3 p-3">
-        <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-stone-100 dark:bg-stone-800">
-          <img
-            src={imageData}
-            alt="Posting"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-stone-800 dark:text-stone-200 font-medium text-sm line-clamp-2 leading-snug">
-            {description}
-          </p>
-          <div className="mt-2 flex items-center gap-2">
-            {status === 'uploading' && (
-              <>
-                <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full animate-pulse w-2/3" />
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
-                  <Loader2 size={12} className="animate-spin" />
-                  <span>Posting</span>
-                </div>
-              </>
-            )}
-            {status === 'success' && (
-              <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                  <Check size={12} />
-                </div>
-                <span>Posted successfully</span>
-              </div>
-            )}
-            {status === 'error' && (
-              <p className="text-xs text-red-500">{error || 'Failed to post'}</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const distanceOptions: { value: DistanceFilter; label: string }[] = [
-  { value: 'any', label: 'Any Distance' },
-  { value: '500', label: '500m' },
-  { value: '1000', label: '1 km' },
-  { value: '2000', label: '2 km' },
-  { value: '5000', label: '5 km' },
-  { value: '10000', label: '10 km' },
-  { value: '25000', label: '25 km' },
-];
-
-const timeOptions: { value: TimeFilter; label: string }[] = [
-  { value: '2h', label: 'Last 2 hours' },
-  { value: '8h', label: 'Last 8 hours' },
-  { value: '24h', label: 'Last 24 hours' },
-  { value: '48h', label: 'Last 48 hours' },
-  { value: 'week', label: 'Last week' },
-  { value: 'all', label: 'All time' },
-];
-
-const sortOptions: { value: SortOption; label: string }[] = [
-  { value: 'recent', label: 'Most Recent' },
-  { value: 'nearest', label: 'Nearest' },
-  { value: 'verified', label: 'Most Verified' },
-];
-
-function formatCategoryLabel(category: string): string {
-  return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-}
+import { distanceOptions, timeOptions, sortOptions } from '../components/FilterBar';
 
 export function DiscoverPage() {
   const navigate = useNavigate();
@@ -142,6 +54,7 @@ export function DiscoverPage() {
   const { stats } = useSiteStats(!!user);
   const { totalCount } = useAvailableItemCount(filters);
   const { items: recentListings, loading: recentLoading } = useRecentListings(3);
+  const { createItem } = useItemMutations();
 
   const handleRefresh = async () => {
     refresh();
@@ -153,35 +66,14 @@ export function DiscoverPage() {
     isPostingRef.current = true;
 
     try {
-      const blob = dataURLtoBlob(post.imageData);
-      const fileName = `${post.userId}/${Date.now()}.jpg`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('items')
-        .upload(fileName, blob, { contentType: 'image/jpeg' });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('items')
-        .getPublicUrl(fileName);
-
-      const { error: insertError } = await supabase.from('items').insert({
-        user_id: post.userId,
-        image_url: publicUrl,
-        description: post.description,
-        latitude: post.latitude,
-        longitude: post.longitude,
-        category: post.category,
-      });
-
-      if (insertError) throw insertError;
+      await createItem(post);
 
       setPostingStatus('success');
       refreshProfile();
 
       setTimeout(() => {
         setPendingPost(null);
+        isPostingRef.current = false;
         refresh();
       }, 1500);
     } catch (err) {
@@ -189,7 +81,7 @@ export function DiscoverPage() {
       setPostingError(err instanceof Error ? err.message : 'Failed to post');
       isPostingRef.current = false;
     }
-  }, [refresh, refreshProfile]);
+  }, [createItem, refresh, refreshProfile]);
 
   useEffect(() => {
     const state = routerLocation.state as { pendingPost?: PendingPost } | null;
@@ -237,7 +129,7 @@ export function DiscoverPage() {
 
   const categoryOptions: { value: string; label: string }[] = [
     { value: 'all', label: 'All Categories' },
-    ...categories.map((cat) => ({ value: cat, label: formatCategoryLabel(cat) })),
+    ...categories.map((cat) => ({ value: cat, label: capitalize(cat) })),
   ];
 
   const isLocationEnabled = permissionStatus === 'granted';
@@ -444,14 +336,7 @@ export function DiscoverPage() {
     <Layout>
       <div className="absolute top-0 left-0 right-0 z-40 safe-area-top">
         <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-          <Link to="/" state={{ fromLogo: true }} className="flex-shrink-0 bg-white dark:bg-stone-900 p-2 sm:p-2.5 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
-            <img
-              src="/foundit.family_logo_small_light_grey_bg.png"
-              alt="Foundit.Family"
-              className="h-7 sm:h-8 w-auto rounded-lg"
-            />
-            <span className="hidden sm:inline font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
-          </Link>
+          <LogoBadge hideWordmarkOnMobile />
           <div className="flex items-center gap-1.5 sm:gap-2 flex-1 justify-end lg:hidden">
             <FloatingFilterDropdown
               icon={<ArrowUpDown size={18} className="sm:w-5 sm:h-5" />}

@@ -51,7 +51,8 @@ Renders filter controls (Sort, Distance, Time, Category) in a vertical sidebar l
 
 ### Internal Dependencies
 
-- FilterBar types (DistanceFilter, TimeFilter, CategoryFilter, SortOption)
+- `FilterBar` - Types (`DistanceFilter`, `TimeFilter`, `CategoryFilter`, `SortOption`) and option arrays (`distanceOptions`, `timeOptions`, `sortOptions`) used to render the option lists
+- `capitalize` from `src/utils/format` - Formats category labels
 
 ### External Dependencies
 
@@ -67,3 +68,4 @@ Renders filter controls (Sort, Distance, Time, Category) in a vertical sidebar l
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0.0 | 2026-03-18 | Initial implementation for desktop sidebar layout |
+| 1.1.0 | 2026-06-10 | Option lists now imported from FilterBar; category labels formatted via `capitalize` from utils/format |

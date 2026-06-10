@@ -1,15 +1,18 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { MapPin, Clock, Tag, MapPinOff } from 'lucide-react';
 import { DiscoverMapView } from '../components/DiscoverMapView';
 import { BottomNav } from '../components/BottomNav';
 import { FloatingFilterDropdown } from '../components/FloatingFilterDropdown';
 import { MapStyleToggle } from '../components/MapStyleToggle';
-import { useMapItems, useCategories } from '../hooks/useItems';
+import { LogoBadge } from '../components/LogoBadge';
+import { useMapItems } from '../hooks/useMapItems';
+import { useCategories } from '../hooks/useCategories';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useFilters } from '../contexts/FilterContext';
 import type { TimeFilter, CategoryFilter } from '../components/FilterBar';
+import { timeOptions } from '../components/FilterBar';
+import { capitalize } from '../utils/format';
 
 const MAP_STYLE_STORAGE_KEY = 'foundit_map_style';
 
@@ -23,23 +26,13 @@ function getStoredMapStyle(): MapStyle | null {
   return null;
 }
 
-const timeOptions: { value: TimeFilter; label: string }[] = [
-  { value: '2h', label: 'Last 2 hours' },
-  { value: '8h', label: 'Last 8 hours' },
-  { value: '24h', label: 'Last 24 hours' },
-  { value: '48h', label: 'Last 48 hours' },
-  { value: 'week', label: 'Last week' },
-  { value: 'all', label: 'All time' },
-];
-
-function formatCategoryLabel(category: string): string {
-  return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-}
-
 export function MapPage() {
   const { user, loading: authLoading } = useAuth();
   const { location, requestLocation, checkPermission, permissionStatus, loading: locationLoading, setLocationEnabled } = useLocation();
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const userCoords = useMemo(
+    () => (location ? { lat: location.latitude, lng: location.longitude } : null),
+    [location]
+  );
   const { filters, setFilters } = useFilters();
   const mapFilters = useMemo(() => ({ ...filters, distance: 'any' as const }), [filters]);
   const { items } = useMapItems(userCoords, mapFilters, !!user, authLoading);
@@ -48,23 +41,13 @@ export function MapPage() {
 
   const categoryOptions: { value: string; label: string }[] = [
     { value: 'all', label: 'All Categories' },
-    ...categories.map((cat) => ({ value: cat, label: formatCategoryLabel(cat) })),
+    ...categories.map((cat) => ({ value: cat, label: capitalize(cat) })),
   ];
-
-  useEffect(() => {
-    if (location) {
-      setUserCoords({ lat: location.latitude, lng: location.longitude });
-    }
-  }, [location]);
 
   useEffect(() => {
     checkPermission().then((status) => {
       if (status === 'granted') {
-        requestLocation().then((coords) => {
-          if (coords) {
-            setUserCoords({ lat: coords.latitude, lng: coords.longitude });
-          }
-        });
+        requestLocation();
       }
     });
   }, [checkPermission, requestLocation]);
@@ -72,7 +55,6 @@ export function MapPage() {
   const handleEnableLocation = useCallback(async () => {
     const coords = await requestLocation(true);
     if (coords) {
-      setUserCoords({ lat: coords.latitude, lng: coords.longitude });
       setLocationEnabled(true);
     }
   }, [requestLocation, setLocationEnabled]);
@@ -101,14 +83,7 @@ export function MapPage() {
 
         <div className="absolute top-0 left-0 right-0 z-20 safe-area-top">
           <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-3 sm:px-4 pt-4">
-            <Link to="/" state={{ fromLogo: true }} className="flex-shrink-0 bg-white dark:bg-stone-900 p-2 sm:p-2.5 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center gap-2 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
-              <img
-                src="/foundit.family_logo_small_light_grey_bg.png"
-                alt="Foundit.Family"
-                className="h-7 sm:h-8 w-auto rounded-lg"
-              />
-              <span className="font-semibold text-stone-900 dark:text-white text-sm" style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}>foundit.family</span>
-            </Link>
+            <LogoBadge />
             <div className="flex items-center gap-2">
               <MapStyleToggle
                 style={mapStyle || 'dark'}

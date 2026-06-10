@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import type { ItemWithProfile } from '../types/database';
-import type { FilterState, DistanceFilter, TimeFilter, SortOption } from '../components/FilterBar';
-import { calculateRingDecay } from '../utils/time';
+import type { FilterState, DistanceFilter, SortOption } from '../components/FilterBar';
+import { calculateDistance } from '../utils/distance';
+import { ITEMS_WITH_PROFILES_SELECT, visibleItemsOrFilter, getTimeFilterDate, filterActiveItems } from './itemQueries';
 
 const ITEMS_PER_PAGE = 15;
 const GUEST_ITEMS_LIMIT = 6;
@@ -49,47 +50,8 @@ function setCachedItems(items: ItemWithProfile[], filters: FilterState, isAuthen
   }
 }
 
-function getTimeFilterDate(filter: TimeFilter): Date | null {
-  const now = new Date();
-  switch (filter) {
-    case '2h':
-      return new Date(now.getTime() - 2 * 60 * 60 * 1000);
-    case '8h':
-      return new Date(now.getTime() - 8 * 60 * 60 * 1000);
-    case '24h':
-      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    case '48h':
-      return new Date(now.getTime() - 48 * 60 * 60 * 1000);
-    case 'week':
-      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    default:
-      return null;
-  }
-}
-
 function getDistanceLimit(filter: DistanceFilter): number | null {
-  switch (filter) {
-    case '100':
-      return 100;
-    case '250':
-      return 250;
-    case '500':
-      return 500;
-    case '1000':
-      return 1000;
-    case '2000':
-      return 2000;
-    case '5000':
-      return 5000;
-    case '10000':
-      return 10000;
-    case '25000':
-      return 25000;
-    case '50000':
-      return 50000;
-    default:
-      return null;
-  }
+  return filter === 'any' ? null : Number(filter);
 }
 
 export function useItems(
@@ -107,21 +69,14 @@ export function useItems(
   const allItemsRef = useRef<ItemWithProfile[]>([]);
   const hasFetchedRef = useRef(false);
 
-  const itemsLimit = isAuthenticated ? ITEMS_PER_PAGE : GUEST_ITEMS_LIMIT;
-
   const applyClientFilters = useCallback(
     (data: ItemWithProfile[]): ItemWithProfile[] => {
-      let filtered = [...data];
-
-      filtered = filtered.filter((item) => {
-        const decay = calculateRingDecay(item.created_at, item.last_confirmed_at);
-        return decay > 0;
-      });
+      let filtered = filterActiveItems(data);
 
       const distanceLimit = getDistanceLimit(filters.distance);
       if (distanceLimit && userLocation) {
         filtered = filtered.filter((item) => {
-          const dist = getDistance(userLocation.lat, userLocation.lng, item.latitude, item.longitude);
+          const dist = calculateDistance(userLocation.lat, userLocation.lng, item.latitude, item.longitude);
           return dist <= distanceLimit;
         });
       }
@@ -143,8 +98,8 @@ export function useItems(
         case 'nearest':
           if (userLocation) {
             sorted.sort((a, b) => {
-              const distA = getDistance(userLocation.lat, userLocation.lng, a.latitude, a.longitude);
-              const distB = getDistance(userLocation.lat, userLocation.lng, b.latitude, b.longitude);
+              const distA = calculateDistance(userLocation.lat, userLocation.lng, a.latitude, a.longitude);
+              const distB = calculateDistance(userLocation.lat, userLocation.lng, b.latitude, b.longitude);
               return distA - distB;
             });
           }
@@ -162,6 +117,19 @@ export function useItems(
     [userLocation]
   );
 
+  const presentItems = useCallback((sorted: ItemWithProfile[], isAuth: boolean) => {
+    allItemsRef.current = sorted;
+    const limit = isAuth ? ITEMS_PER_PAGE : GUEST_ITEMS_LIMIT;
+    setItems(sorted.slice(0, limit));
+    if (!isAuth && sorted.length > GUEST_ITEMS_LIMIT) {
+      setHasMore(false);
+      setGuestLimitReached(true);
+    } else {
+      setHasMore(sorted.length > limit);
+      setGuestLimitReached(false);
+    }
+  }, []);
+
   const fetchItems = useCallback(
     async (useCache = true, forceAuth?: boolean) => {
       const effectiveAuth = forceAuth !== undefined ? forceAuth : isAuthenticated;
@@ -171,34 +139,19 @@ export function useItems(
       if (useCache) {
         const cached = getCachedItems(filters, effectiveAuth);
         if (cached) {
-          const filtered = applyClientFilters(cached);
-          const sorted = sortItems(filtered, filters.sort);
-          allItemsRef.current = sorted;
-          const limit = effectiveAuth ? ITEMS_PER_PAGE : GUEST_ITEMS_LIMIT;
-          setItems(sorted.slice(0, limit));
-          if (!effectiveAuth && sorted.length > GUEST_ITEMS_LIMIT) {
-            setHasMore(false);
-            setGuestLimitReached(true);
-          } else {
-            setHasMore(sorted.length > limit);
-            setGuestLimitReached(false);
-          }
+          const sorted = sortItems(applyClientFilters(cached), filters.sort);
+          presentItems(sorted, effectiveAuth);
+          hasFetchedRef.current = true;
           setLoading(false);
           return;
         }
       }
 
       try {
-        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-
         let query = supabase
           .from('items')
-          .select(`
-          *,
-          profiles!items_user_id_fkey (username, avatar_url),
-          claimer_profile:profiles!items_claimed_by_fkey (username, avatar_url)
-        `)
-          .or(`status.eq.available,and(status.eq.claimed,claimed_at.gte.${fortyEightHoursAgo})`)
+          .select(ITEMS_WITH_PROFILES_SELECT)
+          .or(visibleItemsOrFilter())
           .order('created_at', { ascending: false })
           .limit(INITIAL_FETCH_LIMIT);
 
@@ -214,18 +167,8 @@ export function useItems(
         const allData = data as ItemWithProfile[];
         setCachedItems(allData, filters, effectiveAuth);
 
-        const filtered = applyClientFilters(allData);
-        const sorted = sortItems(filtered, filters.sort);
-        allItemsRef.current = sorted;
-        const limit = effectiveAuth ? ITEMS_PER_PAGE : GUEST_ITEMS_LIMIT;
-        setItems(sorted.slice(0, limit));
-        if (!effectiveAuth && sorted.length > GUEST_ITEMS_LIMIT) {
-          setHasMore(false);
-          setGuestLimitReached(true);
-        } else {
-          setHasMore(sorted.length > limit);
-          setGuestLimitReached(false);
-        }
+        const sorted = sortItems(applyClientFilters(allData), filters.sort);
+        presentItems(sorted, effectiveAuth);
         hasFetchedRef.current = true;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch items');
@@ -233,7 +176,7 @@ export function useItems(
         setLoading(false);
       }
     },
-    [filters, applyClientFilters, sortItems, isAuthenticated]
+    [filters, applyClientFilters, sortItems, presentItems, isAuthenticated]
   );
 
   const loadMore = useCallback(() => {
@@ -263,173 +206,14 @@ export function useItems(
     if (authLoading || !hasFetchedRef.current) return;
     const cached = getCachedItems(filters, isAuthenticated);
     if (cached) {
-      const filtered = applyClientFilters(cached);
-      const sorted = sortItems(filtered, filters.sort);
-      allItemsRef.current = sorted;
-      setItems(sorted.slice(0, itemsLimit));
-      if (!isAuthenticated && sorted.length > GUEST_ITEMS_LIMIT) {
-        setHasMore(false);
-        setGuestLimitReached(true);
-      } else {
-        setHasMore(sorted.length > itemsLimit);
-        setGuestLimitReached(false);
-      }
+      const sorted = sortItems(applyClientFilters(cached), filters.sort);
+      presentItems(sorted, isAuthenticated);
     } else {
       fetchItems(false);
     }
   }, [filters.time, filters.category, filters.sort, filters.distance]);
 
   return { items, loading, loadingMore, error, hasMore, loadMore, refresh, guestLimitReached };
-}
-
-export function useUserItems(userId: string | undefined) {
-  const [items, setItems] = useState<ItemWithProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchUserItems = useCallback(async () => {
-    if (!userId) {
-      setItems([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    const { data } = await supabase
-      .from('items')
-      .select(`*, profiles!items_user_id_fkey (username, avatar_url)`)
-      .or(`user_id.eq.${userId},claimed_by.eq.${userId}`)
-      .order('created_at', { ascending: false });
-
-    setItems((data as ItemWithProfile[]) || []);
-    setLoading(false);
-  }, [userId]);
-
-  useEffect(() => {
-    fetchUserItems();
-  }, [fetchUserItems]);
-
-  return { items, loading, refresh: fetchUserItems };
-}
-
-function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371e3;
-  const phi1 = (lat1 * Math.PI) / 180;
-  const phi2 = (lat2 * Math.PI) / 180;
-  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
-  const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-
-export function formatDistance(meters: number): string {
-  if (meters < 1000) {
-    return `${Math.round(meters)}m`;
-  }
-  return `${(meters / 1000).toFixed(1)}km`;
-}
-
-export function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
-  return getDistance(lat1, lon1, lat2, lon2);
-}
-
-const PRIORITY_CATEGORIES = ['couch', 'chair', 'table', 'bookshelf', 'lamp', 'tv'];
-const MAX_CATEGORIES = 10;
-
-export function useCategories() {
-  const [categories, setCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchCategories = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await supabase
-        .from('items')
-        .select('category')
-        .eq('status', 'available')
-        .not('category', 'is', null);
-
-      if (data) {
-        const uniqueCategories = [...new Set(data.map((item) => item.category as string))];
-        const sortedCategories = uniqueCategories.sort((a, b) => {
-          const aIndex = PRIORITY_CATEGORIES.indexOf(a.toLowerCase());
-          const bIndex = PRIORITY_CATEGORIES.indexOf(b.toLowerCase());
-          if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-          if (aIndex !== -1) return -1;
-          if (bIndex !== -1) return 1;
-          return a.localeCompare(b);
-        });
-        setCategories(sortedCategories.slice(0, MAX_CATEGORIES));
-      }
-    } catch {
-      setCategories([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
-
-  return { categories, loading, refresh: fetchCategories };
-}
-
-export interface SiteStats {
-  totalItems: number;
-  totalUsers: number;
-  itemsThisWeek: number;
-}
-
-export function useSiteStats(skip = false) {
-  const [stats, setStats] = useState<SiteStats | null>(null);
-  const [loading, setLoading] = useState(!skip);
-
-  useEffect(() => {
-    if (skip) {
-      setLoading(false);
-      return;
-    }
-
-    async function fetchStats() {
-      try {
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-        const [itemsResult, usersResult, weekResult] = await Promise.all([
-          supabase.from('items').select('id', { count: 'exact', head: true }),
-          supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          supabase
-            .from('items')
-            .select('id', { count: 'exact', head: true })
-            .gte('created_at', oneWeekAgo.toISOString()),
-        ]);
-
-        setStats({
-          totalItems: itemsResult.count || 0,
-          totalUsers: usersResult.count || 0,
-          itemsThisWeek: weekResult.count || 0,
-        });
-      } catch {
-        setStats(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchStats();
-  }, [skip]);
-
-  return { stats, loading };
 }
 
 export function useAvailableItemCount(filters: FilterState) {
@@ -439,12 +223,10 @@ export function useAvailableItemCount(filters: FilterState) {
   useEffect(() => {
     async function fetchCount() {
       try {
-        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-
         let query = supabase
           .from('items')
           .select('id', { count: 'exact', head: true })
-          .or(`status.eq.available,and(status.eq.claimed,claimed_at.gte.${fortyEightHoursAgo})`);
+          .or(visibleItemsOrFilter());
 
         const timeFilterDate = getTimeFilterDate(filters.time);
         if (timeFilterDate) {
@@ -468,172 +250,4 @@ export function useAvailableItemCount(filters: FilterState) {
   }, [filters.time, filters.category]);
 
   return { totalCount, loading };
-}
-
-export interface FeaturedItem {
-  id: string;
-  image_url: string;
-  description: string;
-  category: string | null;
-  status: 'available' | 'claimed' | 'expired';
-  created_at: string;
-  profiles: {
-    username: string | null;
-    avatar_url: string | null;
-  } | null;
-}
-
-const FEATURED_SELECT = `
-  id, image_url, description, category, status, created_at,
-  profiles!items_user_id_fkey (username, avatar_url)
-`;
-
-export function useFeaturedItems(count = 4) {
-  const [items, setItems] = useState<FeaturedItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchFeaturedItems() {
-      try {
-        const { data: availableItems } = await supabase
-          .from('items')
-          .select(FEATURED_SELECT)
-          .eq('status', 'available')
-          .order('created_at', { ascending: false })
-          .limit(count);
-
-        if (availableItems && availableItems.length >= count) {
-          setItems(availableItems as FeaturedItem[]);
-          return;
-        }
-
-        const existingIds = (availableItems || []).map(i => i.id);
-        const remaining = count - (availableItems?.length || 0);
-
-        if (remaining > 0) {
-          let query = supabase
-            .from('items')
-            .select(FEATURED_SELECT)
-            .neq('status', 'available')
-            .order('created_at', { ascending: false })
-            .limit(remaining);
-
-          if (existingIds.length > 0) {
-            query = query.not('id', 'in', `(${existingIds.join(',')})`);
-          }
-
-          const { data: olderItems } = await query;
-
-          setItems([...(availableItems || []), ...(olderItems || [])] as FeaturedItem[]);
-        } else {
-          setItems((availableItems || []) as FeaturedItem[]);
-        }
-      } catch {
-        setItems([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchFeaturedItems();
-  }, [count]);
-
-  return { items, loading };
-}
-
-export function useRecentListings(count = 3) {
-  const [items, setItems] = useState<ItemWithProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchRecent() {
-      try {
-        const { data } = await supabase
-          .from('items')
-          .select(`
-            *,
-            profiles!items_user_id_fkey (username, avatar_url),
-            claimer_profile:profiles!items_claimed_by_fkey (username, avatar_url)
-          `)
-          .order('created_at', { ascending: false })
-          .limit(count);
-
-        setItems((data as ItemWithProfile[]) || []);
-      } catch {
-        setItems([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchRecent();
-  }, [count]);
-
-  return { items, loading };
-}
-
-export function useMapItems(
-  _userLocation: { lat: number; lng: number } | null,
-  filters: FilterState,
-  _isAuthenticated: boolean,
-  authLoading: boolean
-) {
-  const [items, setItems] = useState<ItemWithProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchItems = useCallback(async () => {
-    if (authLoading) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-
-      let query = supabase
-        .from('items')
-        .select(`
-          *,
-          profiles!items_user_id_fkey (username, avatar_url),
-          claimer_profile:profiles!items_claimed_by_fkey (username, avatar_url)
-        `)
-        .or(`status.eq.available,and(status.eq.claimed,claimed_at.gte.${fortyEightHoursAgo})`)
-        .order('created_at', { ascending: false });
-
-      const timeFilterDate = getTimeFilterDate(filters.time);
-      if (timeFilterDate) {
-        query = query.gte('created_at', timeFilterDate.toISOString());
-      }
-
-      if (filters.category && filters.category !== 'all') {
-        query = query.eq('category', filters.category);
-      }
-
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-
-      const allItems = (data as ItemWithProfile[]) || [];
-      const activeItems = allItems.filter((item) => {
-        const decay = calculateRingDecay(item.created_at, item.last_confirmed_at);
-        return decay > 0;
-      });
-      setItems(activeItems);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch items');
-    } finally {
-      setLoading(false);
-    }
-  }, [filters.time, filters.category, authLoading]);
-
-  useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
-
-  const refresh = useCallback(() => {
-    fetchItems();
-  }, [fetchItems]);
-
-  return { items, loading, error, refresh };
 }

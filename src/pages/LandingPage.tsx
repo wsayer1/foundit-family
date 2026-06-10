@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Camera, ThumbsUp, Users, ArrowRight, Sparkles, Heart, Recycle, CheckCircle2, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useSiteStats, useFeaturedItems } from '../hooks/useItems';
-import type { FeaturedItem } from '../hooks/useItems';
+import { useSiteStats, useFeaturedItems } from '../hooks/useSiteData';
+import type { FeaturedItem } from '../hooks/useSiteData';
 import { formatTimeAgo } from '../utils/time';
 
 interface LocationState {

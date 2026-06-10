@@ -57,3 +57,15 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
 - [Fixed onboarding and first-time experience friction: landing page redirect, auth tab colors, email form visibility, welcome banner, guest limit, onboarding guide]
   Prompt: "Go ahead and fix the onboarding and first-time experience friction."
   _2026-05-20 00:00 UTC_
+
+- [Wrote component docs: updated FeedbackModal/FilterBar/FilterSidebar/ItemCard docs, created 11 new docs, refreshed docs/README.md index]
+  Prompt: "A refactor session just modified/created many components and you must write the docs. UPDATE existing docs (FeedbackModal, FilterBar, FilterSidebar, ItemCard) and CREATE docs for LogoBadge, DescriptionEditor, DiscoverMapView, AuthBackgroundGrid, UserLocationMarker, LocationPermissionScreen, Settin [truncated]"
+  _2026-06-10 22:47 UTC_
+
+- [Audited codebase and delivered prioritized maintainability refactor plan]
+  Prompt: "I want to refactor this project to make it cleaner and easier to maintain. Before changing any code, audit the codebase and give me a plan. Look for the things that most hurt maintainability: files that are too long or doing too many unrelated things; the same logic duplicated in more than one place; compo [truncated]"
+  _2026-06-10 14:30 UTC_
+
+- [Executed high-impact refactor: fixed 3 latent bugs, fixed image descriptions (gemini-2.5-flash), removed dead code, deduped logic, split useItems.ts, broke up ItemDetailPage into hooks/components, extracted database calls into hooks, updated docs]
+  Prompt: "1. yes 2. high impact first 3. im not sure, i've noticed that image descriptions are no longer working, so let's keep it and fix it if we need to so that it works."
+  _2026-06-10 14:30 UTC_
