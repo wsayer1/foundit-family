@@ -69,3 +69,7 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
 - [Executed high-impact refactor: fixed 3 latent bugs, fixed image descriptions (gemini-2.5-flash), removed dead code, deduped logic, split useItems.ts, broke up ItemDetailPage into hooks/components, extracted database calls into hooks, updated docs]
   Prompt: "1. yes 2. high impact first 3. im not sure, i've noticed that image descriptions are no longer working, so let's keep it and fix it if we need to so that it works."
   _2026-06-10 14:30 UTC_
+
+- [Fixed all database security linter findings: definer views, function grants, storage listing policies, rate_limits RLS]
+  Prompt: "Fix the following security issues: Security Definer Views (public_items_view, public_profiles_view, public_profiles), Public Bucket Listing (avatars, items), 17 SECURITY DEFINER functions executable by anon/authenticated, rate_limits RLS enabled no policy" [truncated]
+  _2026-06-10 23:05 UTC_
