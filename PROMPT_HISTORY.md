@@ -73,3 +73,7 @@ A chronological log of all user prompts submitted to the Bolt Agent for this pro
 - [Fixed all database security linter findings: definer views, function grants, storage listing policies, rate_limits RLS]
   Prompt: "Fix the following security issues: Security Definer Views (public_items_view, public_profiles_view, public_profiles), Public Bucket Listing (avatars, items), 17 SECURITY DEFINER functions executable by anon/authenticated, rate_limits RLS enabled no policy" [truncated]
   _2026-06-10 23:05 UTC_
+
+- [Improved landing page: widened hero to nav width, added animated SVG icons to How It Works and More Than Just Finds sections, scroll-reveal and hover animations]
+  Prompt: "The landing page looks good, but it could be improved. For example: The width of the text in the hero section is narrower than the page navigation. Increase the width so it's the same width as this. Use animated SVGs for the How It Works cards and make them a little bit larger. Animate the SVGs f [truncated]"
+  _2026-06-11 00:35 UTC_

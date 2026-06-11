@@ -1,6 +1,15 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MapPin, Camera, ThumbsUp, Users, ArrowRight, Sparkles, Heart, Recycle, CheckCircle2, User } from 'lucide-react';
+import { MapPin, Camera, ArrowRight, Sparkles, CheckCircle2, User } from 'lucide-react';
+import {
+  AnimatedCameraIcon,
+  AnimatedMapPinIcon,
+  AnimatedThumbsUpIcon,
+  AnimatedHeartIcon,
+  AnimatedRecycleIcon,
+  AnimatedUsersIcon,
+} from '../components/LandingAnimatedIcons';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useAuth } from '../contexts/AuthContext';
 import { useSiteStats, useFeaturedItems } from '../hooks/useSiteData';
 import type { FeaturedItem } from '../hooks/useSiteData';
@@ -101,33 +110,41 @@ export function LandingPage() {
           <img
             src="https://images.pexels.com/photos/1006965/pexels-photo-1006965.jpeg?auto=compress&cs=tinysrgb&w=1920"
             alt="San Francisco skyline"
-            className="w-full h-full object-cover opacity-50 brightness-110"
+            className="w-full h-full object-cover opacity-50 brightness-110 animate-ken-burns"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-stone-950/30 via-stone-950/60 to-stone-950" />
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
+        <div className="relative w-full max-w-6xl mx-auto px-4 py-16 md:py-24">
+          <div>
+            <div
+              className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-up"
+            >
               <MapPin size={16} />
               <span>Made for San Francisco</span>
             </div>
 
             <h1
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
-              style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-fade-up"
+              style={{ fontFamily: "'Clash Display', system-ui, sans-serif", animationDelay: '0.1s' }}
             >
               Find Free Treasures
               <br />
               <span className="text-emerald-400">Across SF</span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-stone-300 mb-8 max-w-xl leading-relaxed">
+            <p
+              className="text-lg sm:text-xl text-stone-300 mb-8 max-w-2xl leading-relaxed animate-fade-up"
+              style={{ animationDelay: '0.2s' }}
+            >
               Discover curbside gems your neighbors are giving away. From vintage furniture to hidden treasures,
               one person's clutter is another's find.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+            <div
+              className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-up"
+              style={{ animationDelay: '0.3s' }}
+            >
               <button
                 onClick={handleEnterApp}
                 className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
@@ -146,7 +163,7 @@ export function LandingPage() {
             </div>
 
             {stats && (stats.totalItems > 0 || stats.totalUsers > 0) && (
-              <div className="flex flex-wrap gap-6 sm:gap-10">
+              <div className="flex flex-wrap gap-6 sm:gap-10 animate-fade-up" style={{ animationDelay: '0.45s' }}>
                 <div>
                   <div className="text-2xl sm:text-3xl font-bold text-white">
                     {stats.totalItems > 0 ? stats.totalItems.toLocaleString() : '0'}+
@@ -177,9 +194,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="py-20 md:py-32 bg-stone-950">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-16">
+      <section className="relative py-20 md:py-32 bg-stone-950 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative max-w-6xl mx-auto px-4">
+          <Reveal className="text-center mb-16">
             <h2
               className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4"
               style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}
@@ -189,26 +207,29 @@ export function LandingPage() {
             <p className="text-stone-400 text-lg max-w-2xl mx-auto">
               Join your SF neighbors in building a community of sharing and discovery
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid md:grid-cols-3 gap-8 md:gap-12">
             <FeatureCard
-              icon={<Camera size={28} />}
+              icon={<AnimatedCameraIcon size={40} />}
               title="Snap & Share"
               description="Spot something cool on the curb? Take a photo and share it with your neighborhood in seconds."
               step={1}
+              delay={0}
             />
             <FeatureCard
-              icon={<MapPin size={28} />}
+              icon={<AnimatedMapPinIcon size={40} />}
               title="Discover Nearby"
               description="Browse items posted by neighbors in real-time. Filter by distance, category, or freshness."
               step={2}
+              delay={120}
             />
             <FeatureCard
-              icon={<ThumbsUp size={28} />}
+              icon={<AnimatedThumbsUpIcon size={40} />}
               title="Confirm & Claim"
               description="Let others know if an item is still there. Claim items you've picked up to help the community."
               step={3}
+              delay={240}
             />
           </div>
         </div>
@@ -217,7 +238,7 @@ export function LandingPage() {
       <section className="py-20 md:py-32 bg-stone-900/50">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
+            <Reveal>
               <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Sparkles size={16} />
                 <span>Built for SF</span>
@@ -239,15 +260,15 @@ export function LandingPage() {
                 {SF_NEIGHBORHOODS.map((neighborhood) => (
                   <span
                     key={neighborhood}
-                    className="px-3 py-1.5 bg-stone-800/80 rounded-full text-sm text-stone-300 border border-stone-700"
+                    className="px-3 py-1.5 bg-stone-800/80 rounded-full text-sm text-stone-300 border border-stone-700 hover:border-emerald-500/50 hover:text-emerald-300 hover:-translate-y-0.5 transition-all duration-200 cursor-default"
                   >
                     {neighborhood}
                   </span>
                 ))}
               </div>
-            </div>
+            </Reveal>
 
-            <div className="relative">
+            <Reveal className="relative" delay={150}>
               {featuredLoading ? (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-4">
@@ -293,14 +314,14 @@ export function LandingPage() {
               <div className="absolute -bottom-4 left-0 bg-emerald-500 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-500/30">
                 All 100% Free
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
       <section className="py-20 md:py-32 bg-stone-950">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2
               className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4"
               style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}
@@ -310,30 +331,34 @@ export function LandingPage() {
             <p className="text-stone-400 text-lg max-w-2xl mx-auto">
               Join a movement that's good for your wallet and the planet
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid md:grid-cols-3 gap-8">
             <ValueCard
-              icon={<Heart size={24} />}
+              icon={<AnimatedHeartIcon size={36} />}
               title="Build Community"
               description="Connect with neighbors and discover the generous spirit of San Francisco."
+              delay={0}
             />
             <ValueCard
-              icon={<Recycle size={24} />}
+              icon={<AnimatedRecycleIcon size={36} />}
               title="Reduce Waste"
               description="Keep perfectly good items out of landfills by giving them a second life."
+              delay={120}
             />
             <ValueCard
-              icon={<Users size={24} />}
+              icon={<AnimatedUsersIcon size={36} />}
               title="Help Others"
               description="What you don't need might be exactly what someone else is looking for."
+              delay={240}
             />
           </div>
         </div>
       </section>
 
-      <section className="py-20 md:py-32 bg-gradient-to-b from-stone-900/50 to-stone-950">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+      <section className="relative py-20 md:py-32 bg-gradient-to-b from-stone-900/50 to-stone-950 overflow-hidden">
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[250px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <Reveal className="relative max-w-4xl mx-auto px-4 text-center">
           <h2
             className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6"
             style={{ fontFamily: "'Clash Display', system-ui, sans-serif" }}
@@ -359,7 +384,7 @@ export function LandingPage() {
               ? "Welcome back! Ready to explore?"
               : "No account required to browse. Create one when you're ready to post."}
           </p>
-        </div>
+        </Reveal>
       </section>
 
       <footer className="py-8 border-t border-stone-800">
@@ -394,23 +419,45 @@ export function LandingPage() {
   );
 }
 
+function Reveal({
+  children,
+  className,
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  const ref = useScrollReveal(delay);
+  return (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  );
+}
+
 function FeatureCard({
   icon,
   title,
   description,
   step,
+  delay,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   step: number;
+  delay: number;
 }) {
   return (
-    <div className="relative bg-stone-900/50 border border-stone-800 rounded-3xl p-8 hover:border-stone-700 transition-colors">
-      <div className="absolute -top-3 -left-3 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-sm font-bold">
+    <Reveal
+      delay={delay}
+      className="group relative bg-stone-900/50 border border-stone-800 rounded-3xl p-8 hover:border-emerald-500/40 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300"
+    >
+      <div className="absolute -top-3 -left-3 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-sm font-bold shadow-lg shadow-emerald-500/30">
         {step}
       </div>
-      <div className="bg-emerald-500/20 w-14 h-14 rounded-2xl flex items-center justify-center text-emerald-400 mb-6">
+      <div className="bg-emerald-500/20 w-20 h-20 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 group-hover:bg-emerald-500/30 group-hover:scale-105 transition-all duration-300">
         {icon}
       </div>
       <h3
@@ -420,7 +467,7 @@ function FeatureCard({
         {title}
       </h3>
       <p className="text-stone-400 leading-relaxed">{description}</p>
-    </div>
+    </Reveal>
   );
 }
 
@@ -428,14 +475,19 @@ function ValueCard({
   icon,
   title,
   description,
+  delay,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
+  delay: number;
 }) {
   return (
-    <div className="text-center p-6">
-      <div className="bg-emerald-500/20 w-14 h-14 rounded-2xl flex items-center justify-center text-emerald-400 mb-4 mx-auto">
+    <Reveal
+      delay={delay}
+      className="group text-center p-8 rounded-3xl hover:bg-stone-900/50 transition-colors duration-300"
+    >
+      <div className="bg-emerald-500/20 w-20 h-20 rounded-2xl flex items-center justify-center text-emerald-400 mb-5 mx-auto group-hover:bg-emerald-500/30 group-hover:scale-105 transition-all duration-300">
         {icon}
       </div>
       <h3
@@ -445,7 +497,7 @@ function ValueCard({
         {title}
       </h3>
       <p className="text-stone-400 text-sm leading-relaxed">{description}</p>
-    </div>
+    </Reveal>
   );
 }
 

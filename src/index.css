@@ -72,6 +72,102 @@
   }
 }
 
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ken-burns {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes flash-blink {
+  0%, 86%, 100% { opacity: 0; }
+  90%, 94% { opacity: 1; }
+}
+
+@keyframes pin-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes ripple-fade {
+  0% { transform: scale(0.5); opacity: 0.6; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes draw-check {
+  0%, 20% { stroke-dashoffset: 24; }
+  50%, 80% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes thumb-tilt {
+  0%, 30%, 100% { transform: rotate(0deg); }
+  45% { transform: rotate(-10deg); }
+  60% { transform: rotate(4deg); }
+  75% { transform: rotate(0deg); }
+}
+
+@keyframes heartbeat {
+  0%, 40%, 100% { transform: scale(1); }
+  10% { transform: scale(1.18); }
+  20% { transform: scale(1); }
+  28% { transform: scale(1.1); }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes gentle-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fade-up 0.7s ease-out forwards;
+}
+
+.animate-ken-burns {
+  animation: ken-burns 24s ease-out forwards;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-ken-burns,
+  .reveal,
+  [class*='icon-anim'] {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .custom-marker {
   cursor: grab;
 }

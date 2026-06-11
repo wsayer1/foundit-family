@@ -33,32 +33,37 @@ Logged-in users are automatically redirected to `/discover` regardless of the lo
 - "Enter App" primary button
 
 ### Hero Section
-- Full-viewport background with San Francisco skyline image
+- Full-viewport background with San Francisco skyline image (slow ken-burns zoom)
+- Hero text spans the full nav-width container (`max-w-6xl`), matching the header
 - "Made for San Francisco" badge
 - Main headline: "Find Free Treasures Across SF"
 - Subheadline explaining the value proposition
 - "Start Exploring" and "Create Account" CTAs
 - Live stats from the database (items shared, members, items this week)
+- Staggered fade-up entrance animations on badge, headline, paragraph, CTAs, and stats
 
 ### How It Works
-Three-step guide with icons:
-1. Snap & Share - Post items you find
-2. Discover Nearby - Browse local items
-3. Confirm & Claim - Verify and claim items
+Three-step guide with larger custom animated SVG icons (see `docs/components/LandingAnimatedIcons.md`):
+1. Snap & Share - animated camera (pulsing lens, flash blink)
+2. Discover Nearby - animated map pin (bounce with ground ripple)
+3. Confirm & Claim - animated thumbs-up (tilt with self-drawing checkmark)
+
+Cards have scroll-reveal entrances (staggered) and hover lift with an emerald glow.
 
 ### Your Neighborhood Section
 - Emphasizes SF-specific community focus
-- Lists popular SF neighborhoods as tags
+- Lists popular SF neighborhoods as tags (hover highlight and lift)
 - Grid of sample item images
+- Both columns reveal on scroll
 
 ### Values Section
-Highlights three key values:
-- Build Community
-- Reduce Waste
-- Help Others
+Highlights three key values with larger animated SVG icons:
+- Build Community (heartbeat heart)
+- Reduce Waste (rotating recycle arrows)
+- Help Others (bobbing people figures)
 
 ### Final CTA
-Repeats the primary call-to-action with "Enter App" button.
+Repeats the primary call-to-action with "Enter App" button over a soft emerald glow backdrop; content reveals on scroll.
 
 ### Footer
 - Logo
@@ -93,9 +98,11 @@ Logged-in User → / → Redirects to /discover (auth check)
 ### Internal Dependencies
 - `useAuth` - Authentication context for user state
 - `useSiteStats` - Hook for fetching live statistics
+- `useScrollReveal` - IntersectionObserver hook powering scroll-reveal animations
+- `LandingAnimatedIcons` - Animated SVG icons for feature and value cards
 
 ### External Dependencies
-- `lucide-react` - Icons (MapPin, Camera, ThumbsUp, etc.)
+- `lucide-react` - Icons (MapPin, Camera, ArrowRight, etc.)
 - `react-router-dom` - Navigation
 
 ## Stock Images Used
@@ -122,3 +129,4 @@ All images are from Pexels:
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0.0 | 2026-01-19 | Initial implementation |
+| 1.1.0 | 2026-06-11 | Widened hero to match nav width; replaced static icons with animated SVGs; added scroll-reveal, entrance animations, ken-burns hero, hover polish |

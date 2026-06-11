@@ -20,6 +20,7 @@ This directory contains documentation for all React components in `src/component
 | FloatingAuthCard | [docs/components/FloatingAuthCard.md](components/FloatingAuthCard.md) | [src/components/FloatingAuthCard.tsx](../src/components/FloatingAuthCard.tsx) |
 | ItemCard | [docs/components/ItemCard.md](components/ItemCard.md) | [src/components/ItemCard.tsx](../src/components/ItemCard.tsx) |
 | ItemDetailMap | [docs/components/ItemDetailMap.md](components/ItemDetailMap.md) | [src/components/ItemDetailMap.tsx](../src/components/ItemDetailMap.tsx) |
+| LandingAnimatedIcons | [docs/components/LandingAnimatedIcons.md](components/LandingAnimatedIcons.md) | [src/components/LandingAnimatedIcons.tsx](../src/components/LandingAnimatedIcons.tsx) |
 | LeaderboardSidebar | [docs/components/LeaderboardSidebar.md](components/LeaderboardSidebar.md) | [src/components/LeaderboardSidebar.tsx](../src/components/LeaderboardSidebar.tsx) |
 | LocationPermissionScreen | [docs/components/LocationPermissionScreen.md](components/LocationPermissionScreen.md) | [src/components/LocationPermissionScreen.tsx](../src/components/LocationPermissionScreen.tsx) |
 | LogoBadge | [docs/components/LogoBadge.md](components/LogoBadge.md) | [src/components/LogoBadge.tsx](../src/components/LogoBadge.tsx) |
