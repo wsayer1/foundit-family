@@ -153,6 +153,3 @@ export function AnimatedUsersIcon({ size = 36 }: IconProps) {
     </svg>
   );
 }
-
-
-export { AnimatedCameraIcon, AnimatedMapPinIcon, AnimatedThumbsUpIcon, AnimatedHeartIcon, AnimatedRecycleIcon, AnimatedUsersIcon }
