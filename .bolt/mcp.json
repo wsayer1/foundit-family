@@ -26,6 +26,9 @@
     },
     "attio": {
       "enabled": false
+    },
+    "miro": {
+      "enabled": true
     }
   }
 }
