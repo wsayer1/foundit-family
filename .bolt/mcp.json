@@ -18,17 +18,17 @@
     "shaders": {
       "enabled": false
     },
-    "slack": {
-      "enabled": false
-    },
-    "jira": {
-      "enabled": false
-    },
-    "attio": {
-      "enabled": false
-    },
     "miro": {
       "enabled": true
+    },
+    "mintlify": {
+      "enabled": false
+    },
+    "stripe": {
+      "enabled": false
+    },
+    "ordinal": {
+      "enabled": false
     }
   }
 }
